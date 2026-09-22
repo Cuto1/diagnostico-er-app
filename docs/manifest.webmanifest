@@ -1,0 +1,9 @@
+{
+  "name": "Diagnóstico E.R.",
+  "short_name": "Diagnóstico E.R.",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#eef5fd",
+  "theme_color": "#061a33",
+  "description": "Estudo, competição e acompanhamento dos Embaixadores do Rei."
+}
