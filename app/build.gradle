@@ -10,7 +10,7 @@ android {
         applicationId 'com.diagnosticoer.app'
         minSdk 24
         targetSdk 35
-        versionCode 12
-        versionName '1.9.1-icone-adaptativo'
+        versionCode 13
+        versionName '1.9.2-ranking-ao-vivo'
     }
 }
