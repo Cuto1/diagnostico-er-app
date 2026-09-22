@@ -1,0 +1,1 @@
+Teste de permissão de escrita para preparar o build do Diagnóstico E.R.
