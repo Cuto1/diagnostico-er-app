@@ -1,0 +1,178 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta http-equiv="Cache-Control" content="no-store">
+<title>Diagnóstico E.R. — Painel ADM</title>
+<style>
+:root{--navy:#061a33;--blue:#0b5ed7;--gold:#e3ad23;--bg:#eef5fd;--card:#fff;--text:#14253d;--muted:#6d83a1;--danger:#b4233b;--ok:#08724d}
+*{box-sizing:border-box}body{margin:0;font-family:Arial,Helvetica,sans-serif;background:var(--bg);color:var(--text)}button,input,select,textarea{font:inherit}
+.hidden{display:none!important}.topbar{background:linear-gradient(135deg,#061a33,#0b4d96);color:white;padding:16px;position:sticky;top:0;z-index:20;box-shadow:0 3px 14px #001a3430}.toprow{max-width:1180px;margin:auto;display:flex;align-items:center;gap:12px;justify-content:space-between}.brand{display:flex;align-items:center;gap:10px}.logo{width:42px;height:42px;border:2px solid var(--gold);border-radius:14px;display:grid;place-items:center;font-weight:900;color:var(--gold)}.brand h1{font-size:17px;margin:0}.brand small{opacity:.75}.wrap{max-width:1180px;margin:18px auto;padding:0 14px 80px}.login-shell{min-height:100vh;display:grid;place-items:center;padding:20px;background:linear-gradient(160deg,#041326,#0a3f83 60%,#0a61c8)}.login-card{width:min(100%,430px);background:white;border-radius:22px;padding:22px;box-shadow:0 25px 70px #00152e80;border-top:4px solid var(--gold)}.login-card h2{margin:0 0 6px;color:#0b2858}.login-card p{color:var(--muted);font-size:12px;line-height:1.5}.field{display:flex;flex-direction:column;gap:5px;margin-top:10px}.field label{font-size:10px;font-weight:900;color:#5b718e;letter-spacing:.04em}.field input,.field select,.field textarea{width:100%;border:1px solid #cbd9e9;border-radius:10px;padding:10px;background:#fff;color:var(--text)}textarea{min-height:92px;resize:vertical}.btn{border:0;border-radius:10px;padding:10px 13px;font-weight:900;cursor:pointer;background:#e8f0fb;color:#174d89}.btn.primary{background:var(--blue);color:white}.btn.danger{background:#ffedf0;color:var(--danger)}.btn.warn{background:#fff5d8;color:#7c5700}.btn.small{padding:7px 9px;font-size:11px}.btn:disabled{opacity:.55;cursor:not-allowed}.block{width:100%}.status{font-size:11px;margin-top:10px;color:var(--muted)}.status.bad{color:var(--danger)}.status.ok{color:var(--ok)}
+.tabs{display:flex;gap:8px;flex-wrap:wrap;margin:14px 0}.tab{border:0;border-radius:999px;padding:9px 13px;background:#dfeaf8;color:#355a86;font-weight:900;cursor:pointer}.tab.active{background:var(--navy);color:#fff}.panel{display:none}.panel.active{display:block}.cards{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}.card{background:var(--card);border-radius:16px;padding:14px;box-shadow:0 3px 16px #0b285810;border:1px solid #dde7f2}.metric strong{display:block;font-size:24px;color:#0c3971}.metric span{font-size:11px;color:var(--muted)}.section-head{display:flex;gap:10px;align-items:center;justify-content:space-between;margin:18px 0 10px}.section-head h2{margin:0;font-size:18px}.toolbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.toolbar input,.toolbar select{border:1px solid #cbd9e9;border-radius:10px;padding:9px;background:white}.table-wrap{overflow:auto;background:white;border-radius:14px;border:1px solid #dce6f0}.table{width:100%;border-collapse:collapse;min-width:780px}.table th,.table td{padding:10px;border-bottom:1px solid #edf2f7;text-align:left;font-size:12px;vertical-align:top}.table th{background:#f6f9fd;color:#55708e;font-size:10px;text-transform:uppercase;letter-spacing:.04em;position:sticky;top:0}.pill{display:inline-block;border-radius:999px;padding:4px 8px;background:#eaf3ff;color:#235f9d;font-size:10px;font-weight:900}.pill.ok{background:#e8f8ef;color:#08724d}.pill.off{background:#f3f3f3;color:#777}.actions{display:flex;gap:6px;flex-wrap:wrap}.muted{color:var(--muted);font-size:11px}.modal{position:fixed;inset:0;background:#00162a99;display:grid;place-items:center;padding:12px;z-index:50}.modal-card{width:min(100%,720px);max-height:92vh;overflow:auto;background:white;border-radius:18px;padding:16px}.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}.modal-head{display:flex;align-items:center;justify-content:space-between;gap:10px}.modal-head h3{margin:0}.close{border:0;background:#eef3fa;border-radius:10px;width:34px;height:34px;font-size:18px;cursor:pointer}.empty{padding:30px;text-align:center;color:var(--muted)}.notice{border-left:4px solid var(--blue);padding-left:10px}.notice.unpub{border-color:#aaa;opacity:.72}.danger-zone{border:1px solid #ffd6dd;background:#fff8f9}.avatar{width:34px;height:34px;border-radius:50%;object-fit:cover;background:#dce8f6;display:grid;place-items:center;font-weight:900;color:#315d8a}
+@media(max-width:850px){.cards{grid-template-columns:repeat(2,1fr)}.grid2{grid-template-columns:1fr}.brand small{display:none}}
+</style>
+</head>
+<body>
+<section id="loginView" class="login-shell">
+  <div class="login-card">
+    <div class="logo" style="margin-bottom:12px">ADM</div>
+    <h2>Painel administrativo</h2>
+    <p>Acesso restrito aos e-mails autorizados no Diagnóstico E.R.</p>
+    <div class="field"><label>E-MAIL</label><input id="loginEmail" type="email" autocomplete="email" placeholder="E-mail administrador"></div>
+    <div class="field"><label>SENHA</label><input id="loginPassword" type="password" autocomplete="current-password" placeholder="Sua senha"></div>
+    <button id="loginBtn" class="btn primary block" style="margin-top:14px" onclick="login()">Entrar</button>
+    <button class="btn block" style="margin-top:8px" onclick="recoverPassword()">Esqueci minha senha</button>
+    <div id="loginStatus" class="status"></div>
+  </div>
+</section>
+
+<section id="adminView" class="hidden">
+  <header class="topbar"><div class="toprow">
+    <div class="brand"><div class="logo">E.R.</div><div><h1>Diagnóstico E.R. — ADM</h1><small id="adminEmail"></small></div></div>
+    <button class="btn small" onclick="logout()">Sair</button>
+  </div></header>
+  <main class="wrap">
+    <div class="tabs">
+      <button class="tab active" data-panel="dashboard" onclick="openPanel('dashboard',this)">Resumo</button>
+      <button class="tab" data-panel="questions" onclick="openPanel('questions',this)">Questões</button>
+      <button class="tab" data-panel="notices" onclick="openPanel('notices',this)">Avisos</button>
+      <button class="tab" data-panel="users" onclick="openPanel('users',this)">Usuários</button>
+      <button class="tab" data-panel="ranking" onclick="openPanel('ranking',this)">Ranking</button>
+    </div>
+
+    <section id="dashboard" class="panel active">
+      <div class="cards">
+        <div class="card metric"><strong id="mQuestions">—</strong><span>questões ativas</span></div>
+        <div class="card metric"><strong id="mUsers">—</strong><span>contas</span></div>
+        <div class="card metric"><strong id="mProfiles">—</strong><span>perfis</span></div>
+        <div class="card metric"><strong id="mScores">—</strong><span>resultados</span></div>
+        <div class="card metric"><strong id="mNotices">—</strong><span>avisos</span></div>
+        <div class="card metric"><strong id="mVersion">—</strong><span>versão do conteúdo</span></div>
+        <div class="card metric"><strong id="mIntegrated">—</strong><span>questões integradas</span></div>
+      </div>
+      <div class="card" style="margin-top:14px"><strong>Status do banco</strong><p id="dbStatus" class="muted">Carregando...</p><button class="btn" onclick="loadDashboard()">Atualizar resumo</button></div>
+    </section>
+
+    <section id="questions" class="panel">
+      <div class="section-head"><h2>Banco de questões</h2><button class="btn primary" onclick="newQuestion()">+ Nova questão</button></div>
+      <div class="toolbar">
+        <input id="qSearch" placeholder="Buscar pergunta, seção ou ID" onkeydown="if(event.key==='Enter')loadQuestions()">
+        <select id="qExam"><option value="">Todas as provas</option><option>Lucas</option><option>CGB</option><option>Evangelhos</option><option value="Bratcher">Livro Missionário</option><option value="BWAH">Sempre Embaixador</option></select>
+        <button class="btn" onclick="loadQuestions()">Buscar</button>
+      </div>
+      <div class="table-wrap" style="margin-top:10px"><table class="table"><thead><tr><th>ID</th><th>Prova</th><th>Pergunta</th><th>Resposta</th><th>Status</th><th>Ações</th></tr></thead><tbody id="questionsBody"></tbody></table></div>
+      <div id="questionsStatus" class="status"></div>
+    </section>
+
+    <section id="notices" class="panel">
+      <div class="section-head"><h2>Avisos</h2><button class="btn primary" onclick="newNotice()">+ Novo aviso</button></div>
+      <div id="noticeList"></div>
+      <div id="noticesStatus" class="status"></div>
+    </section>
+
+    <section id="users" class="panel">
+      <div class="section-head"><h2>Usuários e perfis</h2><button class="btn" onclick="loadUsers()">Atualizar</button></div>
+      <div class="table-wrap"><table class="table"><thead><tr><th>Conta</th><th>Perfil</th><th>Embaixada/Igreja</th><th>Último acesso</th><th>Tentativas</th><th>Ações</th></tr></thead><tbody id="usersBody"></tbody></table></div>
+      <div id="usersStatus" class="status"></div>
+    </section>
+
+    <section id="ranking" class="panel">
+      <div class="section-head"><h2>Resultados do ranking</h2><div class="toolbar"><select id="rankExam" onchange="loadScores()"><option value="">Todas as provas</option><option>Lucas</option><option>CGB</option><option>Evangelhos</option><option value="Bratcher">Livro Missionário</option><option value="BWAH">Sempre Embaixador</option></select><button class="btn" onclick="loadScores()">Atualizar</button></div></div>
+      <div class="table-wrap"><table class="table"><thead><tr><th>Jogador</th><th>Prova</th><th>Nota</th><th>Percentual</th><th>Data</th><th>Ações</th></tr></thead><tbody id="scoresBody"></tbody></table></div>
+      <div class="card danger-zone" style="margin-top:14px"><strong>Zona de risco</strong><p class="muted">Apaga todas as pontuações do ranking. Não remove contas nem perfis.</p><button class="btn danger" onclick="resetScores()">Zerar todo o ranking</button></div>
+      <div id="scoresStatus" class="status"></div>
+    </section>
+  </main>
+</section>
+
+<div id="questionModal" class="modal hidden"><div class="modal-card">
+  <div class="modal-head"><h3 id="questionModalTitle">Questão</h3><button class="close" onclick="closeQuestion()">×</button></div>
+  <div class="grid2">
+    <div class="field"><label>ID</label><input id="qeId" placeholder="manual-..."></div>
+    <div class="field"><label>PROVA</label><select id="qeExam"><option>Lucas</option><option>CGB</option><option>Evangelhos</option><option value="Bratcher">Livro Missionário</option><option value="BWAH">Sempre Embaixador</option></select></div>
+    <div class="field"><label>NÚMERO</label><input id="qeNumber" type="number" min="1"></div>
+    <div class="field"><label>SEÇÃO</label><input id="qeSection"></div>
+  </div>
+  <div class="field"><label>PERGUNTA</label><textarea id="qeQuestion"></textarea></div>
+  <div class="grid2">
+    <div class="field"><label>ALTERNATIVA A</label><input id="qeA"></div>
+    <div class="field"><label>ALTERNATIVA B</label><input id="qeB"></div>
+    <div class="field"><label>ALTERNATIVA C</label><input id="qeC"></div>
+    <div class="field"><label>ALTERNATIVA D</label><input id="qeD"></div>
+    <div class="field"><label>GABARITO</label><select id="qeCorrect"><option value="0">A</option><option value="1">B</option><option value="2">C</option><option value="3">D</option></select></div>
+    <div class="field"><label>DIFICULDADE</label><select id="qeDifficulty"><option>Difícil</option><option>Média</option><option>Fácil</option></select></div>
+  </div>
+  <div class="field"><label>EXPLICAÇÃO</label><textarea id="qeExplanation"></textarea></div>
+  <div class="field"><label>REFERÊNCIA</label><input id="qeReference"></div>
+  <label style="display:flex;gap:8px;align-items:center;margin-top:12px;font-size:12px"><input id="qeActive" type="checkbox" checked> Questão ativa</label>
+  <button id="saveQuestionBtn" class="btn primary block" style="margin-top:14px" onclick="saveQuestion()">Salvar questão</button>
+  <div id="questionModalStatus" class="status"></div>
+</div></div>
+
+<div id="noticeModal" class="modal hidden"><div class="modal-card" style="max-width:560px">
+  <div class="modal-head"><h3 id="noticeModalTitle">Aviso</h3><button class="close" onclick="closeNotice()">×</button></div>
+  <input id="noticeId" type="hidden">
+  <div class="field"><label>TÍTULO</label><input id="noticeTitle"></div>
+  <div class="field"><label>TEXTO</label><textarea id="noticeBody"></textarea></div>
+  <label style="display:flex;gap:8px;align-items:center;margin-top:12px;font-size:12px"><input id="noticePublished" type="checkbox" checked> Publicado</label>
+  <button class="btn primary block" style="margin-top:14px" onclick="saveNotice()">Salvar aviso</button>
+  <div id="noticeModalStatus" class="status"></div>
+</div></div>
+
+<script>
+const SUPA='https://koracudeysqpanhjgmfm.supabase.co';
+const KEY='sb_publishable_za5LWbSnh8Qd6NODjsXnzA_P4GxQa3O';
+const $=id=>document.getElementById(id);
+let editingQuestionId='', questionRows=[], noticeRows=[];
+
+function esc(s){return String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
+function session(){try{return JSON.parse(localStorage.getItem('er_auth_session')||'null')}catch(e){return null}}
+function saveSession(d){localStorage.setItem('er_auth_session',JSON.stringify({access_token:d.access_token,refresh_token:d.refresh_token||'',expires_at:Date.now()+((Number(d.expires_in)||3600)*1000)-60000,user:d.user}))}
+function clearSession(){localStorage.removeItem('er_auth_session')}
+function authHeaders(){const s=session();return s?.access_token?{'Authorization':'Bearer '+s.access_token}:{}}
+function setStatus(id,msg,type=''){$(id).className='status '+type;$(id).textContent=msg}
+
+async function authPost(path,body){const r=await fetch(SUPA+path,{method:'POST',headers:{apikey:KEY,'Content-Type':'application/json'},body:JSON.stringify(body)});let data={};try{data=await r.json()}catch(e){}if(!r.ok)throw new Error(data.msg||data.message||data.error_description||data.error||'Falha de autenticação');return data}
+async function refreshSession(){const s=session();if(!s?.refresh_token)return null;try{const d=await authPost('/auth/v1/token?grant_type=refresh_token',{refresh_token:s.refresh_token});saveSession(d);return session()}catch(e){clearSession();return null}}
+async function ensureSession(){let s=session();if(!s)return null;if(s.expires_at&&Date.now()>s.expires_at)s=await refreshSession();return s}
+async function api(path,opts={}){let s=await ensureSession();if(!s?.access_token)throw new Error('Sessão expirada');opts.headers=Object.assign({apikey:KEY,'Authorization':'Bearer '+s.access_token},opts.headers||{});let r=await fetch(SUPA+path,opts);if(r.status===401){s=await refreshSession();if(s){opts.headers.Authorization='Bearer '+s.access_token;r=await fetch(SUPA+path,opts)}}if(!r.ok)throw new Error(await r.text());return r}
+async function rpc(name,body={}){const r=await api('/rest/v1/rpc/'+name,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});const t=await r.text();return t?JSON.parse(t):null}
+
+async function login(){const email=$('loginEmail').value.trim().toLowerCase(),password=$('loginPassword').value;if(!email||!password){setStatus('loginStatus','Informe e-mail e senha.','bad');return}$('loginBtn').disabled=true;setStatus('loginStatus','Entrando...');try{const d=await authPost('/auth/v1/token?grant_type=password',{email,password});saveSession(d);await enterAdmin()}catch(e){clearSession();setStatus('loginStatus','Acesso negado. Verifique sua conta administrativa e a senha.','bad')}finally{$('loginBtn').disabled=false}}
+async function recoverPassword(){const email=$('loginEmail').value.trim().toLowerCase();if(!email){setStatus('loginStatus','Digite seu e-mail primeiro.','bad');return}try{await authPost('/auth/v1/recover',{email,redirect_to:location.origin+'/diagnostico-er-app/'});setStatus('loginStatus','Se a conta existir, o e-mail de recuperação será enviado.','ok')}catch(e){setStatus('loginStatus','Não foi possível solicitar a recuperação.','bad')}}
+async function enterAdmin(){try{await rpc('admin_dashboard_stats');const s=session();$('adminEmail').textContent=s?.user?.email||'';$('loginView').classList.add('hidden');$('adminView').classList.remove('hidden');await loadDashboard()}catch(e){clearSession();$('adminView').classList.add('hidden');$('loginView').classList.remove('hidden');throw e}}
+async function logout(){try{const s=session();if(s?.access_token)await fetch(SUPA+'/auth/v1/logout',{method:'POST',headers:{apikey:KEY,Authorization:'Bearer '+s.access_token}})}catch(e){}clearSession();location.reload()}
+
+function openPanel(id,btn){document.querySelectorAll('.panel').forEach(x=>x.classList.toggle('active',x.id===id));document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('active',x===btn));if(id==='questions')loadQuestions();if(id==='notices')loadNotices();if(id==='users')loadUsers();if(id==='ranking')loadScores();}
+
+async function loadDashboard(){try{const d=await rpc('admin_dashboard_stats');$('mQuestions').textContent=d.questions_active;$('mUsers').textContent=d.users_total;$('mProfiles').textContent=d.profiles_total;$('mScores').textContent=d.scores_total;$('mNotices').textContent=d.notices_total;$('mVersion').textContent=typeof d.content_version==='object'?(d.content_version.version??JSON.stringify(d.content_version)):d.content_version;$('mIntegrated').textContent=d.questions_integrated;$('dbStatus').textContent=d.questions_integrated===0?'Banco sem questões integradas.':'Atenção: '+d.questions_integrated+' questão(ões) integrada(s) ainda existem.'}catch(e){$('dbStatus').textContent='Falha ao carregar: '+e.message}}
+
+function qLabel(e){return e==='Bratcher'?'Livro Missionário':e==='BWAH'?'Sempre Embaixador':e}
+async function loadQuestions(){setStatus('questionsStatus','Carregando...');try{const exam=$('qExam').value,term=$('qSearch').value.trim();let path='/rest/v1/questions?select=id,exam,number,section,question,options,correct_index,explanation,reference,active,difficulty&order=exam.asc,number.asc&limit=200';if(exam)path+='&exam=eq.'+encodeURIComponent(exam);if(term){const clean=term.replace(/[(),]/g,' ');path+='&or='+encodeURIComponent('(question.ilike.*'+clean+'*,section.ilike.*'+clean+'*,id.ilike.*'+clean+'*)')}const r=await api(path);questionRows=await r.json();$('questionsBody').innerHTML=questionRows.length?questionRows.map(q=>'<tr><td><b>'+esc(q.id)+'</b><div class="muted">#'+esc(q.number??'—')+'</div></td><td>'+esc(qLabel(q.exam))+'</td><td>'+esc(q.question).slice(0,250)+'</td><td>'+esc((q.options||[])[q.correct_index]||'')+'</td><td><span class="pill '+(q.active?'ok':'off')+'">'+(q.active?'Ativa':'Inativa')+'</span></td><td><div class="actions"><button class="btn small" onclick="editQuestion(\''+esc(q.id).replace(/&#39;/g,"\\'")+'\')">Editar</button><button class="btn danger small" onclick="deleteQuestion(\''+esc(q.id).replace(/&#39;/g,"\\'")+'\')">Excluir</button></div></td></tr>').join(''):'<tr><td colspan="6" class="empty">Nenhuma questão encontrada.</td></tr>';setStatus('questionsStatus',questionRows.length+' questão(ões) exibida(s).')}catch(e){setStatus('questionsStatus','Erro: '+e.message,'bad')}}
+function newQuestion(){editingQuestionId='';$('questionModalTitle').textContent='Nova questão';$('qeId').disabled=false;$('qeId').value='manual-'+Date.now();$('qeExam').value='CGB';$('qeNumber').value='';$('qeSection').value='';$('qeQuestion').value='';['qeA','qeB','qeC','qeD','qeExplanation','qeReference'].forEach(id=>$(id).value='');$('qeCorrect').value='0';$('qeDifficulty').value='Difícil';$('qeActive').checked=true;setStatus('questionModalStatus','');$('questionModal').classList.remove('hidden')}
+function editQuestion(id){const q=questionRows.find(x=>x.id===id);if(!q)return;editingQuestionId=id;$('questionModalTitle').textContent='Editar questão';$('qeId').value=q.id;$('qeId').disabled=true;$('qeExam').value=q.exam;$('qeNumber').value=q.number??'';$('qeSection').value=q.section||'';$('qeQuestion').value=q.question||'';$('qeA').value=q.options?.[0]||'';$('qeB').value=q.options?.[1]||'';$('qeC').value=q.options?.[2]||'';$('qeD').value=q.options?.[3]||'';$('qeCorrect').value=String(q.correct_index);$('qeDifficulty').value=q.difficulty||'Difícil';$('qeExplanation').value=q.explanation||'';$('qeReference').value=q.reference||'';$('qeActive').checked=!!q.active;setStatus('questionModalStatus','');$('questionModal').classList.remove('hidden')}
+function closeQuestion(){$('questionModal').classList.add('hidden')}
+async function bumpVersion(){return await rpc('admin_bump_content_version')}
+async function saveQuestion(){const opts=[$('qeA').value.trim(),$('qeB').value.trim(),$('qeC').value.trim(),$('qeD').value.trim()];const payload={id:$('qeId').value.trim(),exam:$('qeExam').value,number:$('qeNumber').value?Number($('qeNumber').value):null,section:$('qeSection').value.trim()||null,question:$('qeQuestion').value.trim(),options:opts,correct_index:Number($('qeCorrect').value),explanation:$('qeExplanation').value.trim()||null,reference:$('qeReference').value.trim()||null,active:$('qeActive').checked,difficulty:$('qeDifficulty').value,updated_at:new Date().toISOString()};if(!payload.id||!payload.question||opts.some(x=>!x)){setStatus('questionModalStatus','Preencha ID, pergunta e as quatro alternativas.','bad');return}$('saveQuestionBtn').disabled=true;setStatus('questionModalStatus','Salvando...');try{if(editingQuestionId){delete payload.id;await api('/rest/v1/questions?id=eq.'+encodeURIComponent(editingQuestionId),{method:'PATCH',headers:{'Content-Type':'application/json','Prefer':'return=minimal'},body:JSON.stringify(payload)})}else{await api('/rest/v1/questions',{method:'POST',headers:{'Content-Type':'application/json','Prefer':'return=minimal'},body:JSON.stringify(payload)})}const v=await bumpVersion();setStatus('questionModalStatus','Salvo. Versão do conteúdo: '+v,'ok');setTimeout(()=>{closeQuestion();loadQuestions();loadDashboard()},500)}catch(e){setStatus('questionModalStatus','Erro: '+e.message,'bad')}finally{$('saveQuestionBtn').disabled=false}}
+async function deleteQuestion(id){if(!confirm('Excluir definitivamente a questão '+id+'?'))return;try{await api('/rest/v1/questions?id=eq.'+encodeURIComponent(id),{method:'DELETE'});await bumpVersion();await loadQuestions();await loadDashboard()}catch(e){setStatus('questionsStatus','Erro ao excluir: '+e.message,'bad')}}
+
+async function loadNotices(){setStatus('noticesStatus','Carregando...');try{const r=await api('/rest/v1/notices?select=id,title,body,published,published_at,updated_at&order=published_at.desc&limit=100');noticeRows=await r.json();$('noticeList').innerHTML=noticeRows.length?noticeRows.map(n=>'<div class="card notice '+(n.published?'':'unpub')+'" style="margin-bottom:10px"><div class="section-head" style="margin:0"><div><strong>'+esc(n.title)+'</strong><div class="muted">'+new Date(n.published_at).toLocaleString('pt-BR')+' • '+(n.published?'Publicado':'Rascunho')+'</div></div><div class="actions"><button class="btn small" onclick="editNotice(\''+n.id+'\')">Editar</button><button class="btn danger small" onclick="deleteNotice(\''+n.id+'\')">Excluir</button></div></div><p style="white-space:pre-wrap">'+esc(n.body)+'</p></div>').join(''):'<div class="empty">Nenhum aviso.</div>';setStatus('noticesStatus',noticeRows.length+' aviso(s).')}catch(e){setStatus('noticesStatus','Erro: '+e.message,'bad')}}
+function newNotice(){$('noticeId').value='';$('noticeModalTitle').textContent='Novo aviso';$('noticeTitle').value='';$('noticeBody').value='';$('noticePublished').checked=true;setStatus('noticeModalStatus','');$('noticeModal').classList.remove('hidden')}
+function editNotice(id){const n=noticeRows.find(x=>x.id===id);if(!n)return;$('noticeId').value=id;$('noticeModalTitle').textContent='Editar aviso';$('noticeTitle').value=n.title;$('noticeBody').value=n.body;$('noticePublished').checked=!!n.published;setStatus('noticeModalStatus','');$('noticeModal').classList.remove('hidden')}
+function closeNotice(){$('noticeModal').classList.add('hidden')}
+async function saveNotice(){const id=$('noticeId').value,p={title:$('noticeTitle').value.trim(),body:$('noticeBody').value.trim(),published:$('noticePublished').checked,updated_at:new Date().toISOString()};if(!p.title||!p.body){setStatus('noticeModalStatus','Informe título e texto.','bad');return}try{if(id){await api('/rest/v1/notices?id=eq.'+id,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify(p)})}else{p.published_at=new Date().toISOString();await api('/rest/v1/notices',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(p)})}closeNotice();loadNotices();loadDashboard()}catch(e){setStatus('noticeModalStatus','Erro: '+e.message,'bad')}}
+async function deleteNotice(id){if(!confirm('Excluir este aviso?'))return;try{await api('/rest/v1/notices?id=eq.'+id,{method:'DELETE'});loadNotices();loadDashboard()}catch(e){setStatus('noticesStatus','Erro: '+e.message,'bad')}}
+
+async function loadUsers(){setStatus('usersStatus','Carregando...');try{const rows=await rpc('admin_list_users');$('usersBody').innerHTML=rows.length?rows.map(u=>'<tr><td><b>'+esc(u.email||'Sem e-mail')+'</b><div class="muted">'+new Date(u.created_at).toLocaleDateString('pt-BR')+'</div></td><td><div style="display:flex;gap:8px;align-items:center">'+(u.avatar_data?'<img class="avatar" src="'+esc(u.avatar_data)+'">':'<div class="avatar">'+esc((u.display_name||'?')[0])+'</div>')+'<b>'+esc(u.display_name||'Sem perfil')+'</b></div></td><td>'+esc(u.group_name||'—')+'</td><td>'+esc(u.last_sign_in_at?new Date(u.last_sign_in_at).toLocaleString('pt-BR'):'Nunca')+'</td><td>'+esc(u.attempts)+'</td><td><div class="actions"><button class="btn small" onclick="editUser(\''+u.user_id+'\',\''+encodeURIComponent(u.display_name||'')+'\',\''+encodeURIComponent(u.group_name||'')+'\')">Editar perfil</button><button class="btn danger small" onclick="deleteUser(\''+u.user_id+'\',\''+encodeURIComponent(u.email||'')+'\')">Excluir conta</button></div></td></tr>').join(''):'<tr><td colspan="6" class="empty">Nenhum usuário.</td></tr>';setStatus('usersStatus',rows.length+' conta(s).')}catch(e){setStatus('usersStatus','Erro: '+e.message,'bad')}}
+async function editUser(id,nameEnc,groupEnc){const name=prompt('Nome/apelido:',decodeURIComponent(nameEnc));if(name===null)return;const group=prompt('Embaixada/Igreja:',decodeURIComponent(groupEnc));if(group===null)return;try{const ok=await rpc('admin_update_profile',{p_user_id:id,p_name:name,p_group:group});if(!ok)alert('Essa conta ainda não possui perfil.');loadUsers()}catch(e){setStatus('usersStatus','Erro: '+e.message,'bad')}}
+async function deleteUser(id,emailEnc){const email=decodeURIComponent(emailEnc);if(!confirm('Excluir definitivamente a conta '+email+' e seus dados de perfil/ranking?'))return;try{await rpc('admin_delete_user',{p_user_id:id});loadUsers();loadDashboard()}catch(e){setStatus('usersStatus','Erro: '+e.message,'bad')}}
+
+async function loadScores(){setStatus('scoresStatus','Carregando...');try{const exam=$('rankExam').value||null,rows=await rpc('admin_list_scores',{p_exam:exam,p_limit:500});$('scoresBody').innerHTML=rows.length?rows.map(s=>'<tr><td><b>'+esc(s.display_name)+'</b><div class="muted">'+esc(s.group_name||'')+'</div></td><td>'+esc(qLabel(s.exam))+'</td><td>'+esc(s.score)+' / '+esc(s.total)+'</td><td><b>'+Number(s.pct).toFixed(1)+'%</b></td><td>'+new Date(s.completed_at).toLocaleString('pt-BR')+'</td><td><button class="btn danger small" onclick="deleteScore(\''+s.score_id+'\')">Excluir</button></td></tr>').join(''):'<tr><td colspan="6" class="empty">Nenhum resultado.</td></tr>';setStatus('scoresStatus',rows.length+' resultado(s) exibido(s).')}catch(e){setStatus('scoresStatus','Erro: '+e.message,'bad')}}
+async function deleteScore(id){if(!confirm('Excluir esta pontuação?'))return;try{await rpc('admin_delete_score',{p_score_id:id});loadScores();loadDashboard()}catch(e){setStatus('scoresStatus','Erro: '+e.message,'bad')}}
+async function resetScores(){if(!confirm('Tem certeza que deseja apagar TODAS as pontuações do ranking?'))return;if(!confirm('Confirma novamente? Esta ação não pode ser desfeita.'))return;try{const n=await rpc('admin_reset_scores');alert(n+' pontuação(ões) removida(s).');loadScores();loadDashboard()}catch(e){setStatus('scoresStatus','Erro: '+e.message,'bad')}}
+
+(async()=>{const s=await ensureSession();if(s){try{await enterAdmin()}catch(e){setStatus('loginStatus','A conta conectada não possui acesso administrativo.','bad')}}})();
+</script>
+</body>
+</html>
