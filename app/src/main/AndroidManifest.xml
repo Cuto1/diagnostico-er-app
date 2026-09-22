@@ -6,8 +6,8 @@
         android:usesCleartextTraffic="false"
         android:theme="@style/AppTheme"
         android:label="Diagnóstico E.R."
-        android:icon="@drawable/app_icon_new"
-        android:roundIcon="@drawable/app_icon_new">
+        android:icon="@mipmap/ic_launcher"
+        android:roundIcon="@mipmap/ic_launcher_round">
         <activity
             android:name=".MainActivity"
             android:exported="true"
