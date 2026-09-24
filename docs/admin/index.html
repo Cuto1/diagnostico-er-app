@@ -38,6 +38,7 @@
       <button class="tab" data-panel="questions" onclick="openPanel('questions',this)">Questões</button>
       <button class="tab" data-panel="spreadsheets" onclick="openPanel('spreadsheets',this)">Planilhas</button>
       <button class="tab" data-panel="notices" onclick="openPanel('notices',this)">Avisos</button>
+      <button class="tab" data-panel="materials" onclick="openPanel('materials',this)">Arquivos</button>
       <button class="tab" data-panel="competitions" onclick="openPanel('competitions',this)">Competições</button>
       <button class="tab" data-panel="chat" onclick="openPanel('chat',this)">Chat</button>
       <button class="tab" data-panel="users" onclick="openPanel('users',this)">Usuários</button>
@@ -108,6 +109,27 @@
       <div class="card" style="margin-bottom:12px"><strong>Canal de alertas</strong><p class="muted" style="margin-bottom:0">Ao publicar um novo aviso, os usuários conectados recebem um alerta em tempo real e o aviso fica marcado como não lido até ser aberto.</p></div>
       <div id="noticeList"></div>
       <div id="noticesStatus" class="status"></div>
+    </section>
+
+    <section id="materials" class="panel">
+      <div class="section-head"><h2>Materiais e arquivos</h2><button class="btn" onclick="loadMaterials()">Atualizar</button></div>
+      <div class="card">
+        <strong>Enviar material aos Embaixadores</strong>
+        <p class="muted">Arquivos ficam privados no Supabase e só podem ser abertos por usuários logados. Limite: 25 MB por arquivo.</p>
+        <div class="grid2">
+          <div class="field"><label>TÍTULO</label><input id="materialTitle" maxlength="120" placeholder="Ex.: Regulamento da competição"></div>
+          <div class="field"><label>ARQUIVO</label><input id="materialFile" type="file" accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.csv,.zip,.jpg,.jpeg,.png,.webp,.mp3,.m4a,.mp4"></div>
+        </div>
+        <div class="field"><label>DESCRIÇÃO (OPCIONAL)</label><textarea id="materialDescription" maxlength="1000" placeholder="Explique rapidamente o conteúdo do arquivo."></textarea></div>
+        <div class="actions" style="margin-top:12px">
+          <label style="display:flex;gap:7px;align-items:center;font-size:12px"><input id="materialPublished" type="checkbox" checked> Publicar no app</label>
+          <label style="display:flex;gap:7px;align-items:center;font-size:12px"><input id="materialNotify" type="checkbox" checked> Notificar os usuários</label>
+        </div>
+        <button id="uploadMaterialBtn" class="btn primary" style="margin-top:12px" onclick="uploadMaterial()">Enviar arquivo</button>
+        <div id="materialsStatus" class="status"></div>
+      </div>
+      <div class="section-head"><h2>Arquivos enviados</h2></div>
+      <div class="table-wrap"><table class="table"><thead><tr><th>Material</th><th>Arquivo</th><th>Tamanho</th><th>Status</th><th>Data</th><th>Ações</th></tr></thead><tbody id="materialsBody"></tbody></table></div>
     </section>
 
     <section id="competitions" class="panel">
@@ -191,7 +213,7 @@
 const SUPA='https://koracudeysqpanhjgmfm.supabase.co';
 const KEY='sb_publishable_za5LWbSnh8Qd6NODjsXnzA_P4GxQa3O';
 const $=id=>document.getElementById(id);
-let editingQuestionId='', questionRows=[], noticeRows=[], competitionRows=[];
+let editingQuestionId='', questionRows=[], noticeRows=[], competitionRows=[], materialRows=[];
 
 function esc(s){return String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
 function session(){try{return JSON.parse(localStorage.getItem('er_auth_session')||'null')}catch(e){return null}}
@@ -211,7 +233,7 @@ async function recoverPassword(){const email=$('loginEmail').value.trim().toLowe
 async function enterAdmin(){try{await rpc('admin_dashboard_stats');const s=session();$('adminEmail').textContent=s?.user?.email||'';$('loginView').classList.add('hidden');$('adminView').classList.remove('hidden');await loadDashboard()}catch(e){clearSession();$('adminView').classList.add('hidden');$('loginView').classList.remove('hidden');throw e}}
 async function logout(){try{const s=session();if(s?.access_token)await fetch(SUPA+'/auth/v1/logout',{method:'POST',headers:{apikey:KEY,Authorization:'Bearer '+s.access_token}})}catch(e){}clearSession();location.reload()}
 
-function openPanel(id,btn){document.querySelectorAll('.panel').forEach(x=>x.classList.toggle('active',x.id===id));document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('active',x===btn));if(id==='questions')loadQuestions();if(id==='notices')loadNotices();if(id==='competitions')loadCompetitions();if(id==='chat')loadAdminChat();if(id==='users')loadUsers();if(id==='ranking')loadScores();}
+function openPanel(id,btn){document.querySelectorAll('.panel').forEach(x=>x.classList.toggle('active',x.id===id));document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('active',x===btn));if(id==='questions')loadQuestions();if(id==='notices')loadNotices();if(id==='materials')loadMaterials();if(id==='competitions')loadCompetitions();if(id==='chat')loadAdminChat();if(id==='users')loadUsers();if(id==='ranking')loadScores();}
 
 async function loadDashboard(){try{const d=await rpc('admin_dashboard_stats');$('mQuestions').textContent=d.questions_active;$('mUsers').textContent=d.users_total;$('mProfiles').textContent=d.profiles_total;$('mScores').textContent=d.scores_total;$('mNotices').textContent=d.notices_total;$('mVersion').textContent=typeof d.content_version==='object'?(d.content_version.version??JSON.stringify(d.content_version)):d.content_version;$('mIntegrated').textContent=d.questions_integrated;$('dbStatus').textContent=d.questions_integrated===0?'Banco sem questões integradas.':'Atenção: '+d.questions_integrated+' questão(ões) integrada(s) ainda existem.'}catch(e){$('dbStatus').textContent='Falha ao carregar: '+e.message}}
 
@@ -299,6 +321,13 @@ function editNotice(id){const n=noticeRows.find(x=>x.id===id);if(!n)return;$('no
 function closeNotice(){$('noticeModal').classList.add('hidden')}
 async function saveNotice(){const id=$('noticeId').value,p={title:$('noticeTitle').value.trim(),body:$('noticeBody').value.trim(),published:$('noticePublished').checked,updated_at:new Date().toISOString()};if(!p.title||!p.body){setStatus('noticeModalStatus','Informe título e texto.','bad');return}try{if(id){await api('/rest/v1/notices?id=eq.'+id,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify(p)})}else{p.published_at=new Date().toISOString();await api('/rest/v1/notices',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(p)})}closeNotice();loadNotices();loadDashboard()}catch(e){setStatus('noticeModalStatus','Erro: '+e.message,'bad')}}
 async function deleteNotice(id){if(!confirm('Excluir este aviso?'))return;try{await api('/rest/v1/notices?id=eq.'+id,{method:'DELETE'});loadNotices();loadDashboard()}catch(e){setStatus('noticesStatus','Erro: '+e.message,'bad')}}
+
+function formatBytes(n){n=Number(n)||0;if(n<1024)return n+' B';if(n<1048576)return (n/1024).toFixed(1)+' KB';return (n/1048576).toFixed(1)+' MB'}
+async function materialsRequest(action,method='GET',body=null,isForm=false){let sess=await ensureSession();if(!sess?.access_token)throw new Error('Sessão expirada');const opts={method,headers:{apikey:KEY,Authorization:'Bearer '+sess.access_token}};if(body!==null){if(isForm)opts.body=body;else{opts.headers['Content-Type']='application/json';opts.body=JSON.stringify(body)}}let r=await fetch(SUPA+'/functions/v1/materials?action='+encodeURIComponent(action),opts);if(r.status===401){sess=await refreshSession();if(sess?.access_token){opts.headers.Authorization='Bearer '+sess.access_token;r=await fetch(SUPA+'/functions/v1/materials?action='+encodeURIComponent(action),opts)}}let data={};try{data=await r.json()}catch(e){}if(!r.ok)throw new Error(data.error||data.message||'Falha na operação com arquivo');return data}
+async function loadMaterials(){setStatus('materialsStatus','Carregando...');try{materialRows=await rpc('admin_list_materials');$('materialsBody').innerHTML=materialRows.length?materialRows.map(m=>'<tr><td><b>'+esc(m.title)+'</b><div class="muted">'+esc(m.description||'')+'</div></td><td>'+esc(m.original_name)+'</td><td>'+formatBytes(m.size_bytes)+'</td><td><span class="pill '+(m.published?'ok':'off')+'">'+(m.published?'Publicado':'Oculto')+'</span></td><td>'+new Date(m.created_at).toLocaleString('pt-BR')+'</td><td><div class="actions"><button class="btn small" onclick="toggleMaterial(\''+m.material_id+'\','+(!m.published)+')">'+(m.published?'Ocultar':'Publicar')+'</button><button class="btn danger small" onclick="deleteMaterial(\''+m.material_id+'\')">Excluir</button></div></td></tr>').join(''):'<tr><td colspan="6" class="empty">Nenhum material enviado.</td></tr>';setStatus('materialsStatus',materialRows.length+' arquivo(s).')}catch(e){setStatus('materialsStatus','Erro: '+e.message,'bad')}}
+async function uploadMaterial(){const file=$('materialFile').files&&$('materialFile').files[0],title=$('materialTitle').value.trim()||(file?file.name.replace(/\.[^.]+$/,''):'');if(!file){setStatus('materialsStatus','Selecione um arquivo.','bad');return}if(file.size>25*1024*1024){setStatus('materialsStatus','O arquivo excede 25 MB.','bad');return}if(title.length<2){setStatus('materialsStatus','Informe um título.','bad');return}const fd=new FormData();fd.append('file',file,file.name);fd.append('title',title);fd.append('description',$('materialDescription').value.trim());fd.append('published',String($('materialPublished').checked));fd.append('notify',String($('materialNotify').checked));$('uploadMaterialBtn').disabled=true;setStatus('materialsStatus','Enviando '+file.name+'...');try{await materialsRequest('upload','POST',fd,true);$('materialTitle').value='';$('materialDescription').value='';$('materialFile').value='';setStatus('materialsStatus','Arquivo enviado com sucesso.','ok');await loadMaterials();await loadNotices();await loadDashboard()}catch(e){setStatus('materialsStatus','Erro: '+e.message,'bad')}finally{$('uploadMaterialBtn').disabled=false}}
+async function toggleMaterial(id,published){try{await rpc('admin_set_material_published',{p_material_id:id,p_published:published});await loadMaterials()}catch(e){setStatus('materialsStatus','Erro: '+e.message,'bad')}}
+async function deleteMaterial(id){if(!confirm('Excluir definitivamente este arquivo da plataforma?'))return;try{await materialsRequest('delete','DELETE',{id});await loadMaterials()}catch(e){setStatus('materialsStatus','Erro: '+e.message,'bad')}}
 
 function formatCompetitionDate(v){if(!v)return '—';const [y,m,d]=String(v).split('-').map(Number);return new Date(y,m-1,d).toLocaleDateString('pt-BR')}
 async function loadCompetitions(){setStatus('competitionsStatus','Carregando...');try{competitionRows=await rpc('admin_list_competitions');$('competitionsBody').innerHTML=competitionRows.length?competitionRows.map(c=>'<tr><td><b>'+esc(c.title)+'</b></td><td>'+formatCompetitionDate(c.event_date)+'</td><td>'+esc(c.location||'—')+'</td><td><span class="pill '+(c.published?'ok':'off')+'">'+(c.published?'Publicado':'Oculto')+'</span></td><td><div class="actions"><button class="btn small" onclick="editCompetition(\''+c.competition_id+'\')">Editar</button><button class="btn danger small" onclick="deleteCompetition(\''+c.competition_id+'\')">Excluir</button></div></td></tr>').join(''):'<tr><td colspan="5" class="empty">Nenhuma competição cadastrada.</td></tr>';setStatus('competitionsStatus',competitionRows.length+' competição(ões).')}catch(e){setStatus('competitionsStatus','Erro: '+e.message,'bad')}}
