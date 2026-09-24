@@ -38,6 +38,7 @@
       <button class="tab" data-panel="questions" onclick="openPanel('questions',this)">Questões</button>
       <button class="tab" data-panel="spreadsheets" onclick="openPanel('spreadsheets',this)">Planilhas</button>
       <button class="tab" data-panel="notices" onclick="openPanel('notices',this)">Avisos</button>
+      <button class="tab" data-panel="competitions" onclick="openPanel('competitions',this)">Competições</button>
       <button class="tab" data-panel="users" onclick="openPanel('users',this)">Usuários</button>
       <button class="tab" data-panel="ranking" onclick="openPanel('ranking',this)">Ranking</button>
     </div>
@@ -107,6 +108,16 @@
       <div id="noticesStatus" class="status"></div>
     </section>
 
+    <section id="competitions" class="panel">
+      <div class="section-head"><h2>Competições</h2><button class="btn primary" onclick="newCompetition()">+ Nova competição</button></div>
+      <div class="card" style="margin-bottom:12px">
+        <strong>Contagem regressiva no app</strong>
+        <p class="muted" style="margin-bottom:0">O aplicativo mostra automaticamente a próxima competição publicada cuja data ainda não passou. Você pode manter várias datas cadastradas.</p>
+      </div>
+      <div class="table-wrap"><table class="table"><thead><tr><th>Competição</th><th>Data</th><th>Local</th><th>Status</th><th>Ações</th></tr></thead><tbody id="competitionsBody"></tbody></table></div>
+      <div id="competitionsStatus" class="status"></div>
+    </section>
+
     <section id="users" class="panel">
       <div class="section-head"><h2>Usuários e perfis</h2><button class="btn" onclick="loadUsers()">Atualizar</button></div>
       <div class="table-wrap"><table class="table"><thead><tr><th>Conta</th><th>Perfil</th><th>Embaixada/Igreja</th><th>Último acesso</th><th>Tentativas</th><th>Ações</th></tr></thead><tbody id="usersBody"></tbody></table></div>
@@ -156,11 +167,22 @@
   <div id="noticeModalStatus" class="status"></div>
 </div></div>
 
+<div id="competitionModal" class="modal hidden"><div class="modal-card" style="max-width:560px">
+  <div class="modal-head"><h3 id="competitionModalTitle">Competição</h3><button class="close" onclick="closeCompetition()">×</button></div>
+  <input id="competitionId" type="hidden">
+  <div class="field"><label>NOME DA COMPETIÇÃO</label><input id="competitionTitle" maxlength="100" placeholder="Ex.: Competição Estadual de Embaixadores"></div>
+  <div class="field"><label>DATA</label><input id="competitionDate" type="date"></div>
+  <div class="field"><label>LOCAL (OPCIONAL)</label><input id="competitionLocation" maxlength="160" placeholder="Ex.: Igreja Batista Nova Aurora"></div>
+  <label style="display:flex;gap:8px;align-items:center;margin-top:12px;font-size:12px"><input id="competitionPublished" type="checkbox" checked> Mostrar esta competição no app</label>
+  <button id="saveCompetitionBtn" class="btn primary block" style="margin-top:14px" onclick="saveCompetition()">Salvar competição</button>
+  <div id="competitionModalStatus" class="status"></div>
+</div></div>
+
 <script>
 const SUPA='https://koracudeysqpanhjgmfm.supabase.co';
 const KEY='sb_publishable_za5LWbSnh8Qd6NODjsXnzA_P4GxQa3O';
 const $=id=>document.getElementById(id);
-let editingQuestionId='', questionRows=[], noticeRows=[];
+let editingQuestionId='', questionRows=[], noticeRows=[], competitionRows=[];
 
 function esc(s){return String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
 function session(){try{return JSON.parse(localStorage.getItem('er_auth_session')||'null')}catch(e){return null}}
@@ -180,7 +202,7 @@ async function recoverPassword(){const email=$('loginEmail').value.trim().toLowe
 async function enterAdmin(){try{await rpc('admin_dashboard_stats');const s=session();$('adminEmail').textContent=s?.user?.email||'';$('loginView').classList.add('hidden');$('adminView').classList.remove('hidden');await loadDashboard()}catch(e){clearSession();$('adminView').classList.add('hidden');$('loginView').classList.remove('hidden');throw e}}
 async function logout(){try{const s=session();if(s?.access_token)await fetch(SUPA+'/auth/v1/logout',{method:'POST',headers:{apikey:KEY,Authorization:'Bearer '+s.access_token}})}catch(e){}clearSession();location.reload()}
 
-function openPanel(id,btn){document.querySelectorAll('.panel').forEach(x=>x.classList.toggle('active',x.id===id));document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('active',x===btn));if(id==='questions')loadQuestions();if(id==='notices')loadNotices();if(id==='users')loadUsers();if(id==='ranking')loadScores();}
+function openPanel(id,btn){document.querySelectorAll('.panel').forEach(x=>x.classList.toggle('active',x.id===id));document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('active',x===btn));if(id==='questions')loadQuestions();if(id==='notices')loadNotices();if(id==='competitions')loadCompetitions();if(id==='users')loadUsers();if(id==='ranking')loadScores();}
 
 async function loadDashboard(){try{const d=await rpc('admin_dashboard_stats');$('mQuestions').textContent=d.questions_active;$('mUsers').textContent=d.users_total;$('mProfiles').textContent=d.profiles_total;$('mScores').textContent=d.scores_total;$('mNotices').textContent=d.notices_total;$('mVersion').textContent=typeof d.content_version==='object'?(d.content_version.version??JSON.stringify(d.content_version)):d.content_version;$('mIntegrated').textContent=d.questions_integrated;$('dbStatus').textContent=d.questions_integrated===0?'Banco sem questões integradas.':'Atenção: '+d.questions_integrated+' questão(ões) integrada(s) ainda existem.'}catch(e){$('dbStatus').textContent='Falha ao carregar: '+e.message}}
 
@@ -268,6 +290,14 @@ function editNotice(id){const n=noticeRows.find(x=>x.id===id);if(!n)return;$('no
 function closeNotice(){$('noticeModal').classList.add('hidden')}
 async function saveNotice(){const id=$('noticeId').value,p={title:$('noticeTitle').value.trim(),body:$('noticeBody').value.trim(),published:$('noticePublished').checked,updated_at:new Date().toISOString()};if(!p.title||!p.body){setStatus('noticeModalStatus','Informe título e texto.','bad');return}try{if(id){await api('/rest/v1/notices?id=eq.'+id,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify(p)})}else{p.published_at=new Date().toISOString();await api('/rest/v1/notices',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(p)})}closeNotice();loadNotices();loadDashboard()}catch(e){setStatus('noticeModalStatus','Erro: '+e.message,'bad')}}
 async function deleteNotice(id){if(!confirm('Excluir este aviso?'))return;try{await api('/rest/v1/notices?id=eq.'+id,{method:'DELETE'});loadNotices();loadDashboard()}catch(e){setStatus('noticesStatus','Erro: '+e.message,'bad')}}
+
+function formatCompetitionDate(v){if(!v)return '—';const [y,m,d]=String(v).split('-').map(Number);return new Date(y,m-1,d).toLocaleDateString('pt-BR')}
+async function loadCompetitions(){setStatus('competitionsStatus','Carregando...');try{competitionRows=await rpc('admin_list_competitions');$('competitionsBody').innerHTML=competitionRows.length?competitionRows.map(c=>'<tr><td><b>'+esc(c.title)+'</b></td><td>'+formatCompetitionDate(c.event_date)+'</td><td>'+esc(c.location||'—')+'</td><td><span class="pill '+(c.published?'ok':'off')+'">'+(c.published?'Publicado':'Oculto')+'</span></td><td><div class="actions"><button class="btn small" onclick="editCompetition(\''+c.competition_id+'\')">Editar</button><button class="btn danger small" onclick="deleteCompetition(\''+c.competition_id+'\')">Excluir</button></div></td></tr>').join(''):'<tr><td colspan="5" class="empty">Nenhuma competição cadastrada.</td></tr>';setStatus('competitionsStatus',competitionRows.length+' competição(ões).')}catch(e){setStatus('competitionsStatus','Erro: '+e.message,'bad')}}
+function newCompetition(){$('competitionId').value='';$('competitionModalTitle').textContent='Nova competição';$('competitionTitle').value='';$('competitionDate').value='';$('competitionLocation').value='';$('competitionPublished').checked=true;setStatus('competitionModalStatus','');$('competitionModal').classList.remove('hidden')}
+function editCompetition(id){const c=competitionRows.find(x=>x.competition_id===id);if(!c)return;$('competitionId').value=id;$('competitionModalTitle').textContent='Editar competição';$('competitionTitle').value=c.title||'';$('competitionDate').value=c.event_date||'';$('competitionLocation').value=c.location||'';$('competitionPublished').checked=!!c.published;setStatus('competitionModalStatus','');$('competitionModal').classList.remove('hidden')}
+function closeCompetition(){$('competitionModal').classList.add('hidden')}
+async function saveCompetition(){const id=$('competitionId').value||null,title=$('competitionTitle').value.trim(),eventDate=$('competitionDate').value,location=$('competitionLocation').value.trim()||null,published=$('competitionPublished').checked;if(title.length<2){setStatus('competitionModalStatus','Informe o nome da competição.','bad');return}if(!eventDate){setStatus('competitionModalStatus','Informe a data da competição.','bad');return}$('saveCompetitionBtn').disabled=true;setStatus('competitionModalStatus','Salvando...');try{await rpc('admin_save_competition',{p_id:id,p_title:title,p_event_date:eventDate,p_location:location,p_published:published});closeCompetition();await loadCompetitions();setStatus('competitionsStatus','Competição salva. O app mostrará automaticamente a próxima data publicada.','ok')}catch(e){setStatus('competitionModalStatus','Erro: '+e.message,'bad')}finally{$('saveCompetitionBtn').disabled=false}}
+async function deleteCompetition(id){if(!confirm('Excluir esta competição?'))return;try{await rpc('admin_delete_competition',{p_id:id});await loadCompetitions()}catch(e){setStatus('competitionsStatus','Erro: '+e.message,'bad')}}
 
 async function loadUsers(){setStatus('usersStatus','Carregando...');try{const rows=await rpc('admin_list_users');$('usersBody').innerHTML=rows.length?rows.map(u=>'<tr><td><b>'+esc(u.email||'Sem e-mail')+'</b><div class="muted">'+new Date(u.created_at).toLocaleDateString('pt-BR')+'</div></td><td><div style="display:flex;gap:8px;align-items:center">'+(u.avatar_data?'<img class="avatar" src="'+esc(u.avatar_data)+'">':'<div class="avatar">'+esc((u.display_name||'?')[0])+'</div>')+'<b>'+esc(u.display_name||'Sem perfil')+'</b></div></td><td>'+esc(u.group_name||'—')+'</td><td>'+esc(u.last_sign_in_at?new Date(u.last_sign_in_at).toLocaleString('pt-BR'):'Nunca')+'</td><td>'+esc(u.attempts)+'</td><td><div class="actions"><button class="btn small" onclick="editUser(\''+u.user_id+'\',\''+encodeURIComponent(u.display_name||'')+'\',\''+encodeURIComponent(u.group_name||'')+'\')">Editar perfil</button><button class="btn danger small" onclick="deleteUser(\''+u.user_id+'\',\''+encodeURIComponent(u.email||'')+'\')">Excluir conta</button></div></td></tr>').join(''):'<tr><td colspan="6" class="empty">Nenhum usuário.</td></tr>';setStatus('usersStatus',rows.length+' conta(s).')}catch(e){setStatus('usersStatus','Erro: '+e.message,'bad')}}
 async function editUser(id,nameEnc,groupEnc){const name=prompt('Nome/apelido:',decodeURIComponent(nameEnc));if(name===null)return;const group=prompt('Embaixada/Igreja:',decodeURIComponent(groupEnc));if(group===null)return;try{const ok=await rpc('admin_update_profile',{p_user_id:id,p_name:name,p_group:group});if(!ok)alert('Essa conta ainda não possui perfil.');loadUsers()}catch(e){setStatus('usersStatus','Erro: '+e.message,'bad')}}
