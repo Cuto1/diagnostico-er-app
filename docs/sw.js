@@ -1,4 +1,4 @@
-const CACHE='diagnostico-er-web-v13-visual-layout-editor';
+const CACHE='diagnostico-er-web-v14-compact-hero';
 const ASSETS=['./','./index.html','./manifest.webmanifest'];
 
 self.addEventListener('install',event=>{
