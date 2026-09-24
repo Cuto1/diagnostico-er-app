@@ -1,4 +1,4 @@
-const CACHE='diagnostico-er-web-v19-performance-fix';
+const CACHE='diagnostico-er-web-v20-card-image-framing';
 const ASSETS=['./','./index.html','./manifest.webmanifest'];
 
 self.addEventListener('install',event=>{
