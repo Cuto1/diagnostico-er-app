@@ -1,4 +1,4 @@
-const CACHE='diagnostico-er-web-v9-chat-alerts';
+const CACHE='diagnostico-er-web-v10-materials';
 const ASSETS=['./','./index.html','./manifest.webmanifest'];
 
 self.addEventListener('install',event=>{
