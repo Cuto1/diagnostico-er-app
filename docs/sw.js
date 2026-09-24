@@ -1,4 +1,4 @@
-const CACHE='diagnostico-er-web-v5-one-attempt-per-study';
+const CACHE='diagnostico-er-web-v6-result-actions';
 const ASSETS=['./','./index.html','./manifest.webmanifest'];
 
 self.addEventListener('install',event=>{
