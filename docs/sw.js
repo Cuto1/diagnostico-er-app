@@ -1,4 +1,4 @@
-const CACHE='diagnostico-er-web-v6-result-actions';
+const CACHE='diagnostico-er-web-v7-competition-countdown';
 const ASSETS=['./','./index.html','./manifest.webmanifest'];
 
 self.addEventListener('install',event=>{
