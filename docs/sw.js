@@ -1,4 +1,4 @@
-const CACHE='diagnostico-er-web-v2-login';
+const CACHE='diagnostico-er-web-v3-ranking-realtime';
 const ASSETS=['./','./index.html','./manifest.webmanifest'];
 
 self.addEventListener('install',event=>{
