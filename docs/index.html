@@ -167,7 +167,37 @@ button,select{font:inherit}.hidden{display:none!important}.screen{display:none}.
   <div class="card"><strong>Classificação da prova</strong><p style="color:#6d83a1;font-size:11px;line-height:1.4">Critério: melhor percentual obtido nesta prova durante a semana.</p><div id="leaderboardList"><div class="empty">Carregando...</div></div></div>
 </div></section>
 
-<section id="notices" class="screen"><div class="toolbar"><button onclick="show('home')">←</button><strong>Avisos</strong><span>🔔</span></div><div class="wrap" id="noticeList"></div></section>
+<section id="notices" class="screen">
+  <div class="toolbar"><button onclick="show('home')">←</button><strong>Alertas e avisos</strong><span>🔔</span></div>
+  <div class="wrap">
+    <div class="card">
+      <strong>Notificações</strong>
+      <p class="muted" style="font-size:11px;line-height:1.45">Novos avisos do administrador aparecem em tempo real. No navegador, você também pode permitir alertas do sistema.</p>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button class="btn" onclick="enableBrowserAlerts()">Ativar alertas do navegador</button>
+        <button class="btn" onclick="markAllNoticesRead()">Marcar tudo como lido</button>
+      </div>
+      <div id="alertPermissionText" style="color:#6d83a1;font-size:10px;margin-top:8px"></div>
+    </div>
+    <div id="noticeList"></div>
+  </div>
+</section>
+
+<section id="chat" class="screen">
+  <div class="toolbar"><button onclick="show('home')">←</button><strong>Bate-papo</strong><span>💬</span></div>
+  <div class="wrap">
+    <div class="card">
+      <strong>Chat geral dos Embaixadores</strong>
+      <p style="color:#6d83a1;font-size:11px;line-height:1.45;margin-bottom:0">Converse com os usuários conectados. As mensagens ficam registradas e podem ser moderadas pelo administrador.</p>
+    </div>
+    <div id="chatList" class="chat-list"><div class="empty">Carregando mensagens...</div></div>
+    <div class="chat-compose">
+      <textarea id="chatInput" maxlength="500" placeholder="Escreva uma mensagem..." onkeydown="chatKeyDown(event)"></textarea>
+      <button id="chatSendBtn" class="btn primary" onclick="sendChatMessage()">Enviar</button>
+    </div>
+    <div id="chatStatus" style="color:#6d83a1;font-size:10px;margin-top:6px"></div>
+  </div>
+</section>
 
 <section id="history" class="screen"><div class="toolbar"><button onclick="show('home')">←</button><strong>Histórico</strong><span>🕘</span></div><div class="wrap" id="historyList"></div></section>
 
@@ -226,7 +256,9 @@ button,select{font:inherit}.hidden{display:none!important}.screen{display:none}.
   </div>
 </section>
 
-<nav id="bottomNav" class="bottom hidden"><button data-screen="home" class="active" onclick="show('home')"><b>⌂</b>Início</button><button data-screen="ranking" onclick="show('ranking')"><b>🏆</b>Ranking</button><button data-screen="status" onclick="show('status')"><b>📊</b>Status</button><button data-screen="notices" onclick="show('notices')"><b>🔔</b>Avisos</button><button data-screen="history" onclick="show('history')"><b>🕘</b>Histórico</button></nav>
+<nav id="bottomNav" class="bottom hidden"><button data-screen="home" class="active" onclick="show('home')"><b>⌂</b>Início</button><button data-screen="ranking" onclick="show('ranking')"><b>🏆</b>Ranking</button><button data-screen="status" onclick="show('status')"><b>📊</b>Status</button><button data-screen="chat" onclick="show('chat')"><b>💬</b>Chat</button><button data-screen="notices" onclick="show('notices')"><b>🔔</b>Alertas<span id="noticeBadge" class="nav-badge hidden">0</span></button><button data-screen="history" onclick="show('history')"><b>🕘</b>Histórico</button></nav>
+
+<div id="appToast" class="app-toast"><strong id="appToastTitle">Novo alerta</strong><div id="appToastBody"></div></div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
