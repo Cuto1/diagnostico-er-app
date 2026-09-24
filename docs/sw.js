@@ -1,4 +1,4 @@
-const CACHE='diagnostico-er-web-v16-responsive-hero';
+const CACHE='diagnostico-er-web-v17-hero-crop-fix';
 const ASSETS=['./','./index.html','./manifest.webmanifest'];
 
 self.addEventListener('install',event=>{
