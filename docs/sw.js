@@ -1,4 +1,4 @@
-const CACHE='diagnostico-er-web-v4-session-ranking-fix';
+const CACHE='diagnostico-er-web-v5-one-attempt-per-study';
 const ASSETS=['./','./index.html','./manifest.webmanifest'];
 
 self.addEventListener('install',event=>{
