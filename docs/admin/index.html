@@ -166,14 +166,14 @@
 
           <div class="card" style="margin-top:12px">
             <div class="section-head" style="margin-top:0">
-              <div><strong>Topo da tela inicial</strong><p class="muted" style="margin:4px 0 0">Deixe o topo compacto, com imagem de fundo, logo pequeno, escudo à direita e o card do usuário encaixado abaixo.</p></div>
+              <div><strong>Topo da tela inicial</strong><p class="muted" style="margin:4px 0 0">Deixe o topo compacto e responsivo. A imagem se ajusta automaticamente entre celular, app, tablet e web, mantendo o recorte sem deformar.</p></div>
               <button class="btn primary" onclick="applyCompactHeroPreset()">Aplicar topo compacto</button>
             </div>
             <div class="grid2">
               <div class="field"><label>MODELO DO TOPO</label><select id="layoutHeroStyle" onchange="previewBranding()"><option value="classic">Clássico centralizado</option><option value="compact">Compacto ilustrado</option></select></div>
               <div class="field"><label>ALINHAMENTO DO TEXTO</label><select id="layoutHeroAlign" onchange="previewBranding()"><option value="left">Esquerda</option><option value="center">Centro</option></select></div>
               <div class="field"><label>POSIÇÃO DA IMAGEM</label><select id="layoutHeroImagePosition" onchange="previewBranding()"><option value="center">Centro</option><option value="top">Topo</option><option value="bottom">Parte inferior</option><option value="left">Esquerda</option><option value="right">Direita</option></select></div>
-              <div class="field"><label>ALTURA DO TOPO: <span id="layoutHeroHeightText">210px</span></label><input id="layoutHeroHeight" type="range" min="145" max="360" value="210" oninput="$('layoutHeroHeightText').textContent=this.value+'px';previewBranding()"></div>
+              <div class="field"><label>ALTURA MÁXIMA DO TOPO: <span id="layoutHeroHeightText">210px</span></label><input id="layoutHeroHeight" type="range" min="145" max="360" value="210" oninput="$('layoutHeroHeightText').textContent=this.value+'px';previewBranding()"></div>
               <div class="field"><label>TAMANHO DO LOGO: <span id="layoutHeroLogoSizeText">42px</span></label><input id="layoutHeroLogoSize" type="range" min="30" max="70" value="42" oninput="$('layoutHeroLogoSizeText').textContent=this.value+'px';previewBranding()"></div>
               <div class="field"><label>TAMANHO DO ESCUDO: <span id="layoutHeroShieldSizeText">104px</span></label><input id="layoutHeroShieldSize" type="range" min="54" max="160" value="104" oninput="$('layoutHeroShieldSizeText').textContent=this.value+'px';previewBranding()"></div>
               <div class="field"><label>ESCURECIMENTO DA CAPA: <span id="layoutHeroOverlayText">42%</span></label><input id="layoutHeroOverlay" type="range" min="0" max="85" value="42" oninput="$('layoutHeroOverlayText').textContent=this.value+'%';previewBranding()"></div>
