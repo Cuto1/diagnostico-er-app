@@ -447,9 +447,9 @@ function startRankingAutoRefresh(){stopRankingAutoRefresh();startRankingRealtime
 function stopRankingAutoRefresh(){if(rankingAutoTimer){clearInterval(rankingAutoTimer);rankingAutoTimer=null}}
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&document.getElementById('ranking')?.classList.contains('active'))renderRanking()});
 window.addEventListener('focus',()=>{if(document.getElementById('ranking')?.classList.contains('active'))renderRanking()});
-window.addEventListener('online',()=>{syncNow(false);startRankingRealtime();if(document.getElementById('ranking')?.classList.contains('active'))renderRanking()});window.addEventListener('offline',()=>setSync('Offline — usando banco salvo','err'));
+window.addEventListener('online',()=>{syncNow(false);startRankingRealtime();startCommunityRealtime();if(document.getElementById('ranking')?.classList.contains('active'))renderRanking();if(document.getElementById('chat')?.classList.contains('active'))loadChat()});window.addEventListener('offline',()=>setSync('Offline — usando banco salvo','err'));
 async function migrateLocalAccountData(){if(!currentUid())return;for(const base of ['er_history','er_progress','er_score_queue']){const old=localStorage.getItem(base),target=userKey(base);if(old&&!localStorage.getItem(target)){localStorage.setItem(target,old);localStorage.removeItem(base)}}}
-async function afterLogin(){await migrateLocalAccountData();await loadMyProfile();refreshHome();renderNotices();$('bottomNav').classList.remove('hidden');const p=getPlayer();if(!p.name){openProfile('home')}else{show('home');syncNow(false)}}
+async function afterLogin(){await migrateLocalAccountData();await loadMyProfile();await loadNotices(false);startCommunityRealtime();refreshHome();renderNotices();$('bottomNav').classList.remove('hidden');const p=getPlayer();if(!p.name){openProfile('home')}else{show('home');syncNow(false)}}
 (async()=>{await qdb.open();consumeAuthHash();const sess=await ensureSession();if(sess?.user){await afterLogin()}else{setAuthMode('login');show('auth')}})();
 </script>
 <script>
