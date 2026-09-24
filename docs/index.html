@@ -161,7 +161,7 @@ button,select{font:inherit}.hidden{display:none!important}.screen{display:none}.
 const SUPA='https://koracudeysqpanhjgmfm.supabase.co';
 const KEY='sb_publishable_za5LWbSnh8Qd6NODjsXnzA_P4GxQa3O';
 const $=id=>document.getElementById(id);
-let selectedExam='',selectedLabel='',quiz=null,lastWrong=[],profileReturn='home',pendingAvatar='',currentRankExam='Lucas',authMode='login',rankingRefreshing=false,rankingAutoTimer=null,rankingRealtimeChannel=null;
+let selectedExam='',selectedLabel='',quiz=null,lastWrong=[],profileReturn='home',pendingAvatar='',currentRankExam='Lucas',authMode='login',rankingRefreshing=false,rankingAutoTimer=null,rankingRealtimeChannel=null,refreshPromise=null;
 const realtimeClient=window.supabase?window.supabase.createClient(SUPA,KEY,{auth:{persistSession:false,autoRefreshToken:false,detectSessionInUrl:false}}):null;
 
 function sessionData(){try{return JSON.parse(localStorage.getItem('er_auth_session')||'null')}catch(e){return null}}
@@ -172,7 +172,28 @@ function currentUid(){return currentUser()?.id||''}
 function userKey(base){const id=currentUid();return id?base+'_'+id:base+'_guest'}
 
 async function authFetch(path,body){const r=await fetch(SUPA+path,{method:'POST',headers:{'apikey':KEY,'Content-Type':'application/json'},body:JSON.stringify(body||{})});let data={};try{data=await r.json()}catch(e){}if(!r.ok)throw new Error(data.msg||data.message||data.error_description||data.error||'Falha de autenticação');return data}
-async function refreshSession(){const s=sessionData();if(!s?.refresh_token||!navigator.onLine)return s;try{const data=await authFetch('/auth/v1/token?grant_type=refresh_token',{refresh_token:s.refresh_token});saveSession(data);const fresh=sessionData();try{if(realtimeClient?.realtime&&fresh?.access_token)await realtimeClient.realtime.setAuth(fresh.access_token)}catch(e){}return fresh}catch(e){return s}}
+async function refreshSession(){
+  if(refreshPromise)return refreshPromise;
+  refreshPromise=(async()=>{
+    const s=sessionData();
+    if(!s?.refresh_token||!navigator.onLine)return s;
+    try{
+      const data=await authFetch('/auth/v1/token?grant_type=refresh_token',{refresh_token:s.refresh_token});
+      if(!saveSession(data))throw new Error('Não foi possível renovar a sessão');
+      return sessionData();
+    }catch(e){
+      const msg=String(e?.message||e||'');
+      if(/refresh token|refresh_token|invalid refresh/i.test(msg)){
+        clearSession();
+        return null;
+      }
+      return s;
+    }finally{
+      refreshPromise=null;
+    }
+  })();
+  return refreshPromise;
+}
 async function ensureSession(){let s=sessionData();if(!s)return null;if(navigator.onLine&&s.expires_at&&Date.now()>s.expires_at)s=await refreshSession();return s}
 function authHeaders(){const s=sessionData();return s?.access_token?{'Authorization':'Bearer '+s.access_token}:{}}
 
@@ -188,7 +209,24 @@ function setAvatarBox(boxId,imgId,initialId,avatar,name){const box=$(boxId),img=
 function getPlayer(){const u=currentUser();if(!u)return {id:'',name:'',group:'',avatar:''};try{const p=JSON.parse(localStorage.getItem(userKey('er_player'))||'null');return {id:u.id,name:p?.name||'',group:p?.group||'',avatar:p?.avatar||''}}catch(e){return {id:u.id,name:'',group:'',avatar:''}}}
 function putPlayer(p){if(!currentUid())return;localStorage.setItem(userKey('er_player'),JSON.stringify({id:currentUid(),name:p.name||'',group:p.group||'',avatar:p.avatar||''}))}
 
-async function protectedApi(path,opts={}){const sess=await ensureSession();if(!sess?.access_token)throw new Error('Sessão expirada. Entre novamente.');opts.headers=Object.assign({},headers(),{'Authorization':'Bearer '+sess.access_token},opts.headers||{});const r=await fetch(SUPA+path,opts);if(r.status===401){const refreshed=await refreshSession();if(refreshed?.access_token){opts.headers['Authorization']='Bearer '+refreshed.access_token;const r2=await fetch(SUPA+path,opts);if(!r2.ok)throw new Error(await r2.text());return r2}}if(!r.ok)throw new Error(await r.text());return r}
+async function protectedApi(path,opts={}){
+  const sess=await ensureSession();
+  if(!sess?.access_token){clearSession();setAuthMode('login');show('auth');throw new Error('Sessão expirada. Entre novamente.')}
+  opts.headers=Object.assign({},headers(),{'Authorization':'Bearer '+sess.access_token},opts.headers||{});
+  let r=await fetch(SUPA+path,opts);
+  if(r.status===401){
+    const refreshed=await refreshSession();
+    if(refreshed?.access_token){
+      opts.headers['Authorization']='Bearer '+refreshed.access_token;
+      r=await fetch(SUPA+path,opts);
+    }else{
+      clearSession();setAuthMode('login');show('auth');
+      throw new Error('Sessão expirada. Entre novamente.');
+    }
+  }
+  if(!r.ok)throw new Error(await r.text());
+  return r;
+}
 
 async function loadMyProfile(){if(!currentUid()||!navigator.onLine)return getPlayer();try{const r=await protectedApi('/rest/v1/rpc/get_my_profile',{method:'POST',headers:{'Content-Type':'application/json'},body:'{}'});const rows=await r.json();if(rows.length){const p={id:currentUid(),name:rows[0].display_name||'',group:rows[0].group_name||'',avatar:rows[0].avatar_data||''};putPlayer(p);return p}const legacy=(()=>{try{return JSON.parse(localStorage.getItem('er_player')||'null')}catch(e){return null}})();if(legacy?.name){const p={id:currentUid(),name:legacy.name,group:legacy.group||'',avatar:legacy.avatar||''};putPlayer(p);await upsertMyProfile(p);localStorage.removeItem('er_player');return p}}catch(e){}return getPlayer()}
 async function upsertMyProfile(p){const r=await protectedApi('/rest/v1/rpc/upsert_my_profile',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({p_name:p.name,p_group:p.group||null,p_avatar:p.avatar||null})});return r}
@@ -240,14 +278,11 @@ function rankExamLabel(exam){return ({Lucas:'Lucas',CGB:'CGB',Evangelhos:'Evange
 function leaderboardAvatar(x){if(x.avatar_data&&/^data:image\/(jpeg|jpg|png|webp);base64,/.test(x.avatar_data))return '<div class="leader-avatar"><img src="'+x.avatar_data+'" alt=""></div>';return '<div class="leader-avatar">'+esc(initials(x.display_name))+'</div>'}
 async function renderRanking(){if(rankingRefreshing)return;rankingRefreshing=true;const p=getPlayer();$('rankExamLabel').textContent=rankExamLabel(currentRankExam);try{if(!p.name){$('rankPosition').textContent='—';$('rankSummary').textContent='Cadastre seu nome para participar.';$('leaderboardList').innerHTML='<div class="empty">Perfil ainda não cadastrado.</div>';if($('rankLiveStatus'))$('rankLiveStatus').textContent='Atualização automática aguardando perfil';return}if(!navigator.onLine){$('rankPosition').textContent='—';$('rankSummary').textContent='Ranking online indisponível sem internet.';$('leaderboardList').innerHTML='<div class="empty">Conecte-se à internet para ver a classificação desta prova.</div>';if($('rankLiveStatus'))$('rankLiveStatus').textContent='Offline — ranking será atualizado ao reconectar';return}await flushScoreQueue();const r=await protectedApi('/rest/v1/rpc/get_weekly_exam_leaderboard',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({p_exam:currentRankExam})});const rows=await r.json(),me=rows.find(x=>x.player_id===p.id);$('rankPosition').textContent=me?'#'+me.rank_pos:'—';$('rankSummary').textContent=me?(Number(me.best_pct).toFixed(0)+'% • melhor resultado da semana'):'Você ainda não concluiu esta prova nesta semana.';$('leaderboardList').innerHTML=rows.length?rows.map(x=>'<div class="leader-row '+(x.player_id===p.id?'me':'')+'">'+leaderboardAvatar(x)+'<div class="rank-num">'+x.rank_pos+'</div><div class="leader-name"><strong>'+esc(x.display_name)+(x.player_id===p.id?' • você':'')+'</strong><small>'+esc(x.group_name||'Embaixada não informada')+' • '+x.attempts+' tentativa(s)</small></div><div class="leader-points"><strong>'+Number(x.best_pct).toFixed(0)+'%</strong><small>melhor nota</small></div></div>').join(''):'<div class="empty">Ainda não há pontuações nesta prova nesta semana.</div>';const now=new Date();localStorage.setItem('er_ranking_last_refresh',now.toISOString());if($('rankLiveStatus'))$('rankLiveStatus').textContent='Ao vivo • atualizado às '+now.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit',second:'2-digit'})}catch(e){$('rankPosition').textContent='—';$('rankSummary').textContent='Não foi possível carregar o ranking.';$('leaderboardList').innerHTML='<div class="empty">Tente novamente em alguns instantes.</div>';if($('rankLiveStatus'))$('rankLiveStatus').textContent='Falha temporária ao atualizar'}finally{rankingRefreshing=false}}
 async function startRankingRealtime(){
-  if(!realtimeClient||!navigator.onLine||!currentUid())return;
+  if(!realtimeClient||!navigator.onLine)return;
   try{
-    const sess=await ensureSession();
-    if(!sess?.access_token)return;
-    await realtimeClient.realtime.setAuth(sess.access_token);
     if(rankingRealtimeChannel)return;
     rankingRealtimeChannel=realtimeClient
-      .channel('ranking:global',{config:{private:true}})
+      .channel('ranking:global')
       .on('broadcast',{event:'ranking_score_submitted'},message=>{
         const exam=message?.payload?.exam;
         if(document.visibilityState==='visible'&&document.getElementById('ranking')?.classList.contains('active')&&(!exam||exam===currentRankExam)){
@@ -274,7 +309,7 @@ document.addEventListener('visibilitychange',()=>{if(document.visibilityState===
 window.addEventListener('focus',()=>{if(document.getElementById('ranking')?.classList.contains('active'))renderRanking()});
 window.addEventListener('online',()=>{syncNow(false);startRankingRealtime();if(document.getElementById('ranking')?.classList.contains('active'))renderRanking()});window.addEventListener('offline',()=>setSync('Offline — usando banco salvo','err'));
 async function migrateLocalAccountData(){if(!currentUid())return;for(const base of ['er_history','er_progress','er_score_queue']){const old=localStorage.getItem(base),target=userKey(base);if(old&&!localStorage.getItem(target)){localStorage.setItem(target,old);localStorage.removeItem(base)}}}
-async function afterLogin(){await migrateLocalAccountData();await loadMyProfile();await startRankingRealtime();refreshHome();renderNotices();$('bottomNav').classList.remove('hidden');const p=getPlayer();if(!p.name){openProfile('home')}else{show('home');syncNow(false)}}
+async function afterLogin(){await migrateLocalAccountData();await loadMyProfile();refreshHome();renderNotices();$('bottomNav').classList.remove('hidden');const p=getPlayer();if(!p.name){openProfile('home')}else{show('home');syncNow(false)}}
 (async()=>{await qdb.open();consumeAuthHash();const sess=await ensureSession();if(sess?.user){await afterLogin()}else{setAuthMode('login');show('auth')}})();
 </script>
 <script>
