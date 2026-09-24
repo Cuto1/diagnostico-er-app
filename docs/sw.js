@@ -1,4 +1,4 @@
-const CACHE='diagnostico-er-web-v20-card-image-framing';
+const CACHE='diagnostico-er-web-v21-hero-natural-cover';
 const ASSETS=['./','./index.html','./manifest.webmanifest'];
 
 self.addEventListener('install',event=>{
