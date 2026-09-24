@@ -1,4 +1,4 @@
-const CACHE='diagnostico-er-web-v17-hero-crop-fix';
+const CACHE='diagnostico-er-web-v18-performance-layout';
 const ASSETS=['./','./index.html','./manifest.webmanifest'];
 
 self.addEventListener('install',event=>{
