@@ -1,4 +1,4 @@
-const CACHE='diagnostico-er-web-v18-performance-layout';
+const CACHE='diagnostico-er-web-v19-performance-fix';
 const ASSETS=['./','./index.html','./manifest.webmanifest'];
 
 self.addEventListener('install',event=>{
