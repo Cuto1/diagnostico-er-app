@@ -39,6 +39,7 @@
       <button class="tab" data-panel="spreadsheets" onclick="openPanel('spreadsheets',this)">Planilhas</button>
       <button class="tab" data-panel="notices" onclick="openPanel('notices',this)">Avisos</button>
       <button class="tab" data-panel="competitions" onclick="openPanel('competitions',this)">Competições</button>
+      <button class="tab" data-panel="chat" onclick="openPanel('chat',this)">Chat</button>
       <button class="tab" data-panel="users" onclick="openPanel('users',this)">Usuários</button>
       <button class="tab" data-panel="ranking" onclick="openPanel('ranking',this)">Ranking</button>
     </div>
@@ -103,7 +104,8 @@
     </section>
 
     <section id="notices" class="panel">
-      <div class="section-head"><h2>Avisos</h2><button class="btn primary" onclick="newNotice()">+ Novo aviso</button></div>
+      <div class="section-head"><h2>Avisos e notificações</h2><button class="btn primary" onclick="newNotice()">+ Nova notificação</button></div>
+      <div class="card" style="margin-bottom:12px"><strong>Canal de alertas</strong><p class="muted" style="margin-bottom:0">Ao publicar um novo aviso, os usuários conectados recebem um alerta em tempo real e o aviso fica marcado como não lido até ser aberto.</p></div>
       <div id="noticeList"></div>
       <div id="noticesStatus" class="status"></div>
     </section>
@@ -116,6 +118,13 @@
       </div>
       <div class="table-wrap"><table class="table"><thead><tr><th>Competição</th><th>Data</th><th>Local</th><th>Status</th><th>Ações</th></tr></thead><tbody id="competitionsBody"></tbody></table></div>
       <div id="competitionsStatus" class="status"></div>
+    </section>
+
+    <section id="chat" class="panel">
+      <div class="section-head"><h2>Moderação do bate-papo</h2><button class="btn" onclick="loadAdminChat()">Atualizar</button></div>
+      <div class="card" style="margin-bottom:12px"><strong>Chat geral</strong><p class="muted" style="margin-bottom:0">Mensagens enviadas pelos usuários aparecem aqui. Você pode excluir mensagens quando necessário.</p></div>
+      <div class="table-wrap"><table class="table"><thead><tr><th>Usuário</th><th>Mensagem</th><th>Data</th><th>Ações</th></tr></thead><tbody id="adminChatBody"></tbody></table></div>
+      <div id="adminChatStatus" class="status"></div>
     </section>
 
     <section id="users" class="panel">
@@ -162,7 +171,7 @@
   <input id="noticeId" type="hidden">
   <div class="field"><label>TÍTULO</label><input id="noticeTitle"></div>
   <div class="field"><label>TEXTO</label><textarea id="noticeBody"></textarea></div>
-  <label style="display:flex;gap:8px;align-items:center;margin-top:12px;font-size:12px"><input id="noticePublished" type="checkbox" checked> Publicado</label>
+  <label style="display:flex;gap:8px;align-items:center;margin-top:12px;font-size:12px"><input id="noticePublished" type="checkbox" checked> Publicado — ao publicar, gera alerta em tempo real</label>
   <button class="btn primary block" style="margin-top:14px" onclick="saveNotice()">Salvar aviso</button>
   <div id="noticeModalStatus" class="status"></div>
 </div></div>
@@ -202,7 +211,7 @@ async function recoverPassword(){const email=$('loginEmail').value.trim().toLowe
 async function enterAdmin(){try{await rpc('admin_dashboard_stats');const s=session();$('adminEmail').textContent=s?.user?.email||'';$('loginView').classList.add('hidden');$('adminView').classList.remove('hidden');await loadDashboard()}catch(e){clearSession();$('adminView').classList.add('hidden');$('loginView').classList.remove('hidden');throw e}}
 async function logout(){try{const s=session();if(s?.access_token)await fetch(SUPA+'/auth/v1/logout',{method:'POST',headers:{apikey:KEY,Authorization:'Bearer '+s.access_token}})}catch(e){}clearSession();location.reload()}
 
-function openPanel(id,btn){document.querySelectorAll('.panel').forEach(x=>x.classList.toggle('active',x.id===id));document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('active',x===btn));if(id==='questions')loadQuestions();if(id==='notices')loadNotices();if(id==='competitions')loadCompetitions();if(id==='users')loadUsers();if(id==='ranking')loadScores();}
+function openPanel(id,btn){document.querySelectorAll('.panel').forEach(x=>x.classList.toggle('active',x.id===id));document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('active',x===btn));if(id==='questions')loadQuestions();if(id==='notices')loadNotices();if(id==='competitions')loadCompetitions();if(id==='chat')loadAdminChat();if(id==='users')loadUsers();if(id==='ranking')loadScores();}
 
 async function loadDashboard(){try{const d=await rpc('admin_dashboard_stats');$('mQuestions').textContent=d.questions_active;$('mUsers').textContent=d.users_total;$('mProfiles').textContent=d.profiles_total;$('mScores').textContent=d.scores_total;$('mNotices').textContent=d.notices_total;$('mVersion').textContent=typeof d.content_version==='object'?(d.content_version.version??JSON.stringify(d.content_version)):d.content_version;$('mIntegrated').textContent=d.questions_integrated;$('dbStatus').textContent=d.questions_integrated===0?'Banco sem questões integradas.':'Atenção: '+d.questions_integrated+' questão(ões) integrada(s) ainda existem.'}catch(e){$('dbStatus').textContent='Falha ao carregar: '+e.message}}
 
@@ -302,6 +311,9 @@ async function deleteCompetition(id){if(!confirm('Excluir esta competição?'))r
 async function loadUsers(){setStatus('usersStatus','Carregando...');try{const rows=await rpc('admin_list_users');$('usersBody').innerHTML=rows.length?rows.map(u=>'<tr><td><b>'+esc(u.email||'Sem e-mail')+'</b><div class="muted">'+new Date(u.created_at).toLocaleDateString('pt-BR')+'</div></td><td><div style="display:flex;gap:8px;align-items:center">'+(u.avatar_data?'<img class="avatar" src="'+esc(u.avatar_data)+'">':'<div class="avatar">'+esc((u.display_name||'?')[0])+'</div>')+'<b>'+esc(u.display_name||'Sem perfil')+'</b></div></td><td>'+esc(u.group_name||'—')+'</td><td>'+esc(u.last_sign_in_at?new Date(u.last_sign_in_at).toLocaleString('pt-BR'):'Nunca')+'</td><td>'+esc(u.attempts)+'</td><td><div class="actions"><button class="btn small" onclick="editUser(\''+u.user_id+'\',\''+encodeURIComponent(u.display_name||'')+'\',\''+encodeURIComponent(u.group_name||'')+'\')">Editar perfil</button><button class="btn danger small" onclick="deleteUser(\''+u.user_id+'\',\''+encodeURIComponent(u.email||'')+'\')">Excluir conta</button></div></td></tr>').join(''):'<tr><td colspan="6" class="empty">Nenhum usuário.</td></tr>';setStatus('usersStatus',rows.length+' conta(s).')}catch(e){setStatus('usersStatus','Erro: '+e.message,'bad')}}
 async function editUser(id,nameEnc,groupEnc){const name=prompt('Nome/apelido:',decodeURIComponent(nameEnc));if(name===null)return;const group=prompt('Embaixada/Igreja:',decodeURIComponent(groupEnc));if(group===null)return;try{const ok=await rpc('admin_update_profile',{p_user_id:id,p_name:name,p_group:group});if(!ok)alert('Essa conta ainda não possui perfil.');loadUsers()}catch(e){setStatus('usersStatus','Erro: '+e.message,'bad')}}
 async function deleteUser(id,emailEnc){const email=decodeURIComponent(emailEnc);if(!confirm('Excluir definitivamente a conta '+email+' e seus dados de perfil/ranking?'))return;try{await rpc('admin_delete_user',{p_user_id:id});loadUsers();loadDashboard()}catch(e){setStatus('usersStatus','Erro: '+e.message,'bad')}}
+
+async function loadAdminChat(){setStatus('adminChatStatus','Carregando...');try{const rows=await rpc('admin_list_chat_messages',{p_limit:300});$('adminChatBody').innerHTML=rows.length?rows.map(m=>'<tr><td><b>'+esc(m.display_name||'Sem nome')+'</b><div class="muted">'+esc(m.group_name||'')+'</div></td><td style="max-width:560px;white-space:pre-wrap">'+esc(m.body)+'</td><td>'+new Date(m.created_at).toLocaleString('pt-BR')+'</td><td><button class="btn danger small" onclick="deleteChatMessage(\''+m.message_id+'\')">Excluir</button></td></tr>').join(''):'<tr><td colspan="4" class="empty">Nenhuma mensagem no chat.</td></tr>';setStatus('adminChatStatus',rows.length+' mensagem(ns) exibida(s).')}catch(e){setStatus('adminChatStatus','Erro: '+e.message,'bad')}}
+async function deleteChatMessage(id){if(!confirm('Excluir esta mensagem do bate-papo?'))return;try{await rpc('admin_delete_chat_message',{p_message_id:id});await loadAdminChat()}catch(e){setStatus('adminChatStatus','Erro: '+e.message,'bad')}}
 
 async function loadScores(){setStatus('scoresStatus','Carregando...');try{const exam=$('rankExam').value||null,rows=await rpc('admin_list_scores',{p_exam:exam,p_limit:500});$('scoresBody').innerHTML=rows.length?rows.map(s=>'<tr><td><b>'+esc(s.display_name)+'</b><div class="muted">'+esc(s.group_name||'')+'</div></td><td>'+esc(qLabel(s.exam))+'</td><td>'+esc(s.score)+' / '+esc(s.total)+'</td><td><b>'+Number(s.pct).toFixed(1)+'%</b></td><td>'+new Date(s.completed_at).toLocaleString('pt-BR')+'</td><td><button class="btn danger small" onclick="deleteScore(\''+s.score_id+'\')">Excluir</button></td></tr>').join(''):'<tr><td colspan="6" class="empty">Nenhum resultado.</td></tr>';setStatus('scoresStatus',rows.length+' resultado(s) exibido(s).')}catch(e){setStatus('scoresStatus','Erro: '+e.message,'bad')}}
 async function deleteScore(id){if(!confirm('Excluir esta pontuação?'))return;try{await rpc('admin_delete_score',{p_score_id:id});loadScores();loadDashboard()}catch(e){setStatus('scoresStatus','Erro: '+e.message,'bad')}}
