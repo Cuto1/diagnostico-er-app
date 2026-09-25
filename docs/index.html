@@ -654,6 +654,12 @@ function swordNormalize(v){return String(v||'').normalize('NFD').replace(/[\u030
 function swordFormatTime(ms){return (Math.max(0,ms)/1000).toFixed(2).replace('.',',')}
 function swordSetListening(text,live=false){const box=$('swordListening');if(box)box.classList.toggle('live',!!live);if($('swordListeningText'))$('swordListeningText').textContent=text||''}
 function swordSpeak(text,onend){try{speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(text);u.lang='pt-BR';u.rate=.92;u.onend=()=>onend&&onend();u.onerror=()=>onend&&onend();speechSynthesis.speak(u)}catch(e){if(onend)onend()}}
+function swordSpokenReference(ref){
+  const m=String(ref||'').trim().match(/^(.*)\s+(\d+):(\d+)(?:-(\d+))?$/);
+  if(!m)return String(ref||'');
+  const book=m[1],chapter=m[2],verse=m[3],end=m[4];
+  return end?book+', capítulo '+chapter+', versículos '+verse+' a '+end:book+', capítulo '+chapter+', versículo '+verse;
+}
 function openBibleSword(){
   if(!currentUser()){show('auth');return}
   swordStopListening();swordSession=null;
@@ -680,7 +686,7 @@ function renderSwordRound(){
   $('swordReference').textContent=row.ref;$('swordTimer').textContent='00,00';$('swordFoundBtn').disabled=true;$('swordFoundBtn').classList.remove('hidden');
   $('swordValidation').className='sword-validation hidden';$('swordValidation').innerHTML='';$('swordNextBtn').classList.add('hidden');
   swordSetListening('Ouça a referência...',false);
-  swordSpeak(row.ref,()=>{if(!swordSession||swordSession.state!=='announce')return;swordBeginSearch()});
+  swordSpeak(swordSpokenReference(row.ref),()=>{if(!swordSession||swordSession.state!=='announce')return;swordBeginSearch()});
 }
 function swordBeginSearch(){
   const s=swordSession;if(!s)return;s.state='search';s.startedAt=performance.now();$('swordFoundBtn').disabled=false;
