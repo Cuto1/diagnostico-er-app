@@ -1,4 +1,4 @@
-const CACHE='diagnostico-er-web-v27-font-bump-3';
+const CACHE='diagnostico-er-web-v28-font-scale-editor';
 const ASSETS=['./','./index.html','./manifest.webmanifest'];
 
 self.addEventListener('install',event=>{
