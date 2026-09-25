@@ -1,4 +1,4 @@
-const CACHE='diagnostico-er-web-v47-content-update';
+const CACHE='diagnostico-er-web-v48-dificuldade-extrema';
 const ASSETS=['./','./index.html','./games.css','./games.js','./manifest.webmanifest'];
 
 self.addEventListener('install',event=>{

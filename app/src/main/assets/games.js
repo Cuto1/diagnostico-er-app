@@ -85,16 +85,16 @@ function renderSoloSetup(){
   setTitle(gameName(G.type));
   if(G.type==='chess'){
     content().innerHTML='<div class="card"><h3 style="margin-top:0">♟️ Xadrez contra IA</h3>'+
-      '<div class="game-setup-grid"><div class="field"><label>DIFICULDADE</label><select id="gameAiLevel"><option value="easy">Iniciante • lógico</option><option value="medium" selected>Médio • estratégico</option><option value="hard">Difícil • calcula à frente</option></select></div>'+
+      '<div class="game-setup-grid"><div class="field"><label>DIFICULDADE</label><select id="gameAiLevel"><option value="easy">Iniciante</option><option value="medium" selected>Médio</option><option value="hard">Difícil</option></select></div>'+
       '<div class="field"><label>RELÓGIO</label><select id="gameSoloClock"><option value="0">Sem relógio</option><option value="300">5 min</option><option value="600">10 min</option><option value="900">15 min</option><option value="1800">30 min</option></select></div></div>'+
       '<div class="field" style="margin-top:9px"><label>INCREMENTO POR JOGADA</label><select id="gameSoloInc"><option value="0">Sem incremento</option><option value="2">+2 s</option><option value="5">+5 s</option><option value="10">+10 s</option></select></div>'+
       '<button class="btn primary block" style="margin-top:12px" onclick="startSoloGame()">Começar</button></div>';
   }else if(G.type==='checkers'){
-    content().innerHTML='<div class="card"><h3 style="margin-top:0">🔴 Dama contra IA</h3><div class="field"><label>DIFICULDADE</label><select id="gameAiLevel"><option value="easy">Iniciante • lógico</option><option value="medium" selected>Médio • estratégico</option><option value="hard">Difícil • calcula à frente</option></select></div><button class="btn primary block" style="margin-top:12px" onclick="startSoloGame()">Começar</button></div>';
+    content().innerHTML='<div class="card"><h3 style="margin-top:0">🔴 Dama contra IA</h3><div class="field"><label>DIFICULDADE</label><select id="gameAiLevel"><option value="easy">Iniciante</option><option value="medium" selected>Médio</option><option value="hard">Difícil</option></select></div><button class="btn primary block" style="margin-top:12px" onclick="startSoloGame()">Começar</button></div>';
   }else{
     content().innerHTML='<div class="card"><h3 style="margin-top:0">🁫 Dominó contra IA</h3>'+
       '<div class="game-setup-grid"><div class="field"><label>JOGADORES NA MESA</label><select id="dominoSoloPlayers" onchange="toggleDominoTeamSolo()"><option value="2">2 (você + 1 IA)</option><option value="3">3 (você + 2 IAs)</option><option value="4">4 (você + 3 IAs)</option></select></div>'+
-      '<div class="field"><label>DIFICULDADE</label><select id="gameAiLevel"><option value="easy">Iniciante • lógico</option><option value="medium" selected>Médio • estratégico</option><option value="hard">Difícil • calcula à frente</option></select></div></div>'+
+      '<div class="field"><label>DIFICULDADE</label><select id="gameAiLevel"><option value="easy">Iniciante</option><option value="medium" selected>Médio</option><option value="hard">Difícil</option></select></div></div>'+
       '<label id="dominoSoloTeamRow" class="game-opponent hidden" style="margin-top:10px"><input id="dominoSoloTeams" type="checkbox"><span><strong>Jogar em duplas</strong><small style="display:block;color:#6d83a1">Você e a IA do assento 3 contra as outras duas IAs.</small></span></label>'+
       '<button class="btn primary block" style="margin-top:12px" onclick="startSoloGame()">Começar</button></div>';
   }
@@ -190,18 +190,22 @@ function chessSearch(chess,depth,alpha,beta,maximizing,limit){
   let best=Infinity;for(const m of moves){chess.move(m);best=Math.min(best,chessSearch(chess,depth-1,alpha,beta,true,limit));chess.undo();beta=Math.min(beta,best);if(beta<=alpha)break}return best;
 }
 function chessAiPick(chess,level){
-  const moves=chess.moves({verbose:true});if(!moves.length)return null;const mem=G.state.aiMemory||(G.state.aiMemory={positions:{},moves:[]}),depth=level==='hard'?3:level==='medium'?3:1,limit=level==='hard'?16:level==='medium'?18:10,scored=[];
-  for(const m of moves){const from=m.from,to=m.to,prev=mem.moves[mem.moves.length-1],reverse=prev&&prev.from===to&&prev.to===from;chess.move(m);let sc=depth>1?chessSearch(chess,depth-1,-Infinity,Infinity,false,limit):chessPositionEval(chess),key=chessFenKey(chess),seen=mem.positions[key]||0;sc-=seen*(level==='hard'?190:level==='medium'?220:55);if(reverse&&!m.captured&&!m.promotion&&!m.san?.includes('+'))sc-=level==='hard'?260:level==='medium'?320:80;
-    if(level==='medium'){
-      const recent=mem.moves.slice(-4);
+  const moves=chess.moves({verbose:true});if(!moves.length)return null;const mem=G.state.aiMemory||(G.state.aiMemory={positions:{},moves:[]}),depth=level==='hard'?5:level==='medium'?3:1,limit=level==='hard'?22:level==='medium'?16:10,scored=[];
+  for(const m of moves){const from=m.from,to=m.to,prev=mem.moves[mem.moves.length-1],reverse=prev&&prev.from===to&&prev.to===from;chess.move(m);let sc=depth>1?chessSearch(chess,depth-1,-Infinity,Infinity,false,limit):chessPositionEval(chess),key=chessFenKey(chess),seen=mem.positions[key]||0;sc-=seen*(level==='hard'?320:level==='medium'?190:55);if(reverse&&!m.captured&&!m.promotion&&!m.san?.includes('+'))sc-=level==='hard'?420:level==='medium'?260:80;
+    if(level==='hard'){
+      const recent=mem.moves.slice(-8);
       const samePieceMoves=recent.filter(x=>x.from===from||x.to===from).length;
-      sc-=samePieceMoves*45;
-      if((m.piece==='n'||m.piece==='b')&&['b8','g8'].includes(from))sc+=55;
-      if(m.piece==='q'&&chess.history().length<10)sc-=45;
-      if(chessMoveIsCastle(m))sc+=145;
-      sc+=chessCenterBonus(m.to)*2.2;
-    }else if(chessMoveIsCastle(m))sc+=130;
-    if(m.captured)sc+=25;if(m.promotion)sc+=100;chess.undo();const noise=level==='easy'?Math.random()*130-65:level==='medium'?Math.random()*8-4:Math.random()*5-2.5;scored.push({m,sc:sc+noise})}
+      sc-=samePieceMoves*70;
+      if((m.piece==='n'||m.piece==='b')&&['b8','g8'].includes(from))sc+=80;
+      if(m.piece==='q'&&chess.history().length<12)sc-=70;
+      if(chessMoveIsCastle(m))sc+=190;
+      sc+=chessCenterBonus(m.to)*3.4;
+      if(m.san?.includes('+'))sc+=45;
+      if(m.san?.includes('#'))sc+=5000;
+    }else if(level==='medium'){
+      if(chessMoveIsCastle(m))sc+=130;
+    }
+    if(m.captured)sc+=level==='hard'?45:25;if(m.promotion)sc+=level==='hard'?160:100;chess.undo();const noise=level==='easy'?Math.random()*130-65:level==='medium'?Math.random()*5-2.5:0;scored.push({m,sc:sc+noise})}
   scored.sort((a,b)=>b.sc-a.sc);if(level==='easy'){const pool=scored.slice(0,Math.min(4,scored.length)),weights=pool.map((_,i)=>4-i),sum=weights.reduce((a,b)=>a+b,0);let r=Math.random()*sum;for(let i=0;i<pool.length;i++){r-=weights[i];if(r<=0)return pool[i].m}}return scored[0].m;
 }
 
@@ -368,16 +372,19 @@ function ckHash(b,turn,forced){return b.map(r=>r.map(x=>x||'.').join('')).join('
 function ckEval(b){let s=0;for(let r=0;r<8;r++)for(let c=0;c<8;c++){const p=b[r][c];if(!p)continue;const owner=ckOwner(p),king=p===p.toUpperCase(),sign=owner===1?1:-1;let v=king?185:100;if(!king)v+=owner===1?r*7:(7-r)*7;const center=3.5-(Math.abs(3.5-r)+Math.abs(3.5-c))/2;v+=Math.max(0,center)*6;s+=sign*v}s+=(ckMoves(b,1,null).length-ckMoves(b,0,null).length)*3;return s}
 function ckStateAfter(b,turn,forced,m){const nb=ckApply(b,m,turn);let next=1-turn,nforced=null;if(m.capture){const again=ckCapturesFrom(nb,m.to[0],m.to[1],turn);if(again.length){next=turn;nforced=m.to}}return{board:nb,turn:next,forced:nforced}}
 function ckSearch(state,depth,alpha,beta,limit){const moves=ckMoves(state.board,state.turn,state.forced);if(depth<=0||!moves.length)return ckEval(state.board)+(moves.length?0:(state.turn===1?-50000:50000));const maximizing=state.turn===1;let ordered=moves.map(m=>({m,score:(m.capture?300:0)+(m.to[0]===7&&state.turn===1?120:0)+(m.to[0]===0&&state.turn===0?120:0)})).sort((a,b)=>b.score-a.score).map(x=>x.m);if(limit&&ordered.length>limit)ordered=ordered.slice(0,limit);if(maximizing){let best=-Infinity;for(const m of ordered){const ns=ckStateAfter(state.board,state.turn,state.forced,m),d=ns.turn===state.turn?depth:depth-1;best=Math.max(best,ckSearch(ns,d,alpha,beta,limit));alpha=Math.max(alpha,best);if(beta<=alpha)break}return best}let best=Infinity;for(const m of ordered){const ns=ckStateAfter(state.board,state.turn,state.forced,m),d=ns.turn===state.turn?depth:depth-1;best=Math.min(best,ckSearch(ns,d,alpha,beta,limit));beta=Math.min(beta,best);if(beta<=alpha)break}return best}
-function ckAiPick(moves,level,b,forced){const mem=G.state.aiMemory||(G.state.aiMemory={positions:{},moves:[]}),depth=level==='hard'?5:level==='medium'?4:1,limit=level==='hard'?14:level==='medium'?14:9,scored=[];for(const m of moves){const ns=ckStateAfter(b,1,forced,m),same=ns.turn===1,d=same?depth:depth-1,prev=mem.moves[mem.moves.length-1],reverse=prev&&prev.from[0]===m.to[0]&&prev.from[1]===m.to[1]&&prev.to[0]===m.from[0]&&prev.to[1]===m.from[1];let sc=depth>1?ckSearch(ns,d,-Infinity,Infinity,limit):ckEval(ns.board),key=ckHash(ns.board,ns.turn,ns.forced),seen=mem.positions[key]||0;sc-=seen*(level==='hard'?150:level==='medium'?180:40);if(reverse&&!m.capture)sc-=level==='hard'?220:level==='medium'?260:60;
-    if(level==='medium'){
+function ckAiPick(moves,level,b,forced){const mem=G.state.aiMemory||(G.state.aiMemory={positions:{},moves:[]}),depth=level==='hard'?7:level==='medium'?5:1,limit=level==='hard'?18:level==='medium'?14:9,scored=[];for(const m of moves){const ns=ckStateAfter(b,1,forced,m),same=ns.turn===1,d=same?depth:depth-1,prev=mem.moves[mem.moves.length-1],reverse=prev&&prev.from[0]===m.to[0]&&prev.from[1]===m.to[1]&&prev.to[0]===m.from[0]&&prev.to[1]===m.from[1];let sc=depth>1?ckSearch(ns,d,-Infinity,Infinity,limit):ckEval(ns.board),key=ckHash(ns.board,ns.turn,ns.forced),seen=mem.positions[key]||0;sc-=seen*(level==='hard'?280:level==='medium'?150:40);if(reverse&&!m.capture)sc-=level==='hard'?360:level==='medium'?220:60;
+    if(level==='hard'){
       const p=b[m.from[0]][m.from[1]],king=p===p?.toUpperCase();
-      if(!king)sc+=m.to[0]*10;
-      if(m.to[1]>=2&&m.to[1]<=5)sc+=20;
-      if(m.capture)sc+=70;
-      const rec=mem.moves.slice(-4),same=rec.filter(x=>x.from[0]===m.from[0]&&x.from[1]===m.from[1]).length;
-      sc-=same*50;
-    }else if(m.capture)sc+=45;
-    sc+=level==='easy'?Math.random()*100-50:level==='medium'?Math.random()*6-3:Math.random()*4-2;scored.push({m,sc})}scored.sort((a,b)=>b.sc-a.sc);if(level==='easy'){const pool=scored.slice(0,Math.min(3,scored.length));return pool[Math.floor(Math.random()*pool.length)].m}return scored[0].m}
+      if(!king)sc+=m.to[0]*16;
+      if(m.to[1]>=2&&m.to[1]<=5)sc+=34;
+      if(m.capture)sc+=110;
+      const rec=mem.moves.slice(-8),same=rec.filter(x=>x.from[0]===m.from[0]&&x.from[1]===m.from[1]).length;
+      sc-=same*75;
+      if(m.to[0]===7)sc+=180;
+    }else if(level==='medium'){
+      if(m.capture)sc+=45;
+    }
+    sc+=level==='easy'?Math.random()*100-50:level==='medium'?Math.random()*4-2:0;scored.push({m,sc})}scored.sort((a,b)=>b.sc-a.sc);if(level==='easy'){const pool=scored.slice(0,Math.min(3,scored.length));return pool[Math.floor(Math.random()*pool.length)].m}return scored[0].m}
 
 async function checkersAiTurn(){
   const s=G.state;if(!s||s.turn!==1)return;const moves=ckMoves(s.board,1,s.forced);if(!moves.length){await recordSolo('win');resultScreen('win','A IA ficou sem jogadas. Você venceu!');return}
@@ -416,16 +423,20 @@ window.playSoloDomino=async function(a,b,side){
 window.soloDominoDrawPass=function(){const s=G.state;if(!s||s.turn!==0)return;if(s.hands[0].some(t=>domFits(t,s.left,s.right)))return;if(s.stock.length){s.hands[0].push(s.stock.shift());s.pass=0;renderSoloDomino();return}s.pass++;if(s.pass>=s.n){finishSoloDominoBlocked();return}s.turn=1%s.n;renderSoloDomino();setTimeout(dominoAiLoop,350)};
 function domOwnNumberCounts(hand){const c=Array(7).fill(0);for(const t of hand){c[t[0]]++;c[t[1]]++}return c}
 function domPublicPlayedCounts(chain){const c=Array(7).fill(0);for(const t of chain||[]){c[t[0]]++;c[t[1]]++}return c}
-function domAiPick(hand,l,r,level,state,seat){const opts=[];for(let i=0;i<hand.length;i++)for(const side of domSides(hand[i],l,r)){const o=domOrient(hand[i],side,l,r);if(o)opts.push({t:hand[i],i,side,o})}if(!opts.length)return null;const own=domOwnNumberCounts(hand),played=domPublicPlayedCounts(state?.chain||[]),next=(seat+1)%state.n,nextCount=state.hands[next]?.length||0,partner=state.teamMode?(seat+2)%4:null,partnerCount=partner!=null?(state.hands[partner]?.length||0):99,memory=state.aiMemory||(state.aiMemory={domino:{}}),dm=memory.domino||(memory.domino={last:{},blocked:{}}),blocked=dm.blocked||{};const scored=opts.map(x=>{const[a,b]=x.t,newEnd=x.side==='left'?x.o.left:x.o.right,remaining=hand.filter((_,idx)=>idx!==x.i),remainingCounts=domOwnNumberCounts(remaining),flex=remaining.filter(t=>domFits(t,x.o.left,x.o.right)).length,pip=a+b,double=a===b;let sc=pip*5+flex*14+remainingCounts[newEnd]*18+own[newEnd]*9+(6-played[newEnd])*5;if(double)sc+=level==='easy'?8:level==='medium'?28:25;if(remaining.length<=2)sc+=80;if(nextCount<=2){sc+=remainingCounts[newEnd]*22;if((blocked[next]||[]).includes(newEnd))sc+=level==='hard'?120:95}
-    if(level==='medium'){
-      sc+=remainingCounts[newEnd]*18;
-      sc+=Math.max(0,4-played[newEnd])*12;
-      if((blocked[next]||[]).includes(otherEnd))sc+=45;
-      if(nextCount===1&&remainingCounts[newEnd]===0)sc-=90;
-      if(state.teamMode&&partnerCount<=2)sc+=remainingCounts[newEnd]*8;
-    }else if(state.teamMode&&partnerCount<=2)sc-=remainingCounts[newEnd]*8;
-    const last=dm.last[seat];if(last&&last.a===a&&last.b===b&&last.side===x.side)sc-=level==='medium'?85:40;
-    if(level==='easy')sc+=Math.random()*90-45;else if(level==='medium')sc+=Math.random()*6-3;else sc+=Math.random()*4-2;return{x,sc}}).sort((a,b)=>b.sc-a.sc);if(level==='easy'){const pool=scored.slice(0,Math.min(3,scored.length));return pool[Math.floor(Math.random()*pool.length)].x}return scored[0].x}
+function domAiPick(hand,l,r,level,state,seat){const opts=[];for(let i=0;i<hand.length;i++)for(const side of domSides(hand[i],l,r)){const o=domOrient(hand[i],side,l,r);if(o)opts.push({t:hand[i],i,side,o})}if(!opts.length)return null;const own=domOwnNumberCounts(hand),played=domPublicPlayedCounts(state?.chain||[]),next=(seat+1)%state.n,nextCount=state.hands[next]?.length||0,partner=state.teamMode?(seat+2)%4:null,partnerCount=partner!=null?(state.hands[partner]?.length||0):99,memory=state.aiMemory||(state.aiMemory={domino:{}}),dm=memory.domino||(memory.domino={last:{},blocked:{}}),blocked=dm.blocked||{};const scored=opts.map(x=>{const[a,b]=x.t,newEnd=x.side==='left'?x.o.left:x.o.right,remaining=hand.filter((_,idx)=>idx!==x.i),remainingCounts=domOwnNumberCounts(remaining),flex=remaining.filter(t=>domFits(t,x.o.left,x.o.right)).length,pip=a+b,double=a===b;let sc=pip*5+flex*14+remainingCounts[newEnd]*18+own[newEnd]*9+(6-played[newEnd])*5;if(double)sc+=level==='easy'?8:level==='medium'?25:level==='hard'?40:25;if(remaining.length<=2)sc+=80;if(nextCount<=2){sc+=remainingCounts[newEnd]*22;if((blocked[next]||[]).includes(newEnd))sc+=level==='hard'?170:120}
+    if(level==='hard'){
+      sc+=remainingCounts[newEnd]*28;
+      sc+=Math.max(0,5-played[newEnd])*18;
+      if((blocked[next]||[]).includes(otherEnd))sc+=85;
+      if(nextCount===1&&remainingCounts[newEnd]===0)sc-=150;
+      if(nextCount===1&&(blocked[next]||[]).includes(newEnd))sc+=180;
+      if(state.teamMode&&partnerCount<=2)sc+=remainingCounts[newEnd]*18;
+      if(remaining.length===1)sc+=120;
+    }else if(level==='medium'){
+      if(state.teamMode&&partnerCount<=2)sc-=remainingCounts[newEnd]*8;
+    }
+    const last=dm.last[seat];if(last&&last.a===a&&last.b===b&&last.side===x.side)sc-=level==='hard'?130:40;
+    if(level==='easy')sc+=Math.random()*90-45;else if(level==='medium')sc+=Math.random()*4-2;return{x,sc}}).sort((a,b)=>b.sc-a.sc);if(level==='easy'){const pool=scored.slice(0,Math.min(3,scored.length));return pool[Math.floor(Math.random()*pool.length)].x}return scored[0].x}
 
 async function dominoAiLoop(){
   const s=G.state;if(!s||s.turn===0)return;const seat=s.turn,hand=s.hands[seat],pick=domAiPick(hand,s.left,s.right,G.aiLevel,s,seat),dm=s.aiMemory?.domino||(s.aiMemory={domino:{last:{},blocked:{}}}).domino;
