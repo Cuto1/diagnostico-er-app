@@ -10,7 +10,7 @@ android {
         applicationId 'com.diagnosticoer.app'
         minSdk 24
         targetSdk 35
-        versionCode 14
-        versionName '2.0.0-duelo-online'
+        versionCode 15
+        versionName '2.1.0-quiz-ao-vivo'
     }
 }
