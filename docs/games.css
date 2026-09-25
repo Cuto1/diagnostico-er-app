@@ -40,3 +40,15 @@
   .chess-card .game-board{border-width:2px;border-radius:9px}
   .chess-card .game-square{font-size:clamp(26px,10.7vw,44px)}
 }
+
+/* Promoção do peão */
+.chess-promotion-modal{position:fixed;inset:0;z-index:180;background:#04162db8;display:flex;align-items:center;justify-content:center;padding:18px}
+.chess-promotion-card{width:min(94vw,430px);background:#fff;border-radius:20px;border-top:4px solid #e9c54a;padding:16px;box-shadow:0 24px 70px #00152e80;text-align:center}
+.chess-promotion-card>strong{display:block;font-size:18px;color:#102b4a}
+.chess-promotion-card>p{font-size:11px;color:#6d83a1;margin:5px 0 13px}
+.chess-promotion-options{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:12px}
+.chess-promotion-options button{border:1px solid #d7e4f1;background:#f7faff;border-radius:14px;padding:10px 4px;cursor:pointer}
+.chess-promotion-options button:active{transform:scale(.97)}
+.chess-promotion-options .chess-piece{font-size:38px;margin-bottom:4px}
+.chess-promotion-options b{display:block;font-size:10px;color:#234f7e}
+@media(max-width:420px){.chess-promotion-options{grid-template-columns:repeat(2,1fr)}.chess-promotion-options .chess-piece{font-size:42px}}

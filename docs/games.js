@@ -224,6 +224,25 @@ window.performChessCastle=async function(side){
   G.selected=kingSq;G.legal=legal;await window.clickChessSquare(target);
 };
 
+function chooseChessPromotion(color){
+  return new Promise(resolve=>{
+    const old=el('chessPromotionModal');if(old)old.remove();
+    const box=document.createElement('div');box.id='chessPromotionModal';box.className='chess-promotion-modal';
+    const options=[
+      ['q','Dama',color==='w'?'♛︎':'♛︎'],
+      ['r','Torre',color==='w'?'♜︎':'♜︎'],
+      ['b','Bispo',color==='w'?'♝︎':'♝︎'],
+      ['n','Cavalo',color==='w'?'♞︎':'♞︎']
+    ];
+    box.innerHTML='<div class="chess-promotion-card"><strong>Promover peão para:</strong><p>Escolha a peça antes de concluir a jogada.</p><div class="chess-promotion-options">'+options.map(o=>'<button type="button" data-piece="'+o[0]+'"><span class="chess-piece '+(color==='w'?'white':'black')+'">'+o[2]+'</span><b>'+o[1]+'</b></button>').join('')+'</div><button type="button" class="btn block" data-cancel="1">Cancelar</button></div>';
+    document.body.appendChild(box);
+    const finish=v=>{if(box.isConnected)box.remove();resolve(v)};
+    box.querySelectorAll('[data-piece]').forEach(btn=>btn.onclick=()=>finish(btn.dataset.piece));
+    box.querySelector('[data-cancel]').onclick=()=>finish(null);
+    box.onclick=e=>{if(e.target===box)finish(null)};
+  });
+}
+
 window.clickChessSquare=async function(sq){
   const chess=G.state?.chess;if(!chess)return;
   const online=G.kind==='online',st=G.online?.state,meSeat=online?st.players.find(p=>p.is_me)?.seat:0,myColor=meSeat===0?'w':'b';
@@ -237,7 +256,15 @@ window.clickChessSquare=async function(sq){
   }
   const target=G.legal.find(m=>m.to===sq);
   if(!target){G.selected=null;G.legal=[];if(piece&&piece.color===myColor){G.selected=sq;G.legal=chess.moves({square:sq,verbose:true})}renderChess(online?st:undefined);return}
-  const mover=chess.turn();chess.move({from:G.selected,to:sq,promotion:'q'});G.selected=null;G.legal=[];
+  const from=G.selected,mover=chess.turn(),movingPiece=chess.get(from);
+  if(movingPiece?.type==='p'&&(sq.endsWith('8')||sq.endsWith('1'))){
+    const promotion=await chooseChessPromotion(mover);
+    if(!promotion){renderChess(online?st:undefined);return}
+    chess.move({from,to:sq,promotion});
+  }else{
+    chess.move({from,to:sq});
+  }
+  G.selected=null;G.legal=[];
   const fin=chessFinished(chess,mover);
   if(online){
     try{
