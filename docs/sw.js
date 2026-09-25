@@ -1,4 +1,4 @@
-const CACHE='diagnostico-er-web-v24-admin-restore';
+const CACHE='diagnostico-er-web-v25-font-bump';
 const ASSETS=['./','./index.html','./manifest.webmanifest'];
 
 self.addEventListener('install',event=>{
