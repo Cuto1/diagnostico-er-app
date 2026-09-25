@@ -1,4 +1,4 @@
-const CACHE='diagnostico-er-web-v44-xadrez-promocao';
+const CACHE='diagnostico-er-web-v45-ia-jogos';
 const ASSETS=['./','./index.html','./games.css','./games.js','./manifest.webmanifest'];
 
 self.addEventListener('install',event=>{
