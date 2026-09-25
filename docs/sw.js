@@ -1,4 +1,4 @@
-const CACHE='diagnostico-er-web-v35-live-quiz-rooms';
+const CACHE='diagnostico-er-web-v36-live-quiz-3plus';
 const ASSETS=['./','./index.html','./manifest.webmanifest'];
 
 self.addEventListener('install',event=>{
