@@ -1,5 +1,5 @@
-const CACHE='diagnostico-er-web-v40-full-app-updater';
-const ASSETS=['./','./index.html','./manifest.webmanifest'];
+const CACHE='diagnostico-er-web-v41-jogos-er';
+const ASSETS=['./','./index.html','./games.css','./games.js','./manifest.webmanifest'];
 
 self.addEventListener('install',event=>{
   self.skipWaiting();
