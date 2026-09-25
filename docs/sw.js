@@ -1,4 +1,4 @@
-const CACHE='diagnostico-er-web-v28-font-scale-editor';
+const CACHE='diagnostico-er-web-v29-typography-panel';
 const ASSETS=['./','./index.html','./manifest.webmanifest'];
 
 self.addEventListener('install',event=>{
