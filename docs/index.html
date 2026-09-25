@@ -75,6 +75,14 @@ body{font-size:calc(16px * var(--font-scale))}
 .sword-validation strong{display:block;margin-bottom:5px}.sword-validation .countdown{font-size:26px;font-weight:1000;color:var(--blue);float:right}
 .sword-result-ok{background:#eaf9f1;border-color:#a8dfc3;color:#086941}.sword-result-bad{background:#fff0f2;border-color:#f2b6c0;color:#9c2940}
 .sword-session-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px}.sword-session-grid div{background:#f2f7fc;border-radius:13px;padding:10px 5px;text-align:center}.sword-session-grid strong{display:block;font-size:20px}.sword-session-grid span{font-size:9px;color:var(--muted);font-weight:800}
+.sword-multi-card{border:2px solid #d7e6f7;background:linear-gradient(180deg,#fff,#f5f9fe)}
+.sword-multi-card h3{margin:0 0 5px}.sword-multi-rule{font-size:11px;line-height:1.5;color:var(--muted);margin:0 0 12px}
+.sword-player-choices{display:grid;gap:7px;margin:9px 0}.sword-player-choice{display:flex;align-items:center;gap:9px;border:1px solid #d9e6f4;border-radius:12px;padding:9px;background:#fff}.sword-player-choice input{width:18px;height:18px}.sword-player-choice div{min-width:0}.sword-player-choice strong{display:block;font-size:12px}.sword-player-choice small{color:var(--muted);font-size:9px}
+.sword-scoreboard{display:grid;grid-template-columns:repeat(auto-fit,minmax(105px,1fr));gap:7px;margin-bottom:12px}.sword-score-player{border:1px solid #d8e5f2;border-radius:14px;padding:9px;text-align:center;background:#fff}.sword-score-player.me{border:2px solid var(--gold);background:#fff9df}.sword-score-player strong{display:block;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.sword-score-player b{display:block;font-size:29px;color:var(--blue);line-height:1;margin:6px 0}.sword-score-player small{font-size:9px;color:var(--muted)}
+.sword-challenge-hero{text-align:center;background:linear-gradient(135deg,#061a33,#0b5ed7);color:#fff;border:2px solid var(--gold)}.sword-challenge-hero h2{margin:4px 0;font-size:21px}.sword-challenge-hero p{margin:0;color:#d9e9ff;font-size:11px}
+.sword-challenge-round{text-align:center}.sword-challenge-ref{font-size:29px;font-weight:1000;margin:10px 0;color:var(--text)}.sword-challenge-clock{font-size:42px;font-weight:1000;font-variant-numeric:tabular-nums;color:var(--blue);margin:10px 0}.sword-challenge-countdown{font-size:52px;font-weight:1000;color:var(--blue);line-height:1.1;margin:10px 0}
+.sword-waiting-row{display:flex;align-items:center;justify-content:space-between;gap:8px;border-bottom:1px solid #edf2f7;padding:9px 0}.sword-waiting-row:last-child{border-bottom:0}.sword-ready{font-size:9px;font-weight:1000;padding:4px 7px;border-radius:999px;background:#e8f8ef;color:#08724d}.sword-pending{background:#fff3d0;color:#765800}
+
 
 </style>
 <link rel="manifest" href="./manifest.webmanifest">
@@ -341,6 +349,31 @@ body{font-size:calc(16px * var(--font-scale))}
       <div id="swordSetupStatus" class="muted" style="font-size:11px;margin-top:9px"></div>
     </div>
 
+    <div id="swordChallengeSetup" class="card sword-multi-card">
+      <h3>⚔️ Desafio de Esgrima</h3>
+      <p class="sword-multi-rule"><b>2, 3 ou 5 Embaixadores.</b> Todos recebem a mesma referência. O primeiro que disser “ACHEI!” e validar corretamente as 3 primeiras palavras marca 1 ponto. <b>Vence quem chegar primeiro a 5 pontos.</b> Não há quantidade pré-definida de referências.</p>
+      <div class="form-row">
+        <div class="field">
+          <label>SUA VERSÃO DA BÍBLIA</label>
+          <select id="swordChallengeVersion">
+            <option value="">Escolha</option>
+            <option value="ARA">ARA</option><option value="ARC">ARC</option><option value="NAA">NAA</option><option value="NVI">NVI</option><option value="NVT">NVT</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>PARTICIPANTES</label>
+          <select id="swordChallengePlayerCount" onchange="renderSwordChallengeCandidates(true)">
+            <option value="2">2 Embaixadores</option>
+            <option value="3">3 Embaixadores</option>
+            <option value="5">5 Embaixadores</option>
+          </select>
+        </div>
+      </div>
+      <div id="swordChallengeCandidateStatus" class="muted" style="font-size:10px;margin-top:10px">Carregando Embaixadores online...</div>
+      <div id="swordChallengeCandidates" class="sword-player-choices"></div>
+      <button id="swordChallengeCreateBtn" class="btn gold block" onclick="createSwordChallenge()">Criar desafio</button>
+    </div>
+
     <div id="swordArena" class="card sword-arena hidden">
       <span id="swordVersionBadge" class="sword-version-badge"></span>
       <div id="swordRoundLabel" class="muted" style="font-size:11px;font-weight:900"></div>
@@ -353,6 +386,13 @@ body{font-size:calc(16px * var(--font-scale))}
     </div>
 
     <div id="swordSummary" class="card hidden"></div>
+  </div>
+</section>
+
+<section id="swordchallenge" class="screen">
+  <div class="toolbar"><button onclick="swordChallengeBack()">← Esgrima</button><strong>⚔️ Desafio de Esgrima</strong><span id="swordChallengeToolbarStatus">1º a 5</span></div>
+  <div class="wrap">
+    <div id="swordChallengeContent"><div class="card"><div class="empty">Carregando desafio...</div></div></div>
   </div>
 </section>
 
@@ -476,6 +516,16 @@ body{font-size:calc(16px * var(--font-scale))}
   </div>
 </div>
 
+<div id="swordChallengeInvite" class="duel-invite hidden">
+  <strong>⚔️ Desafio de Esgrima!</strong>
+  <p id="swordChallengeInviteText"></p>
+  <div class="field" style="margin-bottom:9px"><label style="color:#d9e9ff">SUA VERSÃO DA BÍBLIA</label><select id="swordChallengeInviteVersion"><option value="">Escolha</option><option value="ARA">ARA</option><option value="ARC">ARC</option><option value="NAA">NAA</option><option value="NVI">NVI</option><option value="NVT">NVT</option></select></div>
+  <div class="actions">
+    <button id="swordChallengeDeclineBtn" class="btn" onclick="respondSwordChallengeInvite(false)">Recusar</button>
+    <button id="swordChallengeAcceptBtn" class="btn gold" onclick="respondSwordChallengeInvite(true)">Aceitar</button>
+  </div>
+</div>
+
 <div id="appToast" class="app-toast"><strong id="appToastTitle">Novo alerta</strong><div id="appToastBody"></div></div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -483,7 +533,7 @@ body{font-size:calc(16px * var(--font-scale))}
 const SUPA='https://koracudeysqpanhjgmfm.supabase.co';
 const KEY='sb_publishable_za5LWbSnh8Qd6NODjsXnzA_P4GxQa3O';
 const $=id=>document.getElementById(id);
-let selectedExam='',selectedLabel='',quiz=null,lastWrong=[],profileReturn='home',pendingAvatar='',currentRankExam='Lucas',authMode='login',rankingRefreshing=false,rankingAutoTimer=null,rankingRealtimeChannel=null,refreshPromise=null,nextStudySettings=null,statusExam='ALL',performanceRows=[],noticeRows=[],chatRows=[],materialRows=[],chatRealtimeChannel=null,noticeRealtimeChannel=null,brandingRealtimeChannel=null,presenceRealtimeChannel=null,duelRealtimeChannel=null,liveQuizRealtimeChannel=null,onlineUsers=[],presenceOnlineUsers=[],heartbeatOnlineUsers=[],onlineHeartbeatTimer=null,chatPollTimer=null,duelPollTimer=null,duelStateTimer=null,duelCountdownTimer=null,liveQuizPollTimer=null,liveQuizCountdownTimer=null,toastTimer=null,duelSetupTargetId='',currentDuelId='',currentDuelState=null,pendingDuelInvite=null,duelSubmitting=false,currentLiveRoomId='',currentLiveRoomState=null,liveQuizSubmitting=false;
+let selectedExam='',selectedLabel='',quiz=null,lastWrong=[],profileReturn='home',pendingAvatar='',currentRankExam='Lucas',authMode='login',rankingRefreshing=false,rankingAutoTimer=null,rankingRealtimeChannel=null,refreshPromise=null,nextStudySettings=null,statusExam='ALL',performanceRows=[],noticeRows=[],chatRows=[],materialRows=[],chatRealtimeChannel=null,noticeRealtimeChannel=null,brandingRealtimeChannel=null,presenceRealtimeChannel=null,duelRealtimeChannel=null,liveQuizRealtimeChannel=null,onlineUsers=[],presenceOnlineUsers=[],heartbeatOnlineUsers=[],onlineHeartbeatTimer=null,chatPollTimer=null,duelPollTimer=null,duelStateTimer=null,duelCountdownTimer=null,liveQuizPollTimer=null,liveQuizCountdownTimer=null,toastTimer=null,duelSetupTargetId='',currentDuelId='',currentDuelState=null,pendingDuelInvite=null,duelSubmitting=false,currentLiveRoomId='',currentLiveRoomState=null,liveQuizSubmitting=false,swordChallengeOverviewTimer=null,swordChallengeStateTimer=null,swordChallengeCountdownTimer=null,swordChallengeClockTimer=null,swordChallengeValidationTimer=null,currentSwordChallengeId='',currentSwordChallengeState=null,pendingSwordChallengeInvite=null,swordChallengeRenderedRound=0,swordChallengeLocalPhase='',swordChallengeRoundTarget=0,swordChallengeSpeechBuffer='',swordChallengeSubmitting=false,swordChallengeLastScores={};
 const realtimeClient=window.supabase?window.supabase.createClient(SUPA,KEY,{auth:{persistSession:false,autoRefreshToken:false,detectSessionInUrl:false}}):null;
 
 function sessionData(){try{return JSON.parse(localStorage.getItem('er_auth_session')||'null')}catch(e){return null}}
@@ -663,9 +713,9 @@ function swordSpokenReference(ref){
 function openBibleSword(){
   if(!currentUser()){show('auth');return}
   swordStopListening();swordSession=null;
-  $('swordSetup').classList.remove('hidden');$('swordArena').classList.add('hidden');$('swordSummary').classList.add('hidden');
+  $('swordSetup').classList.remove('hidden');$('swordChallengeSetup').classList.remove('hidden');$('swordArena').classList.add('hidden');$('swordSummary').classList.add('hidden');
   $('swordVersion').value='';$('swordSetupStatus').textContent='';
-  show('sword');
+  show('sword');renderSwordChallengeCandidates(false);checkSwordChallengeOverview(false);
   setTimeout(()=>swordSpeak('Qual é a versão da Bíblia que você está usando?'),250);
 }
 function closeBibleSword(){swordStopListening();if(swordTimerHandle){clearInterval(swordTimerHandle);swordTimerHandle=null}if(swordValidationTimer){clearInterval(swordValidationTimer);swordValidationTimer=null}try{speechSynthesis.cancel()}catch(e){}show('home')}
@@ -674,7 +724,7 @@ function startBibleSword(){
   if(!version){$('swordSetupStatus').textContent='Escolha primeiro a versão da Bíblia usada pelo participante.';swordSpeak('Escolha primeiro a versão da Bíblia.');return}
   const rounds=shuffle(SWORD_BANK).slice(0,Math.min(count,SWORD_BANK.length));
   swordSession={version,rounds,index:0,hits:0,misses:0,times:[],state:'ready',startedAt:0,foundAt:0};
-  $('swordSetup').classList.add('hidden');$('swordSummary').classList.add('hidden');$('swordArena').classList.remove('hidden');
+  $('swordSetup').classList.add('hidden');$('swordChallengeSetup').classList.add('hidden');$('swordSummary').classList.add('hidden');$('swordArena').classList.remove('hidden');
   $('swordVersionBadge').textContent=version+' • '+SWORD_VERSIONS[version];
   renderSwordRound();
 }
@@ -726,7 +776,9 @@ function swordValidationFail(message){
   swordSetListening('Rodada encerrada.',false);$('swordNextBtn').textContent=s.index+1>=s.rounds.length?'Ver resultado':'Próxima referência';$('swordNextBtn').classList.remove('hidden');
 }
 function swordCheckSpeech(text,mode){
-  const s=swordSession;if(!s)return;const heard=swordNormalize(text);if(!heard)return;
+  const heard=swordNormalize(text);if(!heard)return;
+  if(String(mode||'').startsWith('challenge-')){swordChallengeCheckSpeech(text,heard,mode);return}
+  const s=swordSession;if(!s)return;
   if(mode==='command'&&s.state==='search'){
     if(heard.split(' ').includes('achei')){swordFound('voz');return}
   }
@@ -737,20 +789,31 @@ function swordCheckSpeech(text,mode){
     if(expected&&swordSpeechBuffer.includes(expected)){swordValidationPass();return}
   }
 }
+function swordRecognitionStatus(text,live,mode){
+  if(String(mode||'').startsWith('challenge-'))swordChallengeSetListening(text,live);
+  else swordSetListening(text,live);
+}
+function swordShouldRestartListening(mode){
+  if(mode==='command')return !!(swordSession&&swordSession.state==='search');
+  if(mode==='validate')return !!(swordSession&&swordSession.state==='validate');
+  if(mode==='challenge-command')return swordChallengeLocalPhase==='search'&&!!currentSwordChallengeId;
+  if(mode==='challenge-validate')return swordChallengeLocalPhase==='validate'&&!!currentSwordChallengeId;
+  return false;
+}
 function swordStartListening(mode){
-  swordStopListening();swordListeningMode=mode;swordSpeechBuffer=mode==='validate'?'':swordSpeechBuffer;
+  swordStopListening();swordListeningMode=mode;if(mode==='validate')swordSpeechBuffer='';if(mode==='challenge-validate')swordChallengeSpeechBuffer='';
   if(window.AndroidUpdater&&typeof AndroidUpdater.startSwordRecognition==='function'){
     try{AndroidUpdater.startSwordRecognition(mode);return}catch(e){}
   }
   const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
-  if(!SR){swordSetListening('Reconhecimento de voz indisponível aqui. Use o botão ACHEI! e, na validação, um aparelho compatível.',false);return}
+  if(!SR){swordRecognitionStatus('Reconhecimento de voz indisponível aqui. Use o botão ACHEI! quando disponível.',false,mode);return}
   try{
     const r=new SR();swordRecognition=r;r.lang='pt-BR';r.continuous=false;r.interimResults=true;r.maxAlternatives=3;swordWebRestart=true;
     r.onresult=e=>{for(let i=e.resultIndex;i<e.results.length;i++){const t=e.results[i][0]?.transcript||'';swordCheckSpeech(t,mode)}};
-    r.onerror=e=>{if(e.error==='not-allowed'||e.error==='service-not-allowed'){swordSetListening('Permita o uso do microfone para ativar os comandos de voz.',false);swordWebRestart=false}};
-    r.onend=()=>{const should=swordWebRestart&&swordSession&&((mode==='command'&&swordSession.state==='search')||(mode==='validate'&&swordSession.state==='validate'));swordRecognition=null;if(should)setTimeout(()=>swordStartListening(mode),120)};
+    r.onerror=e=>{if(e.error==='not-allowed'||e.error==='service-not-allowed'){swordRecognitionStatus('Permita o uso do microfone para ativar os comandos de voz.',false,mode);swordWebRestart=false}};
+    r.onend=()=>{const should=swordWebRestart&&swordShouldRestartListening(mode);swordRecognition=null;if(should)setTimeout(()=>swordStartListening(mode),120)};
     r.start();
-  }catch(e){swordRecognition=null;swordSetListening('Não consegui iniciar o microfone. O botão ACHEI! continua disponível.',false)}
+  }catch(e){swordRecognition=null;swordRecognitionStatus('Não consegui iniciar o microfone. O botão ACHEI! continua disponível.',false,mode)}
 }
 function swordStopListening(){
   swordWebRestart=false;
@@ -758,14 +821,188 @@ function swordStopListening(){
   if(swordRecognition){try{swordRecognition.onend=null;swordRecognition.abort()}catch(e){}swordRecognition=null}
   swordListeningMode='';
 }
-window.onNativeSwordSpeech=function(text,isFinal,mode){mode=mode||swordListeningMode;swordCheckSpeech(text,mode);if(isFinal&&swordSession){const again=(mode==='command'&&swordSession.state==='search')||(mode==='validate'&&swordSession.state==='validate');if(again)setTimeout(()=>swordStartListening(mode),120)}}
-window.onNativeSwordSpeechError=function(message,mode){if(swordSession&&((mode==='command'&&swordSession.state==='search')||(mode==='validate'&&swordSession.state==='validate'))){if(String(message||'').toLowerCase().includes('permiss'))swordSetListening('Permita o microfone para usar a voz. O botão ACHEI! continua disponível.',false);else setTimeout(()=>swordStartListening(mode),180)}}
+window.onNativeSwordSpeech=function(text,isFinal,mode){mode=mode||swordListeningMode;swordCheckSpeech(text,mode);if(isFinal&&swordShouldRestartListening(mode))setTimeout(()=>swordStartListening(mode),120)}
+window.onNativeSwordSpeechError=function(message,mode){mode=mode||swordListeningMode;if(swordShouldRestartListening(mode)){if(String(message||'').toLowerCase().includes('permiss'))swordRecognitionStatus('Permita o microfone para usar a voz. O botão ACHEI! continua disponível.',false,mode);else setTimeout(()=>swordStartListening(mode),180)}}
 function nextSwordRound(){const s=swordSession;if(!s)return;s.index++;if(s.index>=s.rounds.length)finishBibleSword();else renderSwordRound()}
 function finishBibleSword(){
   swordStopListening();const s=swordSession;if(!s)return;s.state='finished';$('swordArena').classList.add('hidden');$('swordSummary').classList.remove('hidden');
   const best=s.times.length?Math.min(...s.times):null,avg=s.times.length?s.times.reduce((a,b)=>a+b,0)/s.times.length:null;
   $('swordSummary').innerHTML='<h3 style="margin-top:0">⚔️ Treino concluído</h3><p class="muted">Versão: <b>'+esc(s.version)+' — '+esc(SWORD_VERSIONS[s.version])+'</b></p><div class="sword-session-grid"><div><strong>'+s.hits+'</strong><span>VALIDADAS</span></div><div><strong>'+(best===null?'—':swordFormatTime(best)+'s')+'</strong><span>MELHOR TEMPO</span></div><div><strong>'+(avg===null?'—':swordFormatTime(avg)+'s')+'</strong><span>TEMPO MÉDIO</span></div></div><button class="btn primary block" style="margin-top:14px" onclick="openBibleSword()">Novo treino</button><button class="btn block" style="margin-top:8px" onclick="closeBibleSword()">Voltar ao início</button>';
 }
+
+
+function swordChallengeApiError(e){const raw=String(e?.message||e||'Erro no Desafio de Esgrima');try{const j=JSON.parse(raw);return j.message||j.error||raw}catch(x){}return raw.replace(/^Error:\s*/,'').slice(0,220)}
+async function swordChallengeRpc(name,body={}){const r=await protectedApi('/rest/v1/rpc/'+name,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});return await r.json()}
+function renderSwordChallengeCandidates(reset=false){
+  const list=$('swordChallengeCandidates'),status=$('swordChallengeCandidateStatus');if(!list)return;
+  const need=Math.max(1,Number($('swordChallengePlayerCount')?.value||2)-1);
+  const selected=reset?new Set():new Set([...list.querySelectorAll('input:checked')].map(x=>x.value));
+  const users=onlineUsers.filter(u=>!u.is_me).sort((a,b)=>String(a.name||'').localeCompare(String(b.name||''),'pt-BR'));
+  if(!users.length){list.innerHTML='<div class="empty">Nenhum outro Embaixador online agora.</div>';if(status)status.textContent='Para criar o desafio, os outros participantes precisam estar online.';return}
+  list.innerHTML=users.map(u=>'<label class="sword-player-choice"><input type="checkbox" value="'+esc(u.id)+'" '+(selected.has(u.id)?'checked':'')+' onchange="swordChallengeSelectionChanged()"><div><strong>'+esc(u.name||'Embaixador')+'</strong><small>'+esc(u.group||'Embaixada não informada')+'</small></div></label>').join('');
+  swordChallengeSelectionChanged();
+}
+function swordChallengeSelectionChanged(){
+  const status=$('swordChallengeCandidateStatus');if(!status)return;const need=Math.max(1,Number($('swordChallengePlayerCount')?.value||2)-1),n=document.querySelectorAll('#swordChallengeCandidates input:checked').length;
+  status.textContent='Selecione '+need+' adversário(s) • '+n+' selecionado(s).';
+}
+async function createSwordChallenge(){
+  const version=$('swordChallengeVersion').value,limit=Number($('swordChallengePlayerCount').value||2),ids=[...document.querySelectorAll('#swordChallengeCandidates input:checked')].map(x=>x.value),btn=$('swordChallengeCreateBtn');
+  if(!version){showAppToast('Desafio de Esgrima','Escolha sua versão da Bíblia.');return}
+  if(ids.length!==limit-1){showAppToast('Desafio de Esgrima','Para '+limit+' participantes, selecione exatamente '+(limit-1)+' adversário(s).');return}
+  if(!navigator.onLine){showAppToast('Desafio de Esgrima','Conecte-se à internet para criar o desafio.');return}
+  btn.disabled=true;
+  try{
+    const data=await swordChallengeRpc('create_sword_challenge',{p_opponent_user_ids:ids,p_bible_version:version});
+    currentSwordChallengeId=data.challenge_id;swordChallengeRenderedRound=0;swordChallengeLastScores={};
+    show('swordchallenge');await loadSwordChallengeState(true);startSwordChallengeStatePolling();
+    showAppToast('Desafio criado','Aguardando os Embaixadores aceitarem.');
+  }catch(e){showAppToast('Desafio de Esgrima',swordChallengeApiError(e))}
+  finally{btn.disabled=false}
+}
+function renderSwordChallengeInvite(invite){
+  pendingSwordChallengeInvite=invite||null;const box=$('swordChallengeInvite');if(!box)return;
+  if(!invite){box.classList.add('hidden');return}
+  $('swordChallengeInviteText').textContent=(invite.host_name||'Um Embaixador')+' convidou você para uma disputa com '+Number(invite.player_limit||2)+' participantes. Primeiro a 5 pontos vence.';
+  $('swordChallengeInviteVersion').value='';box.classList.remove('hidden');
+}
+async function respondSwordChallengeInvite(accept){
+  const inv=pendingSwordChallengeInvite;if(!inv)return;const a=$('swordChallengeAcceptBtn'),d=$('swordChallengeDeclineBtn'),version=$('swordChallengeInviteVersion').value;
+  if(accept&&!version){showAppToast('Desafio de Esgrima','Escolha sua versão da Bíblia antes de aceitar.');return}
+  a.disabled=d.disabled=true;
+  try{
+    await swordChallengeRpc('respond_sword_challenge',{p_challenge_id:inv.challenge_id,p_accept:!!accept,p_bible_version:accept?version:null});
+    renderSwordChallengeInvite(null);
+    if(accept){currentSwordChallengeId=inv.challenge_id;swordChallengeRenderedRound=0;swordChallengeLastScores={};show('swordchallenge');await loadSwordChallengeState(true);startSwordChallengeStatePolling()}
+    else showAppToast('Desafio recusado','A disputa foi encerrada para o grupo.');
+  }catch(e){showAppToast('Desafio de Esgrima',swordChallengeApiError(e))}
+  finally{a.disabled=d.disabled=false}
+}
+async function checkSwordChallengeOverview(forceOpen=false){
+  if(!navigator.onLine||!currentUid())return;
+  try{
+    const data=await swordChallengeRpc('get_my_sword_overview',{}),inv=data?.invite||null,cur=data?.current||null;
+    if(inv)renderSwordChallengeInvite(inv);else renderSwordChallengeInvite(null);
+    if(cur){
+      const changed=currentSwordChallengeId!==cur.challenge_id;currentSwordChallengeId=cur.challenge_id;
+      if(cur.status==='active'&&(forceOpen||changed)){show('swordchallenge');await loadSwordChallengeState(true)}
+      else if(document.getElementById('swordchallenge')?.classList.contains('active'))await loadSwordChallengeState(false);
+    }
+  }catch(e){}
+}
+function startSwordChallengeOverviewPolling(){stopSwordChallengeOverviewPolling();swordChallengeOverviewTimer=setInterval(()=>{if(document.visibilityState==='visible'&&navigator.onLine)checkSwordChallengeOverview(false)},5000)}
+function stopSwordChallengeOverviewPolling(){if(swordChallengeOverviewTimer){clearInterval(swordChallengeOverviewTimer);swordChallengeOverviewTimer=null}}
+function startSwordChallengeStatePolling(){stopSwordChallengeStatePolling();swordChallengeStateTimer=setInterval(()=>{if(currentSwordChallengeId&&navigator.onLine&&document.getElementById('swordchallenge')?.classList.contains('active'))loadSwordChallengeState(false)},1000)}
+function stopSwordChallengeStatePolling(){if(swordChallengeStateTimer){clearInterval(swordChallengeStateTimer);swordChallengeStateTimer=null}}
+function swordChallengeScoreboardHtml(st){
+  const rows=Array.isArray(st?.players)?st.players:[];return '<div id="swordChallengeScoreboard" class="sword-scoreboard">'+rows.map(p=>'<div class="sword-score-player '+(p.is_me?'me':'')+'"><strong>'+esc(p.name||'Embaixador')+(p.is_me?' • você':'')+'</strong><b>'+Number(p.score||0)+'</b><small>'+esc(p.bible_version||'versão pendente')+' • de '+Number(st.target_score||5)+'</small></div>').join('')+'</div>';
+}
+function swordChallengeTrackScores(st){
+  for(const p of (st.players||[])){const old=swordChallengeLastScores[p.user_id];if(old!==undefined&&Number(p.score)>Number(old))showAppToast((p.name||'Embaixador')+' marcou!','Placar: '+Number(p.score)+' de '+Number(st.target_score||5));swordChallengeLastScores[p.user_id]=Number(p.score||0)}
+}
+function swordChallengeSetListening(text,live=false){
+  const box=$('swordChallengeListening');if(box)box.classList.toggle('live',!!live);
+  if($('swordChallengeListeningText'))$('swordChallengeListeningText').textContent=text||'';
+}
+function clearSwordChallengeRoundTimers(){
+  if(swordChallengeCountdownTimer){clearInterval(swordChallengeCountdownTimer);swordChallengeCountdownTimer=null}
+  if(swordChallengeClockTimer){clearInterval(swordChallengeClockTimer);swordChallengeClockTimer=null}
+  if(swordChallengeValidationTimer){clearInterval(swordChallengeValidationTimer);swordChallengeValidationTimer=null}
+}
+function renderSwordChallengePending(st){
+  swordStopListening();clearSwordChallengeRoundTimers();swordChallengeLocalPhase='';
+  const rows=st.players||[],waiting=rows.filter(p=>!p.accepted).length;
+  $('swordChallengeContent').innerHTML='<div class="card sword-challenge-hero"><div>⚔️ DESAFIO DE ESGRIMA</div><h2>Primeiro a 5 pontos</h2><p>'+Number(st.player_limit||rows.length)+' Embaixadores • sem limite pré-definido de referências</p></div><div class="card"><strong>Aguardando os participantes</strong><p class="muted">'+waiting+' convite(s) ainda pendente(s).</p>'+rows.map(p=>'<div class="sword-waiting-row"><div><b>'+esc(p.name||'Embaixador')+(p.is_me?' • você':'')+'</b><div class="muted" style="font-size:9px">'+esc(p.bible_version||'versão ainda não escolhida')+'</div></div><span class="sword-ready '+(p.accepted?'':'sword-pending')+'">'+(p.accepted?'PRONTO':'AGUARDANDO')+'</span></div>').join('')+'</div>';
+}
+function renderSwordChallengeRound(st){
+  const r=st.round;if(!r)return;
+  swordStopListening();clearSwordChallengeRoundTimers();swordChallengeRenderedRound=Number(r.round_no||0);swordChallengeSpeechBuffer='';
+  const myLocked=!!r.my_claimed;
+  $('swordChallengeContent').innerHTML='<div class="card sword-challenge-hero"><div>⚔️ DESAFIO • RODADA '+Number(r.round_no)+'</div><h2>Primeiro a 5 pontos</h2><p>'+Number(st.player_limit)+' Embaixadores • uma referência por vez</p></div>'+swordChallengeScoreboardHtml(st)+'<div class="card sword-challenge-round"><span class="sword-version-badge">'+esc(st.my_bible_version||'')+' • sua versão</span><div class="muted" style="font-size:10px;font-weight:900">MESMA REFERÊNCIA PARA TODOS</div><div id="swordChallengeReference" class="sword-challenge-ref">'+esc(r.reference||'—')+'</div><div id="swordChallengeClock" class="sword-challenge-clock">00,00</div><div id="swordChallengeListening" class="sword-listening"><span class="sword-mic-dot"></span><span id="swordChallengeListeningText">Prepare-se...</span></div><button id="swordChallengeFoundBtn" class="btn gold block sword-found-btn" onclick="swordChallengeFound(\'botão\')" '+(myLocked?'disabled':'')+'>ACHEI!</button><div id="swordChallengeValidation" class="sword-validation '+(myLocked?'':'hidden')+'">'+(myLocked?'<strong>Seu ACHEI já foi registrado.</strong><div>Aguardando o resultado desta referência.</div>':'')+'</div></div>';
+  if(myLocked){swordChallengeLocalPhase='waiting';swordChallengeSetListening('Aguardando os demais participantes...',false);return}
+  swordChallengeLocalPhase='countdown';
+  const delta=new Date(r.starts_at).getTime()-new Date(st.server_now).getTime();swordChallengeRoundTarget=Date.now()+delta;
+  swordSpeak(swordSpokenReference(r.reference||''),()=>{});
+  const tick=()=>{
+    const left=swordChallengeRoundTarget-Date.now(),clock=$('swordChallengeClock');
+    if(!clock){clearSwordChallengeRoundTimers();return}
+    if(left<=0){if(swordChallengeCountdownTimer){clearInterval(swordChallengeCountdownTimer);swordChallengeCountdownTimer=null}swordChallengeBeginSearch();return}
+    clock.textContent='-'+(Math.max(0,left)/1000).toFixed(1).replace('.',',');swordChallengeSetListening('Largada em '+Math.max(1,Math.ceil(left/1000))+'...',false);
+  };
+  tick();swordChallengeCountdownTimer=setInterval(tick,100);
+}
+function swordChallengeBeginSearch(){
+  if(swordChallengeLocalPhase!=='countdown'||!currentSwordChallengeState?.round)return;swordChallengeLocalPhase='search';
+  const btn=$('swordChallengeFoundBtn');if(btn)btn.disabled=false;
+  swordChallengeSetListening('🎙️ Diga “ACHEI!” quando encontrar',true);swordStartListening('challenge-command');
+  if(swordChallengeClockTimer)clearInterval(swordChallengeClockTimer);
+  swordChallengeClockTimer=setInterval(()=>{const el=$('swordChallengeClock');if(el&&swordChallengeLocalPhase==='search')el.textContent=swordFormatTime(Date.now()-swordChallengeRoundTarget)},31);
+}
+async function swordChallengeFound(source){
+  if(swordChallengeLocalPhase!=='search'||swordChallengeSubmitting||!currentSwordChallengeState?.round)return;
+  swordChallengeLocalPhase='claiming';swordChallengeSubmitting=true;swordStopListening();
+  if(swordChallengeClockTimer){clearInterval(swordChallengeClockTimer);swordChallengeClockTimer=null}
+  const btn=$('swordChallengeFoundBtn');if(btn)btn.disabled=true;swordChallengeSetListening('Registrando seu ACHEI...',false);
+  try{
+    const data=await swordChallengeRpc('claim_sword_round',{p_challenge_id:currentSwordChallengeId,p_round_no:Number(currentSwordChallengeState.round.round_no)});
+    if($('swordChallengeClock'))$('swordChallengeClock').textContent=swordFormatTime(Number(data.elapsed_ms||0));
+    startSwordChallengeValidation();
+  }catch(e){swordChallengeLocalPhase='waiting';showAppToast('Desafio de Esgrima',swordChallengeApiError(e));await loadSwordChallengeState(true)}
+  finally{swordChallengeSubmitting=false}
+}
+function startSwordChallengeValidation(){
+  const r=currentSwordChallengeState?.round,expected=String(r?.expected_words||'');if(!expected){finishSwordChallengeValidation(false,'Correção indisponível para sua versão.');return}
+  swordChallengeLocalPhase='validate';swordChallengeSpeechBuffer='';let remaining=4;
+  const v=$('swordChallengeValidation');if(v){v.className='sword-validation';v.innerHTML='<span id="swordChallengeValidationCountdown" class="countdown">4,0s</span><strong>Validação por voz</strong><div>Fale as <b>3 primeiras palavras</b> agora.</div><div id="swordChallengeHeard" class="muted" style="font-size:10px;margin-top:7px">Escutando...</div>'}
+  swordChallengeSetListening('Validando as três primeiras palavras...',true);swordStartListening('challenge-validate');
+  const started=performance.now();
+  swordChallengeValidationTimer=setInterval(()=>{remaining=Math.max(0,4-(performance.now()-started)/1000);if($('swordChallengeValidationCountdown'))$('swordChallengeValidationCountdown').textContent=remaining.toFixed(1).replace('.',',')+'s';if(remaining<=0){clearInterval(swordChallengeValidationTimer);swordChallengeValidationTimer=null;finishSwordChallengeValidation(false,'Tempo de 4 segundos encerrado.')}},80);
+}
+function swordChallengeCheckSpeech(original,heard,mode){
+  if(mode==='challenge-command'&&swordChallengeLocalPhase==='search'){if(heard.split(' ').includes('achei'))swordChallengeFound('voz');return}
+  if(mode==='challenge-validate'&&swordChallengeLocalPhase==='validate'){
+    swordChallengeSpeechBuffer=(swordChallengeSpeechBuffer+' '+heard).trim().slice(-240);
+    if($('swordChallengeHeard'))$('swordChallengeHeard').textContent='Ouvi: '+original;
+    const expected=swordNormalize(currentSwordChallengeState?.round?.expected_words||'');
+    if(expected&&swordChallengeSpeechBuffer.includes(expected))finishSwordChallengeValidation(true);
+  }
+}
+async function finishSwordChallengeValidation(valid,message=''){
+  if(swordChallengeLocalPhase!=='validate'&&swordChallengeLocalPhase!=='claiming')return;
+  swordChallengeLocalPhase='waiting';swordStopListening();if(swordChallengeValidationTimer){clearInterval(swordChallengeValidationTimer);swordChallengeValidationTimer=null}
+  const v=$('swordChallengeValidation');if(v){v.className='sword-validation '+(valid?'sword-result-ok':'sword-result-bad');v.innerHTML='<strong>'+(valid?'✅ VALIDADO':'❌ NÃO VALIDADO')+'</strong><div>'+(valid?'Seu resultado foi enviado. O ponto vai para o primeiro ACHEI validado corretamente.':esc(message||'A leitura não foi validada nesta referência.'))+'</div>'}
+  swordChallengeSetListening('Aguardando o resultado da referência...',false);
+  try{
+    const st=await swordChallengeRpc('validate_sword_round_claim',{p_challenge_id:currentSwordChallengeId,p_round_no:Number(currentSwordChallengeState.round.round_no),p_valid:!!valid});
+    renderSwordChallengeState(st);
+  }catch(e){showAppToast('Desafio de Esgrima',swordChallengeApiError(e));await loadSwordChallengeState(false)}
+}
+function renderSwordChallengeState(st){
+  currentSwordChallengeState=st||null;const c=$('swordChallengeContent');if(!c)return;if(!st){c.innerHTML='<div class="card"><div class="empty">Desafio indisponível.</div></div>';return}
+  swordChallengeTrackScores(st);$('swordChallengeToolbarStatus').textContent='1º a '+Number(st.target_score||5);
+  if(st.status==='pending'){renderSwordChallengePending(st);return}
+  if(st.status==='active'){
+    const roundNo=Number(st.round?.round_no||0);
+    if(roundNo!==swordChallengeRenderedRound){renderSwordChallengeRound(st)}
+    else{
+      const score=$('swordChallengeScoreboard');if(score){const tmp=document.createElement('div');tmp.innerHTML=swordChallengeScoreboardHtml(st);score.replaceWith(tmp.firstElementChild)}
+    }
+    return;
+  }
+  swordStopListening();clearSwordChallengeRoundTimers();swordChallengeLocalPhase='';stopSwordChallengeStatePolling();
+  if(st.status==='finished'){
+    const winner=(st.players||[]).find(p=>p.user_id===st.winner_user_id),won=st.winner_user_id===currentUid();
+    c.innerHTML='<div class="card sword-challenge-hero"><div>⚔️ DESAFIO ENCERRADO</div><h2>'+(won?'Você venceu!':esc((winner?.name||'Embaixador')+' venceu!'))+'</h2><p>Primeiro participante a alcançar 5 pontos.</p></div>'+swordChallengeScoreboardHtml(st)+'<div class="card duel-result"><div class="trophy">🏆</div><h2>'+esc(winner?.name||'Vencedor')+'</h2><p>Chegou primeiro a '+Number(st.target_score||5)+' referências validadas.</p><button class="btn primary block" onclick="finishSwordChallengeView()">Voltar à Esgrima</button></div>';return
+  }
+  const labels={declined:'Desafio recusado',expired:'Desafio expirado'};c.innerHTML='<div class="card duel-result"><div class="trophy">⚔️</div><h2>'+(labels[st.status]||'Desafio encerrado')+'</h2><button class="btn primary" onclick="finishSwordChallengeView()">Voltar à Esgrima</button></div>';
+}
+async function loadSwordChallengeState(force=false){
+  if(!currentSwordChallengeId||!navigator.onLine)return;
+  try{const st=await swordChallengeRpc('get_sword_challenge_state',{p_challenge_id:currentSwordChallengeId});renderSwordChallengeState(st);if(st.status==='pending'||st.status==='active')startSwordChallengeStatePolling()}
+  catch(e){if(force&&$('swordChallengeContent'))$('swordChallengeContent').innerHTML='<div class="card"><div class="empty">'+esc(swordChallengeApiError(e))+'</div></div>'}
+}
+function finishSwordChallengeView(){stopSwordChallengeStatePolling();swordStopListening();clearSwordChallengeRoundTimers();currentSwordChallengeId='';currentSwordChallengeState=null;swordChallengeRenderedRound=0;swordChallengeLastScores={};openBibleSword()}
+function swordChallengeBack(){swordStopListening();clearSwordChallengeRoundTimers();show('sword');renderSwordChallengeCandidates(false)}
 
 function openSetup(exam,label){if(!currentUser()){show('auth');return}selectedExam=exam;selectedLabel=label;$('setupTitle').textContent=label;const p=getPlayer();if(!p.name){openProfile('setup');return}show('setup')}
 function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
@@ -791,7 +1028,7 @@ function mergeOnlineUsers(){const map=new Map();for(const src of [heartbeatOnlin
 async function touchOnlineHeartbeat(){if(!navigator.onLine||!currentUid())return;try{const r=await protectedApi('/rest/v1/rpc/touch_online_presence',{method:'POST',headers:{'Content-Type':'application/json'},body:'{}'}),rows=await r.json();heartbeatOnlineUsers=(Array.isArray(rows)?rows:[]).map(x=>({id:String(x.user_id||''),name:String(x.display_name||'Embaixador'),group:String(x.group_name||''),online_at:String(x.last_seen_at||''),is_me:String(x.user_id||'')===currentUid()})).filter(x=>x.id);mergeOnlineUsers()}catch(e){}}
 function startOnlineHeartbeat(){if(onlineHeartbeatTimer||!navigator.onLine||!currentUid())return;touchOnlineHeartbeat();onlineHeartbeatTimer=setInterval(()=>{if(document.visibilityState==='visible'&&navigator.onLine&&currentUid())touchOnlineHeartbeat()},20000)}
 function stopOnlineHeartbeat(){if(onlineHeartbeatTimer){clearInterval(onlineHeartbeatTimer);onlineHeartbeatTimer=null}heartbeatOnlineUsers=[];mergeOnlineUsers()}
-function renderOnlineUsers(){const list=$('onlineUsers'),count=$('onlineCount'),badge=$('onlineNavBadge'),users=onlineUsers.slice().sort((a,b)=>{if(a.is_me!==b.is_me)return a.is_me?-1:1;return String(a.name||'').localeCompare(String(b.name||''),'pt-BR')});const n=users.length;if(count)count.textContent=n+' online';if(badge){badge.textContent=String(n);badge.classList.toggle('hidden',n<1)}if(!list)return;if(!n){list.innerHTML='<div class="online-empty">Ninguém online no momento.</div>';return}list.innerHTML=users.map(u=>'<div class="online-user '+(u.is_me?'me':'')+'" title="'+esc(u.group||'')+'"><span class="online-avatar">'+esc(initials(u.name||'ER'))+'</span><span>'+esc(u.name||'Embaixador')+(u.is_me?' (você)':'')+'</span>'+(u.is_me?'':'<button class="online-challenge" onclick="prepareDuel(\''+u.id+'\')">⚔️ Desafiar</button>')+'</div>').join('')}
+function renderOnlineUsers(){const list=$('onlineUsers'),count=$('onlineCount'),badge=$('onlineNavBadge'),users=onlineUsers.slice().sort((a,b)=>{if(a.is_me!==b.is_me)return a.is_me?-1:1;return String(a.name||'').localeCompare(String(b.name||''),'pt-BR')});const n=users.length;if(count)count.textContent=n+' online';if(badge){badge.textContent=String(n);badge.classList.toggle('hidden',n<1)}if(list){if(!n)list.innerHTML='<div class="online-empty">Ninguém online no momento.</div>';else list.innerHTML=users.map(u=>'<div class="online-user '+(u.is_me?'me':'')+'" title="'+esc(u.group||'')+'"><span class="online-avatar">'+esc(initials(u.name||'ER'))+'</span><span>'+esc(u.name||'Embaixador')+(u.is_me?' (você)':'')+'</span>'+(u.is_me?'':'<button class="online-challenge" onclick="prepareDuel(\''+u.id+'\')">⚔️ Desafiar</button>')+'</div>').join('')}renderSwordChallengeCandidates(false)}
 function syncPresenceUsers(){if(!presenceRealtimeChannel){presenceOnlineUsers=[];mergeOnlineUsers();return}try{const state=presenceRealtimeChannel.presenceState()||{},map=new Map();for(const [key,items] of Object.entries(state)){const arr=Array.isArray(items)?items:[];for(const item of arr){const uid=String(item.user_id||key||'');if(!uid)continue;const prev=map.get(uid),candidate={id:uid,name:String(item.name||'Embaixador'),group:String(item.group||''),online_at:String(item.online_at||''),is_me:uid===currentUid()};if(!prev||candidate.online_at>prev.online_at)map.set(uid,candidate)}}presenceOnlineUsers=[...map.values()]}catch(e){presenceOnlineUsers=[]}mergeOnlineUsers()}
 async function trackMyPresence(){if(!presenceRealtimeChannel||!currentUid())return;const p=getPlayer(),u=currentUser(),name=(p?.name||String(u?.email||'').split('@')[0]||'Embaixador').slice(0,40),group=String(p?.group||'').slice(0,80);try{await presenceRealtimeChannel.track({user_id:currentUid(),name,group,online_at:new Date().toISOString()})}catch(e){}}
 function startPresenceRealtime(){if(!realtimeClient||!currentUid()||presenceRealtimeChannel||!navigator.onLine)return;try{presenceRealtimeChannel=realtimeClient.channel('presence:online',{config:{presence:{key:currentUid()}}}).on('presence',{event:'sync'},syncPresenceUsers).on('presence',{event:'join'},syncPresenceUsers).on('presence',{event:'leave'},syncPresenceUsers).subscribe(async status=>{if(status==='SUBSCRIBED')await trackMyPresence()})}catch(e){presenceRealtimeChannel=null}}
@@ -845,8 +1082,8 @@ async function loadLiveQuizState(force=false){if(!currentLiveRoomId||!navigator.
 function finishLiveQuizView(){stopLiveQuizPolling();currentLiveRoomId='';currentLiveRoomState=null;show('chat')}
 function liveQuizBack(){show('chat')}
 function handleLiveQuizSignal(payload){const p=payload?.payload||payload||{};if(currentLiveRoomId&&p.room_id===currentLiveRoomId)loadLiveQuizState(false);else checkLiveQuizOverview(false)}
-function startCommunityRealtime(){if(!realtimeClient)return;try{if(!chatRealtimeChannel){chatRealtimeChannel=realtimeClient.channel('chat:global').on('broadcast',{event:'chat_message'},()=>{touchOnlineHeartbeat();if(document.getElementById('chat')?.classList.contains('active'))loadChat()}).subscribe()}if(!noticeRealtimeChannel){noticeRealtimeChannel=realtimeClient.channel('notifications:global').on('broadcast',{event:'new_notice'},payload=>{const p=payload?.payload||payload||{};loadNotices(document.getElementById('notices')?.classList.contains('active'));showAppToast(p.title||'Novo aviso',p.body||'Você recebeu uma nova notificação.');showBrowserNotification(p.title||'Diagnóstico E.R.',p.body||'Novo aviso disponível.')}).subscribe()}if(!brandingRealtimeChannel){brandingRealtimeChannel=realtimeClient.channel('branding:global').on('broadcast',{event:'branding_updated'},()=>loadBranding(true)).subscribe()}if(!duelRealtimeChannel){duelRealtimeChannel=realtimeClient.channel('duel:global').on('broadcast',{event:'duel_event'},handleDuelSignal).subscribe()}if(!liveQuizRealtimeChannel){liveQuizRealtimeChannel=realtimeClient.channel('livequiz:global').on('broadcast',{event:'live_quiz_event'},handleLiveQuizSignal).subscribe()}startPresenceRealtime();startOnlineHeartbeat();startDuelPolling()}catch(e){}}
-function stopCommunityRealtime(){stopPresenceRealtime();stopOnlineHeartbeat();stopDuelPolling();stopDuelStatePolling();try{if(chatRealtimeChannel&&realtimeClient)realtimeClient.removeChannel(chatRealtimeChannel)}catch(e){}try{if(noticeRealtimeChannel&&realtimeClient)realtimeClient.removeChannel(noticeRealtimeChannel)}catch(e){}try{if(brandingRealtimeChannel&&realtimeClient)realtimeClient.removeChannel(brandingRealtimeChannel)}catch(e){}try{if(duelRealtimeChannel&&realtimeClient)realtimeClient.removeChannel(duelRealtimeChannel)}catch(e){}try{if(liveQuizRealtimeChannel&&realtimeClient)realtimeClient.removeChannel(liveQuizRealtimeChannel)}catch(e){}stopLiveQuizPolling();chatRealtimeChannel=null;noticeRealtimeChannel=null;brandingRealtimeChannel=null;duelRealtimeChannel=null;liveQuizRealtimeChannel=null;currentDuelId='';currentDuelState=null;pendingDuelInvite=null;currentLiveRoomId='';currentLiveRoomState=null;renderDuelInvite(null)}
+function startCommunityRealtime(){if(!realtimeClient)return;try{if(!chatRealtimeChannel){chatRealtimeChannel=realtimeClient.channel('chat:global').on('broadcast',{event:'chat_message'},()=>{touchOnlineHeartbeat();if(document.getElementById('chat')?.classList.contains('active'))loadChat()}).subscribe()}if(!noticeRealtimeChannel){noticeRealtimeChannel=realtimeClient.channel('notifications:global').on('broadcast',{event:'new_notice'},payload=>{const p=payload?.payload||payload||{};loadNotices(document.getElementById('notices')?.classList.contains('active'));showAppToast(p.title||'Novo aviso',p.body||'Você recebeu uma nova notificação.');showBrowserNotification(p.title||'Diagnóstico E.R.',p.body||'Novo aviso disponível.')}).subscribe()}if(!brandingRealtimeChannel){brandingRealtimeChannel=realtimeClient.channel('branding:global').on('broadcast',{event:'branding_updated'},()=>loadBranding(true)).subscribe()}if(!duelRealtimeChannel){duelRealtimeChannel=realtimeClient.channel('duel:global').on('broadcast',{event:'duel_event'},handleDuelSignal).subscribe()}if(!liveQuizRealtimeChannel){liveQuizRealtimeChannel=realtimeClient.channel('livequiz:global').on('broadcast',{event:'live_quiz_event'},handleLiveQuizSignal).subscribe()}startPresenceRealtime();startOnlineHeartbeat();startDuelPolling();startSwordChallengeOverviewPolling()}catch(e){}}
+function stopCommunityRealtime(){stopPresenceRealtime();stopOnlineHeartbeat();stopDuelPolling();stopDuelStatePolling();stopSwordChallengeOverviewPolling();stopSwordChallengeStatePolling();try{if(chatRealtimeChannel&&realtimeClient)realtimeClient.removeChannel(chatRealtimeChannel)}catch(e){}try{if(noticeRealtimeChannel&&realtimeClient)realtimeClient.removeChannel(noticeRealtimeChannel)}catch(e){}try{if(brandingRealtimeChannel&&realtimeClient)realtimeClient.removeChannel(brandingRealtimeChannel)}catch(e){}try{if(duelRealtimeChannel&&realtimeClient)realtimeClient.removeChannel(duelRealtimeChannel)}catch(e){}try{if(liveQuizRealtimeChannel&&realtimeClient)realtimeClient.removeChannel(liveQuizRealtimeChannel)}catch(e){}stopLiveQuizPolling();chatRealtimeChannel=null;noticeRealtimeChannel=null;brandingRealtimeChannel=null;duelRealtimeChannel=null;liveQuizRealtimeChannel=null;currentDuelId='';currentDuelState=null;pendingDuelInvite=null;currentLiveRoomId='';currentLiveRoomState=null;currentSwordChallengeId='';currentSwordChallengeState=null;pendingSwordChallengeInvite=null;swordChallengeRenderedRound=0;renderDuelInvite(null);renderSwordChallengeInvite(null)}
 function materialCacheKey(){return userKey('er_materials')}
 function readMaterialCache(){try{return JSON.parse(localStorage.getItem(materialCacheKey())||'[]')}catch(e){return []}}
 function materialBytes(n){n=Number(n)||0;if(n<1024)return n+' B';if(n<1048576)return (n/1024).toFixed(1)+' KB';return (n/1048576).toFixed(1)+' MB'}
@@ -901,7 +1138,7 @@ function startRankingAutoRefresh(){stopRankingAutoRefresh();startRankingRealtime
 function stopRankingAutoRefresh(){if(rankingAutoTimer){clearInterval(rankingAutoTimer);rankingAutoTimer=null}}
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&document.getElementById('ranking')?.classList.contains('active'))renderRanking()});
 window.addEventListener('focus',()=>{if(document.getElementById('ranking')?.classList.contains('active'))renderRanking()});
-window.addEventListener('online',()=>{syncNow(false);startRankingRealtime();startCommunityRealtime();checkDuelOverview(false);checkLiveQuizOverview(false);if(document.getElementById('ranking')?.classList.contains('active'))renderRanking();if(document.getElementById('chat')?.classList.contains('active'))loadChat()});window.addEventListener('offline',()=>{setSync('Offline — usando banco salvo','err');stopPresenceRealtime();stopOnlineHeartbeat()});
+window.addEventListener('online',()=>{syncNow(false);startRankingRealtime();startCommunityRealtime();checkDuelOverview(false);checkLiveQuizOverview(false);checkSwordChallengeOverview(false);if(document.getElementById('ranking')?.classList.contains('active'))renderRanking();if(document.getElementById('chat')?.classList.contains('active'))loadChat()});window.addEventListener('offline',()=>{setSync('Offline — usando banco salvo','err');stopPresenceRealtime();stopOnlineHeartbeat()});
 async function migrateLocalAccountData(){if(!currentUid())return;for(const base of ['er_history','er_progress','er_score_queue']){const old=localStorage.getItem(base),target=userKey(base);if(old&&!localStorage.getItem(target)){localStorage.setItem(target,old);localStorage.removeItem(base)}}}
 window.addEventListener('pagehide',()=>{try{presenceRealtimeChannel?.untrack()}catch(e){}});
 function initAndroidUpdater(){try{if(!window.AndroidUpdater)return;const card=$('androidUpdaterCard');if(card)card.classList.remove('hidden');if($('androidAppVersion'))$('androidAppVersion').textContent='Versão Android '+String(AndroidUpdater.getVersionName()||'')+' • código '+String(AndroidUpdater.getVersionCode?AndroidUpdater.getVersionCode():'');}catch(e){}}
@@ -911,7 +1148,7 @@ function applyAndroidAppUpdate(){if(!window.AndroidUpdater)return;const btn=$('a
 window.onAndroidUpdateApplied=function(ok,message){const btn=$('androidApplyUpdateBtn');if(btn)btn.disabled=false;if($('androidUpdateStatus'))$('androidUpdateStatus').textContent=message||'';if(ok&&btn)btn.classList.add('hidden')}
 window.onAndroidUpdateProgress=function(percent,message){const btn=$('androidApplyUpdateBtn');if(btn)btn.disabled=true;if($('androidUpdateStatus'))$('androidUpdateStatus').textContent=(message||'Atualizando...')+(percent>1?'':'')}
 function restoreAndroidBundledVersion(){if(!window.AndroidUpdater)return;if(confirm('Restaurar a versão que veio instalada no APK?'))AndroidUpdater.restoreBundledVersion()}
-async function afterLogin(){await migrateLocalAccountData();await loadMyProfile();await loadNotices(false);await loadMaterials(false);startCommunityRealtime();refreshHome();renderNotices();$('bottomNav').classList.remove('hidden');const p=getPlayer();if(!p.name){openProfile('home')}else{show('home');syncNow(false);setTimeout(async()=>{await checkLiveQuizOverview(true);if(!document.getElementById('livequiz')?.classList.contains('active'))checkDuelOverview(true)},500)}}
+async function afterLogin(){await migrateLocalAccountData();await loadMyProfile();await loadNotices(false);await loadMaterials(false);startCommunityRealtime();refreshHome();renderNotices();$('bottomNav').classList.remove('hidden');const p=getPlayer();if(!p.name){openProfile('home')}else{show('home');syncNow(false);setTimeout(async()=>{await checkLiveQuizOverview(true);if(!document.getElementById('livequiz')?.classList.contains('active'))await checkDuelOverview(true);if(!document.getElementById('duel')?.classList.contains('active')&&!document.getElementById('livequiz')?.classList.contains('active'))await checkSwordChallengeOverview(true)},500)}}
 (async()=>{initAndroidUpdater();if(!localStorage.getItem('er_auth_reset_20260925')){clearSession();localStorage.setItem('er_auth_reset_20260925','1')}applyBranding(readBrandingCache());await loadBranding(true).catch(()=>{});await qdb.open();consumeAuthHash();const sess=await ensureSession();if(sess?.user){await afterLogin()}else{setAuthMode('login');show('auth')}})();
 </script>
 <script>
