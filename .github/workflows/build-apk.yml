@@ -1,5 +1,8 @@
 name: Build Diagnostico ER APK
 
+permissions:
+  contents: write
+
 on:
   workflow_dispatch:
   push:
@@ -28,6 +31,12 @@ jobs:
         with:
           gradle-version: '8.9'
 
+      - name: Restore stable Android signing key
+        uses: actions/cache@v4
+        with:
+          path: ~/.android/debug.keystore
+          key: diagnostico-er-debug-signing-v1
+
       - name: Build debug APK
         run: gradle assembleDebug --stacktrace
 
@@ -40,3 +49,28 @@ jobs:
           name: Diagnostico-ER-APK-Sincronizacao
           path: Diagnostico-ER-Sincronizacao.apk
           if-no-files-found: error
+
+      - name: Read Android version
+        id: android_version
+        shell: bash
+        run: |
+          CODE=$(grep -E "versionCode[[:space:]]+[0-9]+" app/build.gradle | head -1 | grep -oE "[0-9]+")
+          NAME=$(grep -E "versionName[[:space:]]+'[^']+'" app/build.gradle | head -1 | sed -E "s/.*versionName[[:space:]]+'([^']+)'.*/\1/")
+          echo "code=$CODE" >> "$GITHUB_OUTPUT"
+          echo "name=$NAME" >> "$GITHUB_OUTPUT"
+
+      - name: Publish APK release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION_CODE: ${{ steps.android_version.outputs.code }}
+          VERSION_NAME: ${{ steps.android_version.outputs.name }}
+        shell: bash
+        run: |
+          TAG="android-v${VERSION_CODE}"
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            gh release upload "$TAG" Diagnostico-ER-Sincronizacao.apk --clobber
+          else
+            gh release create "$TAG" Diagnostico-ER-Sincronizacao.apk \
+              --title "Diagnóstico E.R. Android ${VERSION_NAME}" \
+              --notes "Atualização Android do Diagnóstico E.R. — versão ${VERSION_NAME}, código ${VERSION_CODE}."
+          fi
