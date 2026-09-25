@@ -3,7 +3,7 @@
 .games-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
 .game-home-card{border:1px solid #d9e6f3;border-radius:18px;padding:14px;background:#fff;display:flex;flex-direction:column;gap:8px;min-height:155px}
 .game-home-card .game-icon{font-size:34px}.game-home-card h4{margin:0;font-size:17px}.game-home-card p{margin:0;color:#6d83a1;font-size:11px;line-height:1.45;flex:1}
-.game-home-card button{width:100%}.game-hero{background:linear-gradient(135deg,#061a33,#0b5ed7);color:#fff;border:2px solid #e9c54a}.game-hero p{color:#dceaff}
+.game-home-card:not(.image-card) button{width:100%}.exam.game-home-card.image-card button{width:36px}.game-hero{background:linear-gradient(135deg,#061a33,#0b5ed7);color:#fff;border:2px solid #e9c54a}.game-hero p{color:#dceaff}
 .game-mode-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.game-mode-btn{min-height:78px;border:1px solid #d8e5f2;border-radius:14px;background:#fff;font-weight:900;padding:8px}.game-mode-btn small{display:block;color:#6d83a1;font-weight:700;margin-top:4px}
 .game-setup-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:9px}.game-opponents{display:grid;gap:6px;margin:10px 0}.game-opponent{display:flex;gap:8px;align-items:center;border:1px solid #dce7f2;border-radius:12px;padding:9px}.game-opponent input{width:18px;height:18px}
 .game-board-wrap{max-width:560px;margin:0 auto}.game-board{display:grid;grid-template-columns:repeat(8,1fr);aspect-ratio:1/1;border:4px solid #162c45;border-radius:8px;overflow:hidden;touch-action:manipulation}

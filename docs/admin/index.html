@@ -233,11 +233,11 @@
 
           <div class="card" style="margin-top:12px">
             <div class="section-head" style="margin-top:0">
-              <div><strong>Editor visual avançado</strong><p class="muted" style="margin:4px 0 0">Controle os cards, imagens, ícones e tipografia para montar uma tela no estilo da referência.</p></div>
+              <div><strong>Editor visual avançado</strong><p class="muted" style="margin:4px 0 0">Controle as provas, a Esgrima Bíblica e os Jogos E.R.: nome, descrição, ícones, imagens, filtros e ordem dos cards.</p></div>
               <button class="btn primary" onclick="applyIllustratedPreset()">Aplicar estilo “Cards ilustrados”</button>
             </div>
             <div class="grid2">
-              <div class="field"><label>ESTILO DOS CARDS DAS PROVAS</label><select id="layoutExamStyle" onchange="previewBranding()"><option value="classic">Clássico</option><option value="image">Cards com imagem</option></select></div>
+              <div class="field"><label>ESTILO DOS CARDS DA TELA INICIAL</label><select id="layoutExamStyle" onchange="previewBranding()"><option value="classic">Clássico</option><option value="image">Cards com imagem</option></select></div>
               <div class="field"><label>ARREDONDAMENTO DOS CARDS: <span id="layoutExamRadiusText">18px</span></label><input id="layoutExamRadius" type="range" min="8" max="30" value="18" oninput="$('layoutExamRadiusText').textContent=this.value+'px';previewBranding()"></div>
               <div class="field"><label>ALTURA DOS CARDS: <span id="layoutExamHeightText">142px</span></label><input id="layoutExamHeight" type="range" min="115" max="210" value="142" oninput="$('layoutExamHeightText').textContent=this.value+'px';previewBranding()"></div>
             </div>
