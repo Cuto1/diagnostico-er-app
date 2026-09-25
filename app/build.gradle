@@ -10,7 +10,7 @@ android {
         applicationId 'com.diagnosticoer.app'
         minSdk 24
         targetSdk 35
-        versionCode 26
-        versionName '2.6.0-jogos-er'
+        versionCode 27
+        versionName '2.6.1-aparencia-jogos'
     }
 }

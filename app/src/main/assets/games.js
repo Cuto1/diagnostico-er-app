@@ -11,7 +11,7 @@ let overviewPoll=null;
 let pendingInvite=null;
 
 function el(id){return document.getElementById(id)}
-function gameName(t){return GAME_NAMES[t]||t}
+function gameName(t){const key={chess:'Chess',checkers:'Checkers',domino:'Domino'}[t];try{const custom=typeof currentLayoutConfig!=='undefined'&&key?currentLayoutConfig?.exam_cards?.[key]?.title:'';if(custom)return custom}catch(e){}return GAME_NAMES[t]||t}
 function gameRpc(name,body){
   return protectedApi('/rest/v1/rpc/'+name,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body||{})}).then(async r=>{
     let data={};try{data=await r.json()}catch(e){}
