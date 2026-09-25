@@ -55,9 +55,19 @@ function renderGameMenu(type){
     '</div>'+
     '<div class="card"><strong>Como funciona</strong><p class="game-note" style="margin-bottom:0">Partidas contra IA entram no seu Status como treino. Online e Campeonato entram no Ranking competitivo.</p></div>';
 }
-window.openERGame=function(type){
+window.openERGame=async function(type){
   if(!currentUser()){show('auth');return}
   show('ergames');G.type=type;renderGameMenu(type);
+  if(navigator.onLine){
+    try{
+      const ov=await gameRpc('get_my_er_game_overview',{});
+      const cur=ov?.current;
+      if(cur&&cur.status==='active'){
+        G.online={matchId:cur.match_id};G.type=cur.game_type;G.kind='online';
+        await loadOnlineGame(true);
+      }
+    }catch(e){}
+  }
 };
 
 window.startGameSetup=function(kind){
@@ -104,8 +114,10 @@ function renderOnlineSetup(){
 }
 window.renderGameOppSelection=function(){
   const box=el('gameOppSelection');if(!box)return;
+  const selected=new Set([...box.querySelectorAll('input[name="gameOpp"]:checked')].map(x=>x.value));
   const total=G.type==='domino'?Number(el('gamePlayerLimit')?.value||2):2,need=total-1;
   box.innerHTML='<div class="muted" style="font-size:10px">Selecione exatamente '+need+' adversário(s).</div>'+onlineCandidatesHtml(need,total);
+  box.querySelectorAll('input[name="gameOpp"]').forEach(x=>{if(selected.has(x.value))x.checked=true});
   if(el('gameTeamMode'))el('gameTeamMode').disabled=total!==4;
 };
 window.createOnlineGame=async function(){
@@ -359,7 +371,16 @@ function ensureInvite(){
 function showInvite(inv){ensureInvite();pendingInvite=inv||null;const box=el('erGameInvite');if(!inv){box.classList.add('hidden');return}el('erGameInviteTitle').textContent='🎮 '+gameName(inv.game_type);el('erGameInviteText').textContent=(inv.host_name||'Um Embaixador')+' convidou você para '+(inv.mode==='championship'?'uma partida de Campeonato':'uma partida online')+'.';box.classList.remove('hidden')}
 async function respondGameInvite(ok){if(!pendingInvite)return;try{await gameRpc('respond_er_game_match',{p_match_id:pendingInvite.match_id,p_accept:!!ok});const id=pendingInvite.match_id;showInvite(null);if(ok){show('ergames');G.online={matchId:id};await loadOnlineGame(true)}else showAppToast('Convite recusado','A partida foi encerrada.')}catch(e){showAppToast('Jogos E.R.',err(e))}}
 async function pollOverview(){
-  if(!currentUid()||!navigator.onLine)return;try{const data=await gameRpc('get_my_er_game_overview',{});showInvite(data?.invite||null);const cur=data?.current;if(cur&&cur.status==='active'&&!G.online?.matchId){G.online={matchId:cur.match_id};G.type=cur.game_type;G.kind='online'}}catch(e){}
+  if(!currentUid()||!navigator.onLine)return;
+  try{
+    const data=await gameRpc('get_my_er_game_overview',{});
+    showInvite(data?.invite||null);
+    const cur=data?.current;
+    if(cur&&cur.status==='active'&&!G.online?.matchId){
+      G.online={matchId:cur.match_id};G.type=cur.game_type;G.kind='online';
+      if(currentGameScreen())await loadOnlineGame(false);
+    }
+  }catch(e){}
 }
 function initOverview(){ensureInvite();if(overviewPoll)clearInterval(overviewPoll);overviewPoll=setInterval(pollOverview,5000);setTimeout(pollOverview,1200)}
 
