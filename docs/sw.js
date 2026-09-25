@@ -1,4 +1,4 @@
-const CACHE='diagnostico-er-web-v30-typography-top';
+const CACHE='diagnostico-er-web-v31-online-presence';
 const ASSETS=['./','./index.html','./manifest.webmanifest'];
 
 self.addEventListener('install',event=>{
