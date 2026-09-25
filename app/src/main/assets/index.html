@@ -171,9 +171,20 @@ body{font-size:calc(16px * var(--font-scale))}
       <div id="profileStatus" style="margin-top:10px;color:#6d83a1;font-size:11px"></div>
       <button class="btn danger block logout-btn" onclick="logout()">Sair desta conta</button>
     </div>
+    <div id="androidUpdaterCard" class="card hidden">
+      <strong>📲 Atualização do aplicativo</strong>
+      <p style="color:#6d83a1;font-size:12px;line-height:1.5">Atualize as telas e funções do Diagnóstico E.R. diretamente pelo aplicativo, sem precisar baixar outro APK.</p>
+      <div id="androidAppVersion" class="email-badge">Versão Android</div>
+      <div id="androidUpdateStatus" style="margin:10px 0;color:#6d83a1;font-size:11px">Pronto para verificar atualizações.</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+        <button id="androidCheckUpdateBtn" class="btn" onclick="checkAndroidAppUpdate()">Verificar atualização</button>
+        <button id="androidApplyUpdateBtn" class="btn primary hidden" onclick="applyAndroidAppUpdate()">Atualizar agora</button>
+      </div>
+      <button class="btn block" style="margin-top:8px" onclick="restoreAndroidBundledVersion()">Restaurar versão instalada</button>
+    </div>
     <div class="card">
       <strong>Como funciona o ranking?</strong>
-      <p style="color:#6d83a1;font-size:12px;line-height:1.5;margin-bottom:0">O ranking é semanal, online e separado por prova. Em cada prova vale o melhor percentual alcançado pelo Embaixador naquela semana. Empates permanecem na mesma posição.</p>
+      <p style="color:#6d83a1;font-size:12px;line-height:1.5;margin-bottom:0">O ranking é semanal, online e separado por prova. As tentativas da semana são somadas: cada acerto vale 10 pontos. A maior pontuação fica à frente e, em caso de empate nos pontos, vence o maior aproveitamento.</p>
     </div>
   </div>
 </section>
@@ -695,8 +706,14 @@ window.addEventListener('focus',()=>{if(document.getElementById('ranking')?.clas
 window.addEventListener('online',()=>{syncNow(false);startRankingRealtime();startCommunityRealtime();checkDuelOverview(false);checkLiveQuizOverview(false);if(document.getElementById('ranking')?.classList.contains('active'))renderRanking();if(document.getElementById('chat')?.classList.contains('active'))loadChat()});window.addEventListener('offline',()=>{setSync('Offline — usando banco salvo','err');stopPresenceRealtime();stopOnlineHeartbeat()});
 async function migrateLocalAccountData(){if(!currentUid())return;for(const base of ['er_history','er_progress','er_score_queue']){const old=localStorage.getItem(base),target=userKey(base);if(old&&!localStorage.getItem(target)){localStorage.setItem(target,old);localStorage.removeItem(base)}}}
 window.addEventListener('pagehide',()=>{try{presenceRealtimeChannel?.untrack()}catch(e){}});
+function initAndroidUpdater(){try{if(!window.AndroidUpdater)return;const card=$('androidUpdaterCard');if(card)card.classList.remove('hidden');if($('androidAppVersion'))$('androidAppVersion').textContent='Versão Android '+String(AndroidUpdater.getVersionName()||'');}catch(e){}}
+function checkAndroidAppUpdate(){if(!window.AndroidUpdater)return;const btn=$('androidCheckUpdateBtn'),apply=$('androidApplyUpdateBtn');if(btn)btn.disabled=true;if(apply)apply.classList.add('hidden');if($('androidUpdateStatus'))$('androidUpdateStatus').textContent='Verificando atualização...';try{AndroidUpdater.checkForUpdate()}catch(e){if($('androidUpdateStatus'))$('androidUpdateStatus').textContent='Não foi possível verificar.';if(btn)btn.disabled=false}}
+window.onAndroidUpdateCheck=function(available,message){const btn=$('androidCheckUpdateBtn'),apply=$('androidApplyUpdateBtn');if(btn)btn.disabled=false;if($('androidUpdateStatus'))$('androidUpdateStatus').textContent=message||'';if(apply)apply.classList.toggle('hidden',!available)}
+function applyAndroidAppUpdate(){if(!window.AndroidUpdater)return;const btn=$('androidApplyUpdateBtn');if(btn)btn.disabled=true;if($('androidUpdateStatus'))$('androidUpdateStatus').textContent='Baixando e aplicando atualização...';try{AndroidUpdater.applyUpdate()}catch(e){if(btn)btn.disabled=false;if($('androidUpdateStatus'))$('androidUpdateStatus').textContent='Falha ao iniciar a atualização.'}}
+window.onAndroidUpdateApplied=function(ok,message){const btn=$('androidApplyUpdateBtn');if(btn)btn.disabled=false;if($('androidUpdateStatus'))$('androidUpdateStatus').textContent=message||'';if(ok&&btn)btn.classList.add('hidden')}
+function restoreAndroidBundledVersion(){if(!window.AndroidUpdater)return;if(confirm('Restaurar a versão que veio instalada no APK?'))AndroidUpdater.restoreBundledVersion()}
 async function afterLogin(){await migrateLocalAccountData();await loadMyProfile();await loadNotices(false);await loadMaterials(false);startCommunityRealtime();refreshHome();renderNotices();$('bottomNav').classList.remove('hidden');const p=getPlayer();if(!p.name){openProfile('home')}else{show('home');syncNow(false);setTimeout(async()=>{await checkLiveQuizOverview(true);if(!document.getElementById('livequiz')?.classList.contains('active'))checkDuelOverview(true)},500)}}
-(async()=>{if(!localStorage.getItem('er_auth_reset_20260925')){clearSession();localStorage.setItem('er_auth_reset_20260925','1')}applyBranding(readBrandingCache());await loadBranding(true).catch(()=>{});await qdb.open();consumeAuthHash();const sess=await ensureSession();if(sess?.user){await afterLogin()}else{setAuthMode('login');show('auth')}})();
+(async()=>{initAndroidUpdater();if(!localStorage.getItem('er_auth_reset_20260925')){clearSession();localStorage.setItem('er_auth_reset_20260925','1')}applyBranding(readBrandingCache());await loadBranding(true).catch(()=>{});await qdb.open();consumeAuthHash();const sess=await ensureSession();if(sess?.user){await afterLogin()}else{setAuthMode('login');show('auth')}})();
 </script>
 <script>
 if('serviceWorker' in navigator){
