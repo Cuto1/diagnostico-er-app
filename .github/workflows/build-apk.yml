@@ -5,13 +5,6 @@ permissions:
 
 on:
   workflow_dispatch:
-  push:
-    branches: [ main ]
-    paths:
-      - 'app/**'
-      - 'build.gradle'
-      - 'settings.gradle'
-      - '.github/workflows/build-apk.yml'
 
 jobs:
   build:

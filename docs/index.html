@@ -85,7 +85,7 @@ body{font-size:calc(16px * var(--font-scale))}
 
 
 </style>
-<link rel="stylesheet" href="./games.css">
+<link rel="stylesheet" href="https://cuto1.github.io/diagnostico-er-app/games.css?v=20260925-1">
 <link rel="manifest" href="./manifest.webmanifest">
 <meta name="theme-color" content="#061a33">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -212,7 +212,7 @@ body{font-size:calc(16px * var(--font-scale))}
     </div>
     <div id="androidUpdaterCard" class="card hidden">
       <strong>📲 Atualização do aplicativo</strong>
-      <p style="color:#6d83a1;font-size:12px;line-height:1.5">Verifique e instale novas versões do Diagnóstico E.R. diretamente pelo aplicativo. Atualizações simples de conteúdo são aplicadas na hora; quando houver um novo APK, o Android abrirá a confirmação de instalação.</p>
+      <p style="color:#6d83a1;font-size:12px;line-height:1.5">Atualizações de conteúdo, jogos e interface são aplicadas diretamente no aplicativo. A instalação de um novo APK ficará temporariamente pausada enquanto a assinatura Android é reorganizada.</p>
       <div id="androidAppVersion" class="email-badge">Versão Android</div>
       <div id="androidUpdateStatus" style="margin:10px 0;color:#6d83a1;font-size:11px">Pronto para verificar atualizações.</div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
@@ -1186,7 +1186,7 @@ function restoreAndroidBundledVersion(){if(!window.AndroidUpdater)return;if(conf
 async function afterLogin(){await migrateLocalAccountData();await loadMyProfile();await loadNotices(false);await loadMaterials(false);startCommunityRealtime();refreshHome();renderNotices();$('bottomNav').classList.remove('hidden');const p=getPlayer();if(!p.name){openProfile('home')}else{show('home');syncNow(false);setTimeout(async()=>{await checkLiveQuizOverview(true);if(!document.getElementById('livequiz')?.classList.contains('active'))await checkDuelOverview(true);if(!document.getElementById('duel')?.classList.contains('active')&&!document.getElementById('livequiz')?.classList.contains('active'))await checkSwordChallengeOverview(true)},500)}}
 (async()=>{initAndroidUpdater();if(!localStorage.getItem('er_auth_reset_20260925')){clearSession();localStorage.setItem('er_auth_reset_20260925','1')}applyBranding(readBrandingCache());await loadBranding(true).catch(()=>{});await qdb.open();consumeAuthHash();const sess=await ensureSession();if(sess?.user){await afterLogin()}else{setAuthMode('login');show('auth')}})();
 </script>
-<script src="./games.js"></script>
+<script src="https://cuto1.github.io/diagnostico-er-app/games.js?v=20260925-1"></script>
 <script>
 if('serviceWorker' in navigator){
   window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}));
