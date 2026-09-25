@@ -1,4 +1,4 @@
-const CACHE='diagnostico-er-web-v22-signup-no-confirm';
+const CACHE='diagnostico-er-web-v23-auth-reset';
 const ASSETS=['./','./index.html','./manifest.webmanifest'];
 
 self.addEventListener('install',event=>{
