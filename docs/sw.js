@@ -1,4 +1,4 @@
-const CACHE='diagnostico-er-web-v31-online-presence';
+const CACHE='diagnostico-er-web-v32-duel-1v1';
 const ASSETS=['./','./index.html','./manifest.webmanifest'];
 
 self.addEventListener('install',event=>{
