@@ -76,7 +76,7 @@ window.startGameSetup=function(kind){
 };
 
 function onlineCandidatesHtml(need,max){
-  const users=(window.onlineUsers||[]).filter(u=>!u.is_me);
+  const users=(typeof onlineUsers!=='undefined'?onlineUsers:[]).filter(u=>!u.is_me);
   if(!users.length)return '<div class="empty">Nenhum outro Embaixador online agora.</div>';
   return users.map(u=>'<label class="game-opponent"><input type="checkbox" name="gameOpp" value="'+esc2(u.id)+'"><span><strong>'+esc2(u.name||'Embaixador')+'</strong><small style="display:block;color:#6d83a1">'+esc2(u.group||'')+'</small></span></label>').join('');
 }
@@ -243,14 +243,26 @@ function checkersStart(){
 function cloneBoard(b){return b.map(r=>r.slice())}
 function ckOwner(p){return !p?null:(p.toLowerCase()==='r'?0:1)}
 function ckCapturesFrom(b,r,c,player){
-  const p=b[r]?.[c];if(!p||ckOwner(p)!==player)return[];const out=[];
-  for(const [dr,dc] of [[-1,-1],[-1,1],[1,-1],[1,1]]){const mr=r+dr,mc=c+dc,tr=r+2*dr,tc=c+2*dc;if(tr<0||tr>7||tc<0||tc>7)continue;if(b[mr]?.[mc]&&ckOwner(b[mr][mc])!==player&&!b[tr][tc])out.push({from:[r,c],to:[tr,tc],capture:[mr,mc]})}
+  const p=b[r]?.[c];if(!p||ckOwner(p)!==player)return[];const out=[],king=p===p.toUpperCase();
+  for(const [dr,dc] of [[-1,-1],[-1,1],[1,-1],[1,1]]){
+    if(!king){
+      const mr=r+dr,mc=c+dc,tr=r+2*dr,tc=c+2*dc;
+      if(tr>=0&&tr<8&&tc>=0&&tc<8&&b[mr]?.[mc]&&ckOwner(b[mr][mc])!==player&&!b[tr][tc])out.push({from:[r,c],to:[tr,tc],capture:[mr,mc]});
+      continue;
+    }
+    let rr=r+dr,cc=c+dc,enemy=null;
+    while(rr>=0&&rr<8&&cc>=0&&cc<8){
+      if(!b[rr][cc]){if(enemy)out.push({from:[r,c],to:[rr,cc],capture:enemy});rr+=dr;cc+=dc;continue}
+      if(ckOwner(b[rr][cc])===player||enemy)break;
+      enemy=[rr,cc];rr+=dr;cc+=dc;
+    }
+  }
   return out;
 }
 function ckMoves(b,player,forced){
   if(forced)return ckCapturesFrom(b,forced[0],forced[1],player);
   let caps=[];for(let r=0;r<8;r++)for(let c=0;c<8;c++)caps=caps.concat(ckCapturesFrom(b,r,c,player));if(caps.length)return caps;
-  const out=[];for(let r=0;r<8;r++)for(let c=0;c<8;c++){const p=b[r][c];if(!p||ckOwner(p)!==player)continue;const king=p===p.toUpperCase(),dirs=king?[-1,1]:(player===0?[-1]:[1]);for(const dr of dirs)for(const dc of[-1,1]){const tr=r+dr,tc=c+dc;if(tr>=0&&tr<8&&tc>=0&&tc<8&&!b[tr][tc])out.push({from:[r,c],to:[tr,tc]})}}
+  const out=[];for(let r=0;r<8;r++)for(let c=0;c<8;c++){const p=b[r][c];if(!p||ckOwner(p)!==player)continue;const king=p===p.toUpperCase(),dirs=king?[-1,1]:(player===0?[-1]:[1]);for(const dr of dirs)for(const dc of[-1,1]){let tr=r+dr,tc=c+dc;while(tr>=0&&tr<8&&tc>=0&&tc<8&&!b[tr][tc]){out.push({from:[r,c],to:[tr,tc]});if(!king)break;tr+=dr;tc+=dc}}}
   return out;
 }
 function ckApply(b,m,player){
@@ -413,6 +425,9 @@ window.renderERActivityStatus=function(kind){
   renderActivityVisual(gameName(db),m,w,Number(g.competitive_draws||0),rate);
 };
 function renderActivityVisual(label,matches,wins,draws,rate){
+  if(el('statusChartTitle'))el('statusChartTitle').textContent='Resumo competitivo';
+  if(el('statusDonutTitle'))el('statusDonutTitle').textContent='Vitórias x demais resultados';
+  if(el('statusMapTitle'))el('statusMapTitle').textContent='Resumo da modalidade';
   el('statusLineChart').innerHTML='<div class="game-rank-summary"><div><strong>'+matches+'</strong><span>Partidas</span></div><div><strong>'+wins+'</strong><span>Vitórias</span></div><div><strong>'+draws+'</strong><span>Empates</span></div></div>';
   el('statusRight').textContent=wins;el('statusWrong').textContent=Math.max(0,matches-wins-draws);el('statusDonutPct').textContent=rate.toFixed(0)+'%';el('statusDonut').style.background='conic-gradient(#0b5ed7 '+Math.max(0,Math.min(100,rate))+'%,#e5edf7 0)';
   el('statusExamMap').innerHTML='<div class="status-map-row"><div class="status-map-head"><b>'+esc2(label)+'</b><span>'+wins+' vitória(s) em '+matches+' partida(s)</span></div><div class="status-map-track"><i style="width:'+Math.max(0,Math.min(100,rate))+'%"></i></div></div>';
