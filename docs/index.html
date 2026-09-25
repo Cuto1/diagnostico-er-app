@@ -526,7 +526,7 @@ window.addEventListener('focus',()=>{if(document.getElementById('ranking')?.clas
 window.addEventListener('online',()=>{syncNow(false);startRankingRealtime();startCommunityRealtime();if(document.getElementById('ranking')?.classList.contains('active'))renderRanking();if(document.getElementById('chat')?.classList.contains('active'))loadChat()});window.addEventListener('offline',()=>setSync('Offline — usando banco salvo','err'));
 async function migrateLocalAccountData(){if(!currentUid())return;for(const base of ['er_history','er_progress','er_score_queue']){const old=localStorage.getItem(base),target=userKey(base);if(old&&!localStorage.getItem(target)){localStorage.setItem(target,old);localStorage.removeItem(base)}}}
 async function afterLogin(){await migrateLocalAccountData();await loadMyProfile();await loadNotices(false);await loadMaterials(false);startCommunityRealtime();refreshHome();renderNotices();$('bottomNav').classList.remove('hidden');const p=getPlayer();if(!p.name){openProfile('home')}else{show('home');syncNow(false)}}
-(async()=>{applyBranding(readBrandingCache());await loadBranding(true).catch(()=>{});await qdb.open();consumeAuthHash();const sess=await ensureSession();if(sess?.user){await afterLogin()}else{setAuthMode('login');show('auth')}})();
+(async()=>{if(!localStorage.getItem('er_auth_reset_20260925')){clearSession();localStorage.setItem('er_auth_reset_20260925','1')}applyBranding(readBrandingCache());await loadBranding(true).catch(()=>{});await qdb.open();consumeAuthHash();const sess=await ensureSession();if(sess?.user){await afterLogin()}else{setAuthMode('login');show('auth')}})();
 </script>
 <script>
 if('serviceWorker' in navigator){
