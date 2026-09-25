@@ -1,4 +1,4 @@
-const CACHE='diagnostico-er-web-v34-online-heartbeat';
+const CACHE='diagnostico-er-web-v35-live-quiz-rooms';
 const ASSETS=['./','./index.html','./manifest.webmanifest'];
 
 self.addEventListener('install',event=>{
