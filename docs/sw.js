@@ -1,4 +1,4 @@
-const CACHE='diagnostico-er-web-v23-auth-reset';
+const CACHE='diagnostico-er-web-v24-admin-restore';
 const ASSETS=['./','./index.html','./manifest.webmanifest'];
 
 self.addEventListener('install',event=>{
