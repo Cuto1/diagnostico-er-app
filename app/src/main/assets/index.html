@@ -493,9 +493,26 @@ body{font-size:calc(16px * var(--font-scale))}
 <div id="duelSetupShell" class="duel-modal-shell hidden">
   <div class="duel-modal">
     <h3>⚔️ Criar desafio</h3>
-    <p>Você vai desafiar <strong id="duelSetupOpponent">Embaixador</strong>. Os dois receberão as mesmas questões.</p>
-    <div class="field"><label>PROVA</label><select id="duelExamSelect"><option value="Lucas">Lucas</option><option value="CGB">CGB</option><option value="Evangelhos">Evangelhos</option><option value="Bratcher">Livro Missionário</option><option value="BWAH">Sempre Embaixador</option></select></div>
-    <div class="field"><label>QUANTIDADE DE QUESTÕES</label><select id="duelCountSelect"><option value="5">5 questões</option><option value="10" selected>10 questões</option><option value="20">20 questões</option></select></div>
+    <p>Você vai desafiar <strong id="duelSetupOpponent">Embaixador</strong>. Escolha a modalidade.</p>
+    <div class="field"><label>MODALIDADE</label><select id="duelModeSelect" onchange="updateDuelModeFields()">
+      <option value="quiz">📝 Provas</option>
+      <option value="sword">⚔️ Esgrima Bíblica</option>
+      <option value="chess">♟️ Xadrez</option>
+      <option value="checkers">🔴 Dama</option>
+      <option value="domino">🁫 Dominó</option>
+    </select></div>
+    <div id="duelQuizFields">
+      <div class="field"><label>PROVA</label><select id="duelExamSelect"><option value="Lucas">Lucas</option><option value="CGB">CGB</option><option value="Evangelhos">Evangelhos</option><option value="Bratcher">Livro Missionário</option><option value="BWAH">Sempre Embaixador</option></select></div>
+      <div class="field"><label>QUANTIDADE DE QUESTÕES</label><select id="duelCountSelect"><option value="5">5 questões</option><option value="10" selected>10 questões</option><option value="20">20 questões</option></select></div>
+    </div>
+    <div id="duelSwordFields" class="hidden">
+      <div class="field"><label>SUA VERSÃO DA BÍBLIA</label><select id="duelSwordVersion"><option value="">Escolha</option><option value="ARA">ARA</option><option value="ARC">ARC</option><option value="NAA">NAA</option><option value="NVI">NVI</option><option value="NVT">NVT</option></select></div>
+      <p class="muted" style="font-size:10px">Primeiro a 5 referências validadas vence.</p>
+    </div>
+    <div id="duelChessFields" class="hidden">
+      <div class="grid2"><div class="field"><label>RELÓGIO</label><select id="duelChessTime"><option value="300">5 min</option><option value="600" selected>10 min</option><option value="900">15 min</option><option value="1800">30 min</option></select></div><div class="field"><label>INCREMENTO</label><select id="duelChessInc"><option value="0">0 s</option><option value="2">+2 s</option><option value="5">+5 s</option><option value="10">+10 s</option></select></div></div>
+    </div>
+    <div id="duelGameNote" class="hidden"><p class="muted" style="font-size:10px">Partida online competitiva. O resultado entra no Ranking e no Status.</p></div>
     <div class="actions" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:13px">
       <button class="btn" onclick="closeDuelSetup()">Cancelar</button>
       <button id="duelSendBtn" class="btn primary" onclick="sendDuelChallenge()">Desafiar</button>
@@ -515,14 +532,24 @@ body{font-size:calc(16px * var(--font-scale))}
 
 <div id="liveQuizCreateShell" class="duel-modal-shell hidden">
   <div class="duel-modal">
-    <h3>🎮 Criar Quiz ao Vivo</h3>
-    <p>Crie uma sala e compartilhe o código com os Embaixadores.</p>
-    <div class="field"><label>PROVA</label><select id="liveQuizExam"><option value="Lucas">Lucas</option><option value="CGB">CGB</option><option value="Evangelhos">Evangelhos</option><option value="Bratcher">Livro Missionário</option><option value="BWAH">Sempre Embaixador</option></select></div>
-    <div class="grid2">
-      <div class="field"><label>QUESTÕES</label><select id="liveQuizCount"><option value="5">5</option><option value="10" selected>10</option><option value="20">20</option></select></div>
-      <div class="field"><label>MÁXIMO DE JOGADORES</label><select id="liveQuizMax"><option value="3">3</option><option value="4">4</option><option value="6">6</option><option value="10" selected>10</option><option value="20">20</option><option value="30">30</option></select></div>
+    <h3>🎮 Criar sala ao vivo</h3>
+    <p>Escolha a modalidade que será disputada.</p>
+    <div class="field"><label>MODALIDADE</label><select id="liveRoomMode" onchange="updateLiveRoomModeFields()">
+      <option value="quiz">📝 Quiz ao Vivo</option>
+      <option value="sword">⚔️ Esgrima Bíblica</option>
+      <option value="chess">♟️ Xadrez</option>
+      <option value="checkers">🔴 Dama</option>
+      <option value="domino">🁫 Dominó</option>
+    </select></div>
+    <div id="liveQuizFields">
+      <div class="field"><label>PROVA</label><select id="liveQuizExam"><option value="Lucas">Lucas</option><option value="CGB">CGB</option><option value="Evangelhos">Evangelhos</option><option value="Bratcher">Livro Missionário</option><option value="BWAH">Sempre Embaixador</option></select></div>
+      <div class="grid2">
+        <div class="field"><label>QUESTÕES</label><select id="liveQuizCount"><option value="5">5</option><option value="10" selected>10</option><option value="20">20</option></select></div>
+        <div class="field"><label>MÁXIMO DE JOGADORES</label><select id="liveQuizMax"><option value="3">3</option><option value="4">4</option><option value="6">6</option><option value="10" selected>10</option><option value="20">20</option><option value="30">30</option></select></div>
+      </div>
     </div>
-    <div class="actions" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px"><button class="btn" onclick="closeLiveQuizCreate()">Cancelar</button><button id="liveQuizCreateBtn" class="btn primary" onclick="createLiveQuizRoom()">Criar sala</button></div>
+    <div id="liveRoomRouteNote" class="hidden"><p class="muted" style="font-size:11px">Ao continuar, você será levado à preparação da modalidade para escolher participantes e regras.</p></div>
+    <div class="actions" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px"><button class="btn" onclick="closeLiveQuizCreate()">Cancelar</button><button id="liveQuizCreateBtn" class="btn primary" onclick="createLiveQuizRoom()">Continuar</button></div>
     <div id="liveQuizCreateStatus" class="muted" style="font-size:10px;margin-top:8px"></div>
   </div>
 </div>
@@ -1072,10 +1099,28 @@ function refreshPresenceProfile(){if(presenceRealtimeChannel)trackMyPresence();e
 function duelApiError(e){const raw=String(e?.message||e||'Erro no duelo');try{const j=JSON.parse(raw);return j.message||j.error||raw}catch(x){}return raw.replace(/^Error:\s*/,'').slice(0,220)}
 async function duelRpc(name,body={}){const r=await protectedApi('/rest/v1/rpc/'+name,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});return await r.json()}
 function duelExamName(exam){return rankExamLabel(exam)}
-function prepareDuel(uid){const u=onlineUsers.find(x=>x.id===uid);if(!u||u.is_me)return;duelSetupTargetId=uid;$('duelSetupOpponent').textContent=u.name||'Embaixador';$('duelSetupStatus').textContent='';$('duelSendBtn').disabled=false;$('duelSetupShell').classList.remove('hidden')}
+function prepareDuel(uid){const u=onlineUsers.find(x=>x.id===uid);if(!u||u.is_me)return;duelSetupTargetId=uid;$('duelSetupOpponent').textContent=u.name||'Embaixador';$('duelSetupStatus').textContent='';$('duelSendBtn').disabled=false;if($('duelModeSelect'))$('duelModeSelect').value='quiz';updateDuelModeFields();$('duelSetupShell').classList.remove('hidden')}
+function updateDuelModeFields(){const mode=$('duelModeSelect')?.value||'quiz';$('duelQuizFields')?.classList.toggle('hidden',mode!=='quiz');$('duelSwordFields')?.classList.toggle('hidden',mode!=='sword');$('duelChessFields')?.classList.toggle('hidden',mode!=='chess');$('duelGameNote')?.classList.toggle('hidden',!['chess','checkers','domino'].includes(mode))}
 function closeDuelSetup(){$('duelSetupShell').classList.add('hidden');duelSetupTargetId=''}
 async function sendDuelSignal(duelId,targetUserId,kind='update'){try{if(duelRealtimeChannel)await duelRealtimeChannel.send({type:'broadcast',event:'duel_event',payload:{duel_id:duelId,target_user_id:targetUserId||'',kind}})}catch(e){}}
-async function sendDuelChallenge(){if(!duelSetupTargetId)return;const btn=$('duelSendBtn'),exam=$('duelExamSelect').value,count=Number($('duelCountSelect').value||10);btn.disabled=true;$('duelSetupStatus').textContent='Enviando desafio...';try{const data=await duelRpc('create_duel',{p_opponent_user_id:duelSetupTargetId,p_exam:exam,p_question_count:count});const target=duelSetupTargetId;currentDuelId=data.duel_id;closeDuelSetup();await sendDuelSignal(currentDuelId,target,'invite');show('duel');await loadDuelState(true);showAppToast('Desafio enviado','Aguardando '+(data.opponent_name||'o adversário')+' aceitar.')}catch(e){btn.disabled=false;$('duelSetupStatus').textContent=duelApiError(e)}}
+async function sendDuelChallenge(){
+  if(!duelSetupTargetId)return;
+  const btn=$('duelSendBtn'),mode=$('duelModeSelect')?.value||'quiz';btn.disabled=true;$('duelSetupStatus').textContent='Enviando desafio...';
+  try{
+    if(mode==='sword'){
+      const version=$('duelSwordVersion')?.value||'';if(!version)throw new Error('Escolha sua versão da Bíblia.');
+      const data=await swordChallengeRpc('create_sword_challenge',{p_opponent_user_ids:[duelSetupTargetId],p_bible_version:version});
+      currentSwordChallengeId=data.challenge_id;swordChallengeRenderedRound=0;swordChallengeLastScores={};closeDuelSetup();show('swordchallenge');await loadSwordChallengeState(true);startSwordChallengeStatePolling();showAppToast('Desafio enviado','Aguardando o adversário aceitar a Esgrima.');return;
+    }
+    if(['chess','checkers','domino'].includes(mode)){
+      if(!window.createDirectERGameChallenge)throw new Error('Módulo de jogos ainda está carregando. Tente novamente.');
+      const settings=mode==='chess'?{time_base_sec:Number($('duelChessTime')?.value||600),increment_sec:Number($('duelChessInc')?.value||0)}:{};
+      await window.createDirectERGameChallenge(duelSetupTargetId,mode,settings);closeDuelSetup();return;
+    }
+    const exam=$('duelExamSelect').value,count=Number($('duelCountSelect').value||10);
+    const data=await duelRpc('create_duel',{p_opponent_user_id:duelSetupTargetId,p_exam:exam,p_question_count:count});const target=duelSetupTargetId;currentDuelId=data.duel_id;closeDuelSetup();await sendDuelSignal(currentDuelId,target,'invite');show('duel');await loadDuelState(true);showAppToast('Desafio enviado','Aguardando '+(data.opponent_name||'o adversário')+' aceitar.');
+  }catch(e){btn.disabled=false;$('duelSetupStatus').textContent=duelApiError(e)}
+}
 function renderDuelInvite(invite){pendingDuelInvite=invite||null;const box=$('duelInvite');if(!box)return;if(!invite){box.classList.add('hidden');return}$('duelInviteText').textContent=(invite.challenger_name||'Um Embaixador')+' desafiou você em '+duelExamName(invite.exam)+' • '+invite.question_count+' questões.';box.classList.remove('hidden')}
 async function respondDuelInvite(accept){const inv=pendingDuelInvite;if(!inv)return;const a=$('duelAcceptBtn'),d=$('duelDeclineBtn');a.disabled=d.disabled=true;try{const data=await duelRpc('respond_duel',{p_duel_id:inv.duel_id,p_accept:!!accept});renderDuelInvite(null);await sendDuelSignal(inv.duel_id,inv.challenger_user_id,accept?'accepted':'declined');if(accept){currentDuelId=inv.duel_id;show('duel');await loadDuelState(true)}else showAppToast('Desafio recusado','O convite foi encerrado.')}catch(e){showAppToast('Duelo E.R.',duelApiError(e))}finally{a.disabled=d.disabled=false}}
 async function checkDuelOverview(forceOpen=false){if(!navigator.onLine||!currentUid())return;try{const data=await duelRpc('get_my_duel_overview',{});const inv=data?.invite||null;if(inv&&inv.duel_id!==currentDuelId)renderDuelInvite(inv);else if(!inv)renderDuelInvite(null);const cur=data?.current||null;if(cur){const changed=currentDuelId!==cur.duel_id;currentDuelId=cur.duel_id;if(cur.status==='active'&&(forceOpen||changed)){show('duel');await loadDuelState(true)}else if(document.getElementById('duel')?.classList.contains('active'))await loadDuelState(false)}}catch(e){}}
@@ -1095,12 +1140,23 @@ function duelBack(){show('chat')}
 function handleDuelSignal(payload){const p=payload?.payload||payload||{};if(p.target_user_id&&p.target_user_id!==currentUid())return;if(currentDuelId&&p.duel_id===currentDuelId)loadDuelState(false);checkDuelOverview(p.kind==='accepted');if(currentRankExam==='Duel'&&document.getElementById('ranking')?.classList.contains('active'))renderRanking()}
 function liveQuizApiError(e){const raw=String(e?.message||e||'Erro no Quiz ao Vivo');try{const j=JSON.parse(raw);return j.message||j.error||raw}catch(x){}return raw.replace(/^Error:\s*/,'').slice(0,220)}
 async function liveQuizRpc(name,body={}){const r=await protectedApi('/rest/v1/rpc/'+name,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});return await r.json()}
-function openLiveQuizCreate(){$('liveQuizCreateStatus').textContent='';$('liveQuizCreateBtn').disabled=false;$('liveQuizCreateShell').classList.remove('hidden')}
+function openLiveQuizCreate(){$('liveQuizCreateStatus').textContent='';$('liveQuizCreateBtn').disabled=false;if($('liveRoomMode'))$('liveRoomMode').value='quiz';updateLiveRoomModeFields();$('liveQuizCreateShell').classList.remove('hidden')}
+function updateLiveRoomModeFields(){const mode=$('liveRoomMode')?.value||'quiz';$('liveQuizFields')?.classList.toggle('hidden',mode!=='quiz');$('liveRoomRouteNote')?.classList.toggle('hidden',mode==='quiz')}
 function closeLiveQuizCreate(){$('liveQuizCreateShell').classList.add('hidden')}
 function openLiveQuizJoin(){$('liveQuizJoinStatus').textContent='';$('liveQuizJoinCode').value='';$('liveQuizJoinBtn').disabled=false;$('liveQuizJoinShell').classList.remove('hidden');setTimeout(()=>$('liveQuizJoinCode')?.focus(),80)}
 function closeLiveQuizJoin(){$('liveQuizJoinShell').classList.add('hidden')}
 async function sendLiveQuizSignal(roomId,kind='update'){try{if(liveQuizRealtimeChannel)await liveQuizRealtimeChannel.send({type:'broadcast',event:'live_quiz_event',payload:{room_id:roomId,kind}})}catch(e){}}
-async function createLiveQuizRoom(){const btn=$('liveQuizCreateBtn'),exam=$('liveQuizExam').value,count=Number($('liveQuizCount').value||10),max=Number($('liveQuizMax').value||10);btn.disabled=true;$('liveQuizCreateStatus').textContent='Criando sala...';try{const data=await liveQuizRpc('create_live_quiz_room',{p_exam:exam,p_question_count:count,p_max_players:max});currentLiveRoomId=data.room_id;closeLiveQuizCreate();show('livequiz');await loadLiveQuizState(true);await sendLiveQuizSignal(currentLiveRoomId,'created')}catch(e){btn.disabled=false;$('liveQuizCreateStatus').textContent=liveQuizApiError(e)}}
+async function createLiveQuizRoom(){
+  const btn=$('liveQuizCreateBtn'),mode=$('liveRoomMode')?.value||'quiz';
+  if(mode!=='quiz'){
+    closeLiveQuizCreate();
+    if(mode==='sword'){openBibleSword();setTimeout(()=>{if($('swordChallengePlayerCount'))$('swordChallengePlayerCount').value='2';renderSwordChallengeCandidates(true)},80);return}
+    if(window.openERGame){await window.openERGame(mode);setTimeout(()=>window.startGameSetup&&window.startGameSetup('online'),100);return}
+    showAppToast('Sala ao vivo','Módulo ainda está carregando.');return;
+  }
+  const exam=$('liveQuizExam').value,count=Number($('liveQuizCount').value||10),max=Number($('liveQuizMax').value||10);btn.disabled=true;$('liveQuizCreateStatus').textContent='Criando sala...';
+  try{const data=await liveQuizRpc('create_live_quiz_room',{p_exam:exam,p_question_count:count,p_max_players:max});currentLiveRoomId=data.room_id;closeLiveQuizCreate();show('livequiz');await loadLiveQuizState(true);await sendLiveQuizSignal(currentLiveRoomId,'created')}catch(e){btn.disabled=false;$('liveQuizCreateStatus').textContent=liveQuizApiError(e)}
+}
 async function joinLiveQuizRoom(){const btn=$('liveQuizJoinBtn'),code=String($('liveQuizJoinCode').value||'').trim().toUpperCase();if(code.length!==6){$('liveQuizJoinStatus').textContent='Digite os 6 caracteres do código.';return}btn.disabled=true;$('liveQuizJoinStatus').textContent='Entrando na sala...';try{const data=await liveQuizRpc('join_live_quiz_room',{p_room_code:code});currentLiveRoomId=data.room_id;closeLiveQuizJoin();show('livequiz');await sendLiveQuizSignal(currentLiveRoomId,'joined');await loadLiveQuizState(true)}catch(e){btn.disabled=false;$('liveQuizJoinStatus').textContent=liveQuizApiError(e)}}
 async function checkLiveQuizOverview(forceOpen=false){if(!navigator.onLine||!currentUid())return;try{const data=await liveQuizRpc('get_my_live_quiz_overview',{}),cur=data?.current||null;if(!cur)return;const changed=currentLiveRoomId!==cur.room_id;currentLiveRoomId=cur.room_id;if(forceOpen||cur.status==='active'||(changed&&document.getElementById('chat')?.classList.contains('active'))){show('livequiz');await loadLiveQuizState(true)}}catch(e){}}
 function startLiveQuizPolling(){stopLiveQuizPolling();liveQuizPollTimer=setInterval(()=>{if(currentLiveRoomId&&navigator.onLine&&document.visibilityState==='visible'&&document.getElementById('livequiz')?.classList.contains('active'))loadLiveQuizState(false)},1500)}

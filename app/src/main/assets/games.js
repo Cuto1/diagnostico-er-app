@@ -120,6 +120,15 @@ window.renderGameOppSelection=function(){
   box.querySelectorAll('input[name="gameOpp"]').forEach(x=>{if(selected.has(x.value))x.checked=true});
   if(el('gameTeamMode'))el('gameTeamMode').disabled=total!==4;
 };
+window.createDirectERGameChallenge=async function(targetUserId,type,settings={}){
+  if(!targetUserId||!['chess','checkers','domino'].includes(type))throw new Error('Desafio de jogo inválido');
+  show('ergames');G.type=type;G.kind='online';G.mode='online';setTitle(gameName(type));
+  content().innerHTML='<div class="card"><div class="empty">Enviando desafio...</div></div>';
+  const data=await gameRpc('create_er_game_match',{p_game_type:type,p_opponent_user_ids:[targetUserId],p_mode:'online',p_settings:settings||{}});
+  G.online={matchId:data.match_id};await loadOnlineGame(true);startOnlinePoll();showAppToast('Desafio enviado','Aguardando o adversário aceitar.');
+  return data;
+};
+
 window.createOnlineGame=async function(){
   const total=G.type==='domino'?Number(el('gamePlayerLimit')?.value||2):2;
   const ids=[...document.querySelectorAll('#gameOppSelection input[name="gameOpp"]:checked')].map(x=>x.value);
