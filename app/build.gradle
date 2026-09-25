@@ -10,7 +10,7 @@ android {
         applicationId 'com.diagnosticoer.app'
         minSdk 24
         targetSdk 35
-        versionCode 27
-        versionName '2.6.1-aparencia-jogos'
+        versionCode 28
+        versionName '2.6.2-xadrez-roque-visual'
     }
 }

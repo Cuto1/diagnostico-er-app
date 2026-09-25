@@ -1,4 +1,4 @@
-const CACHE='diagnostico-er-web-v42-aparencia-jogos';
+const CACHE='diagnostico-er-web-v43-xadrez-roque';
 const ASSETS=['./','./index.html','./games.css','./games.js','./manifest.webmanifest'];
 
 self.addEventListener('install',event=>{

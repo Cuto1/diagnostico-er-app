@@ -18,3 +18,25 @@
 .game-invite{position:fixed;z-index:150;left:12px;right:12px;bottom:82px;max-width:520px;margin:auto;background:#061a33;color:#fff;border:2px solid #e9c54a;border-radius:18px;padding:14px;box-shadow:0 12px 35px #0005}.game-invite p{font-size:11px;color:#dceaff}.game-invite .actions{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .game-rank-summary{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.game-rank-summary div{background:#f3f7fc;border-radius:12px;padding:9px;text-align:center}.game-rank-summary strong{display:block;font-size:20px}
 @media(max-width:520px){.game-mode-grid{grid-template-columns:1fr}.game-setup-grid{grid-template-columns:1fr}.game-square{font-size:clamp(23px,10vw,41px)}}
+
+/* Xadrez: tabuleiro e peças */
+.chess-card{padding:14px}
+.chess-card .game-board-wrap{max-width:520px}
+.chess-card .game-board{width:100%;aspect-ratio:1/1;border:3px solid #12263d;border-radius:12px;box-shadow:0 8px 20px #10294322}
+.chess-card .game-square{aspect-ratio:1/1;font-size:clamp(28px,8.7vw,52px);overflow:hidden}
+.chess-piece{font-family:Georgia,"Times New Roman","DejaVu Serif",serif;font-style:normal;line-height:1;display:block;transform:translateY(-1px);user-select:none;-webkit-user-select:none}
+.chess-piece.white{color:#fff;text-shadow:0 1px 0 #21364d,1px 0 0 #21364d,0 -1px 0 #21364d,-1px 0 0 #21364d,0 2px 3px #0006}
+.chess-piece.black{color:#15202b;text-shadow:0 1px 1px #fff5,0 2px 3px #0005}
+.game-square.in-check{box-shadow:inset 0 0 0 5px #d9253f;background:#f2a5ae!important}
+.chess-card .game-square.selected{box-shadow:inset 0 0 0 4px #f2c84b}
+.chess-card .game-square.legal:after{width:18%;height:18%;background:#123a698f}
+.chess-card .game-square.capture:after{width:74%;height:74%;border:4px solid #d22b46;background:transparent}
+.chess-board-caption{display:flex;justify-content:space-between;gap:10px;margin:6px 3px 0;color:#6d83a1;font-size:9px;font-weight:800}
+.chess-special-actions{display:flex;align-items:center;justify-content:center;gap:7px;flex-wrap:wrap;margin:10px 0;padding:9px;border-radius:13px;background:#fff7d7;border:1px solid #f1d36d}
+.chess-special-actions span{width:100%;text-align:center;font-size:10px;font-weight:900;color:#6f5700}
+.chess-special-actions .btn{padding:8px 11px;font-size:10px}
+@media(max-width:520px){
+  .chess-card{padding:10px}
+  .chess-card .game-board{border-width:2px;border-radius:9px}
+  .chess-card .game-square{font-size:clamp(26px,10.7vw,44px)}
+}

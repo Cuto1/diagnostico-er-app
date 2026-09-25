@@ -150,7 +150,13 @@ function resultScreen(result,text){
 }
 
 /* XADREZ */
-const CHESS_SYMBOLS={wp:'♙',wn:'♘',wb:'♗',wr:'♖',wq:'♕',wk:'♔',bp:'♟',bn:'♞',bb:'♝',br:'♜',bq:'♛',bk:'♚'};
+const CHESS_SYMBOLS={wp:'♟︎',wn:'♞︎',wb:'♝︎',wr:'♜︎',wq:'♛︎',wk:'♚︎',bp:'♟︎',bn:'♞︎',bb:'♝︎',br:'♜︎',bq:'♛︎',bk:'♚︎'};
+function chessCastleMoves(chess,color){
+  if(chess.turn()!==color)return[];
+  const kingSq=color==='w'?'e1':'e8';
+  return chess.moves({square:kingSq,verbose:true}).filter(m=>String(m.flags||'').includes('k')||String(m.flags||'').includes('q')||m.san==='O-O'||m.san==='O-O-O');
+}
+function chessMoveIsCastle(m){return String(m?.flags||'').includes('k')||String(m?.flags||'').includes('q')||m?.san==='O-O'||m?.san==='O-O-O'}
 async function startSoloChess(){
   const Chess=await loadChess();const chess=new Chess(),base=Number(el('gameSoloClock')?.value||0),inc=Number(el('gameSoloInc')?.value||0);
   G.state={chess,userColor:'w'};G.clock=base?{w:base*1000,b:base*1000,inc:inc*1000,last:Date.now(),running:'w'}:null;
@@ -187,16 +193,37 @@ function chessFinished(chess,moverColor){
 }
 function renderChess(onlineState){
   const online=G.kind==='online',chess=G.state.chess,meSeat=online?onlineState.players.find(p=>p.is_me)?.seat:0,orientation=meSeat===1?'b':'w';
+  const myColor=meSeat===1?'b':'w',canMove=online?(onlineState.status==='active'&&onlineState.current_turn_seat===meSeat&&chess.turn()===myColor):(chess.turn()==='w');
   const board=chess.board(),ranks=orientation==='w'?[0,1,2,3,4,5,6,7]:[7,6,5,4,3,2,1,0],files=orientation==='w'?[0,1,2,3,4,5,6,7]:[7,6,5,4,3,2,1,0];
   let clocks='';
   if(online){const ps=onlineState.players||[];clocks='<div class="game-score-row">'+ps.map(p=>'<div class="game-player-chip '+(p.seat===onlineState.current_turn_seat?'active':'')+'"><strong>'+esc2(p.name)+(p.is_me?' • você':'')+'</strong><span class="game-clock">'+fmtClock(p.clock_ms)+'</span></div>').join('')+'</div>'}
   else if(G.clock)clocks='<div class="game-score-row"><div class="game-player-chip '+(chess.turn()==='w'?'active':'')+'"><strong>Você • Brancas</strong><span id="clockW" class="game-clock">'+fmtClock(G.clock.w)+'</span></div><div class="game-player-chip '+(chess.turn()==='b'?'active':'')+'"><strong>IA • Pretas</strong><span id="clockB" class="game-clock">'+fmtClock(G.clock.b)+'</span></div></div>';
   let squares='';
-  for(const ri of ranks)for(const fi of files){const sq=String.fromCharCode(97+fi)+(8-ri),p=board[ri][fi],isSel=G.selected===sq,legal=G.legal.find(m=>m.to===sq);squares+='<button class="game-square '+(((ri+fi)%2)?'dark':'light')+(isSel?' selected':'')+(legal?' '+(legal.captured?'capture':'legal'):'')+'" data-square="'+sq+'" onclick="clickChessSquare(\''+sq+'\')">'+(p?CHESS_SYMBOLS[p.color+p.type]:'')+'</button>'}
+  for(const ri of ranks)for(const fi of files){
+    const sq=String.fromCharCode(97+fi)+(8-ri),p=board[ri][fi],isSel=G.selected===sq,legal=G.legal.find(m=>m.to===sq),isCheck=p?.type==='k'&&p.color===chess.turn()&&chess.inCheck();
+    const piece=p?'<span class="chess-piece '+(p.color==='w'?'white':'black')+'">'+CHESS_SYMBOLS[p.color+p.type]+'</span>':'';
+    const extra=(isSel?' selected':'')+(legal?' '+(legal.captured?'capture':'legal'):'')+(isCheck?' in-check':'');
+    squares+='<button class="game-square '+(((ri+fi)%2)?'dark':'light')+extra+'" data-square="'+sq+'" onclick="clickChessSquare(\''+sq+'\')">'+piece+'</button>';
+  }
   const status=online?(onlineState.status==='active'?(onlineState.current_turn_seat===meSeat?'Sua vez':'Vez de '+esc2(onlineState.players.find(p=>p.seat===onlineState.current_turn_seat)?.name||'adversário')):'Partida encerrada'):(chess.turn()==='w'?'Sua vez':'IA pensando...');
-  content().innerHTML='<div class="card">'+clocks+'<div class="game-board-wrap"><div class="game-board">'+squares+'</div></div><div class="game-status">'+status+(chess.inCheck()?' • XEQUE':'')+'</div><div class="game-actions"><button class="btn" onclick="'+(online?'leaveOnlineGame()':'openERGame(\'chess\')')+'">Sair</button></div></div>';
+  const castles=canMove?chessCastleMoves(chess,myColor):[];
+  const castleBtns=castles.length?'<div class="chess-special-actions"><span>Jogada especial disponível:</span>'+castles.map(m=>'<button class="btn gold" onclick="performChessCastle(\''+(m.san==='O-O-O'||String(m.flags||'').includes('q')?'queen':'king')+'\')">'+(m.san==='O-O-O'||String(m.flags||'').includes('q')?'Roque grande':'Roque pequeno')+'</button>').join('')+'</div>':'';
+  content().innerHTML='<div class="card chess-card">'+clocks+'<div class="game-board-wrap"><div class="game-board">'+squares+'</div><div class="chess-board-caption"><span>'+(orientation==='w'?'Brancas':'Pretas')+'</span><span>Toque na peça e depois na casa de destino.</span></div></div><div class="game-status">'+status+(chess.inCheck()?' • XEQUE':'')+'</div>'+castleBtns+'<div class="game-actions"><button class="btn" onclick="'+(online?'leaveOnlineGame()':'openERGame(\'chess\')')+'">Sair</button></div></div>';
   updateChessClocks();
 }
+
+window.performChessCastle=async function(side){
+  const chess=G.state?.chess;if(!chess)return;
+  const online=G.kind==='online',st=G.online?.state,meSeat=online?st.players.find(p=>p.is_me)?.seat:0,myColor=meSeat===1?'b':'w';
+  if(online&&(st.status!=='active'||st.current_turn_seat!==meSeat))return;
+  if(!online&&chess.turn()!=='w')return;
+  if(chess.turn()!==myColor)return;
+  const kingSq=myColor==='w'?'e1':'e8',target=side==='queen'?(myColor==='w'?'c1':'c8'):(myColor==='w'?'g1':'g8');
+  const legal=chess.moves({square:kingSq,verbose:true}),castle=legal.find(m=>m.to===target&&chessMoveIsCastle(m));
+  if(!castle){showAppToast('Xadrez','O roque não está disponível nesta posição. Verifique se o rei ou a torre já se moveram, se há peças no caminho ou se alguma casa está sob ataque.');return}
+  G.selected=kingSq;G.legal=legal;await window.clickChessSquare(target);
+};
+
 window.clickChessSquare=async function(sq){
   const chess=G.state?.chess;if(!chess)return;
   const online=G.kind==='online',st=G.online?.state,meSeat=online?st.players.find(p=>p.is_me)?.seat:0,myColor=meSeat===0?'w':'b';
