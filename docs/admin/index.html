@@ -86,6 +86,33 @@
             <div class="field"><label>TEXTO DO LOGO (CASO NÃO USE IMAGEM)</label><input id="brandLogoText" maxlength="12" oninput="previewBranding()"></div>
           </div>
 
+          <div class="card" id="typographyEditor" style="margin-top:12px;border:2px solid #b9d5f5">
+            <div class="section-head" style="margin-top:0">
+              <div>
+                <strong style="font-size:17px">🔤 Tipografia</strong>
+                <p class="muted" style="margin:4px 0 0">Ajuste manualmente o tamanho e o estilo das fontes do aplicativo inteiro.</p>
+              </div>
+              <span id="layoutFontScaleBig" class="pill" style="font-size:14px">100%</span>
+            </div>
+            <div class="grid2">
+              <div class="field"><label>FONTE DOS TEXTOS</label><select id="layoutBodyFont" onchange="previewBranding()"><option value="system">Sistema / Inter</option><option value="arial">Arial</option><option value="trebuchet">Trebuchet MS</option><option value="verdana">Verdana</option><option value="georgia">Georgia</option><option value="tahoma">Tahoma</option><option value="courier">Courier New</option></select></div>
+              <div class="field"><label>FONTE DOS TÍTULOS</label><select id="layoutHeadingFont" onchange="previewBranding()"><option value="system">Sistema / Inter</option><option value="arial">Arial</option><option value="trebuchet">Trebuchet MS</option><option value="verdana">Verdana</option><option value="georgia">Georgia</option><option value="tahoma">Tahoma</option><option value="courier">Courier New</option></select></div>
+              <div class="field"><label>PESO DOS TÍTULOS</label><select id="layoutHeadingWeight" onchange="previewBranding()"><option value="600">600 — leve</option><option value="700">700 — forte</option><option value="800">800 — bem forte</option><option value="900">900 — máximo</option></select></div>
+              <div class="field"><label>TAMANHO ATUAL</label><input id="layoutFontScaleNumber" type="number" min="80" max="140" step="1" value="100" oninput="setFontScaleFromNumber(this.value)"></div>
+            </div>
+            <div class="field" style="margin-top:8px">
+              <label>TAMANHO GERAL DA FONTE: <span id="layoutFontScaleText">100%</span></label>
+              <input id="layoutFontScale" type="range" min="80" max="140" step="1" value="100" style="width:100%" oninput="syncFontScaleText();previewBranding()">
+            </div>
+            <div class="actions" style="margin-top:8px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">
+              <button type="button" class="btn" onclick="adjustFontScale(-2)">− Diminuir</button>
+              <button type="button" class="btn" onclick="resetFontScale()">100%</button>
+              <button type="button" class="btn primary" onclick="adjustFontScale(2)">+ Aumentar</button>
+            </div>
+            <p class="muted" style="margin:8px 0 0">Faixa de 80% a 140%. A prévia muda na hora; para publicar, use “Salvar aparência para todos”.</p>
+          </div>
+
+
           <div class="card" style="margin-top:12px">
             <strong>Imagens</strong>
             <div class="field"><label>LOGO — JPG, PNG, WEBP OU GIF (ATÉ 5 MB)</label><input id="brandLogoFile" type="file" accept="image/jpeg,image/png,image/webp,image/gif"></div>
@@ -203,31 +230,6 @@
             <div class="field" style="margin-top:12px"><label>ESCUDO/BRASÃO DO TOPO (OPCIONAL — SE VAZIO, USA O LOGO PRINCIPAL)</label><input id="layoutHeroShieldFile" type="file" accept="image/jpeg,image/png,image/webp,image/gif"><input id="layoutHeroShieldUrl" type="hidden"><div class="actions" style="margin-top:7px"><button id="layoutHeroShieldBtn" class="btn" onclick="uploadHeroShield()">Enviar escudo</button><button class="btn" onclick="clearHeroShield()">Remover escudo separado</button></div><img id="layoutHeroShieldPreview" class="asset-thumb hidden" alt=""></div>
           </div>
 
-          <div class="card" id="typographyEditor" style="margin-top:12px;border:2px solid #b9d5f5">
-            <div class="section-head" style="margin-top:0">
-              <div>
-                <strong style="font-size:17px">🔤 Tipografia</strong>
-                <p class="muted" style="margin:4px 0 0">Ajuste manualmente o tamanho e o estilo das fontes do aplicativo inteiro.</p>
-              </div>
-              <span id="layoutFontScaleBig" class="pill" style="font-size:14px">100%</span>
-            </div>
-            <div class="grid2">
-              <div class="field"><label>FONTE DOS TEXTOS</label><select id="layoutBodyFont" onchange="previewBranding()"><option value="system">Sistema / Inter</option><option value="arial">Arial</option><option value="trebuchet">Trebuchet MS</option><option value="verdana">Verdana</option><option value="georgia">Georgia</option><option value="tahoma">Tahoma</option><option value="courier">Courier New</option></select></div>
-              <div class="field"><label>FONTE DOS TÍTULOS</label><select id="layoutHeadingFont" onchange="previewBranding()"><option value="system">Sistema / Inter</option><option value="arial">Arial</option><option value="trebuchet">Trebuchet MS</option><option value="verdana">Verdana</option><option value="georgia">Georgia</option><option value="tahoma">Tahoma</option><option value="courier">Courier New</option></select></div>
-              <div class="field"><label>PESO DOS TÍTULOS</label><select id="layoutHeadingWeight" onchange="previewBranding()"><option value="600">600 — leve</option><option value="700">700 — forte</option><option value="800">800 — bem forte</option><option value="900">900 — máximo</option></select></div>
-              <div class="field"><label>TAMANHO ATUAL</label><input id="layoutFontScaleNumber" type="number" min="80" max="140" step="1" value="100" oninput="setFontScaleFromNumber(this.value)"></div>
-            </div>
-            <div class="field" style="margin-top:8px">
-              <label>TAMANHO GERAL DA FONTE: <span id="layoutFontScaleText">100%</span></label>
-              <input id="layoutFontScale" type="range" min="80" max="140" step="1" value="100" style="width:100%" oninput="syncFontScaleText();previewBranding()">
-            </div>
-            <div class="actions" style="margin-top:8px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">
-              <button type="button" class="btn" onclick="adjustFontScale(-2)">− Diminuir</button>
-              <button type="button" class="btn" onclick="resetFontScale()">100%</button>
-              <button type="button" class="btn primary" onclick="adjustFontScale(2)">+ Aumentar</button>
-            </div>
-            <p class="muted" style="margin:8px 0 0">Faixa de 80% a 140%. A prévia muda na hora; para publicar, use “Salvar aparência para todos”.</p>
-          </div>
 
           <div class="card" style="margin-top:12px">
             <div class="section-head" style="margin-top:0">
