@@ -31,26 +31,52 @@ jobs:
         with:
           gradle-version: '8.9'
 
-      - name: Restore stable Android signing key
-        id: signing_key
-        uses: actions/cache@v4
-        with:
-          path: ~/.android/debug.keystore
-          key: diagnostico-er-debug-signing-v1
-
-      - name: Verify stable Android signing key
+      - name: Validate Android signing secrets
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
         shell: bash
         run: |
-          if [ "${{ steps.signing_key.outputs.cache-hit }}" != "true" ] || [ ! -f ~/.android/debug.keystore ]; then
-            echo "::error::A chave fixa de assinatura Android não foi restaurada. Build interrompido para evitar publicar um APK incompatível com instalações existentes."
+          missing=0
+          for name in ANDROID_KEYSTORE_BASE64 ANDROID_KEYSTORE_PASSWORD ANDROID_KEY_ALIAS ANDROID_KEY_PASSWORD; do
+            if [ -z "${!name:-}" ]; then
+              echo "::error::Secret $name não configurado."
+              missing=1
+            fi
+          done
+          if [ "$missing" -ne 0 ]; then
             exit 1
           fi
 
-      - name: Build debug APK
-        run: gradle assembleDebug --stacktrace
+      - name: Restore permanent Android signing key
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+        shell: bash
+        run: |
+          echo "$ANDROID_KEYSTORE_BASE64" | base64 --decode > "$RUNNER_TEMP/diagnostico-er-release.jks"
+          chmod 600 "$RUNNER_TEMP/diagnostico-er-release.jks"
+
+      - name: Verify permanent Android signing key
+        env:
+          ANDROID_KEYSTORE_PATH: ${{ runner.temp }}/diagnostico-er-release.jks
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+        shell: bash
+        run: |
+          keytool -list -keystore "$ANDROID_KEYSTORE_PATH" -storepass "$ANDROID_KEYSTORE_PASSWORD" -alias "$ANDROID_KEY_ALIAS" >/dev/null
+
+      - name: Build signed release APK
+        env:
+          ANDROID_KEYSTORE_PATH: ${{ runner.temp }}/diagnostico-er-release.jks
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: gradle assembleRelease --stacktrace
 
       - name: Rename APK
-        run: cp app/build/outputs/apk/debug/app-debug.apk Diagnostico-ER-Sincronizacao.apk
+        run: cp app/build/outputs/apk/release/app-release.apk Diagnostico-ER-Sincronizacao.apk
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
