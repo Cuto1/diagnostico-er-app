@@ -2,14 +2,19 @@ package com.diagnosticoer.app;
 
 import android.app.Activity;
 import android.app.DownloadManager;
+import android.Manifest;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.provider.Settings;
+import android.speech.RecognitionListener;
+import android.speech.RecognizerIntent;
+import android.speech.SpeechRecognizer;
 import android.webkit.JavascriptInterface;
 import android.webkit.ValueCallback;
 import android.webkit.WebChromeClient;
@@ -33,9 +38,11 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
+import java.util.ArrayList;
 
 public class MainActivity extends Activity {
     private static final int FILE_CHOOSER_REQUEST = 1001;
+    private static final int AUDIO_PERMISSION_REQUEST = 1002;
     private static final String REMOTE_INDEX_URL = "https://raw.githubusercontent.com/Cuto1/diagnostico-er-app/main/docs/index.html";
     private static final String RELEASE_API_URL = "https://api.github.com/repos/Cuto1/diagnostico-er-app/releases/latest";
     private static final String APK_ASSET_NAME = "Diagnostico-ER-Sincronizacao.apk";
@@ -47,6 +54,8 @@ public class MainActivity extends Activity {
     private volatile ReleaseInfo pendingRelease;
     private volatile boolean waitingInstallPermission = false;
     private volatile long updateDownloadId = -1L;
+    private SpeechRecognizer swordSpeechRecognizer;
+    private String pendingSwordSpeechMode = "";
 
     private static class ReleaseInfo {
         int versionCode;
@@ -398,7 +407,114 @@ public class MainActivity extends Activity {
         }
     }
 
+    private void sendSwordSpeech(String text, boolean isFinal, String mode) {
+        final String js = "window.onNativeSwordSpeech&&window.onNativeSwordSpeech("
+                + JSONObject.quote(text == null ? "" : text) + ","
+                + isFinal + ","
+                + JSONObject.quote(mode == null ? "" : mode) + ");";
+        runOnUiThread(() -> webView.evaluateJavascript(js, null));
+    }
+
+    private void sendSwordSpeechError(String message, String mode) {
+        final String js = "window.onNativeSwordSpeechError&&window.onNativeSwordSpeechError("
+                + JSONObject.quote(message == null ? "" : message) + ","
+                + JSONObject.quote(mode == null ? "" : mode) + ");";
+        runOnUiThread(() -> webView.evaluateJavascript(js, null));
+    }
+
+    private void stopSwordRecognitionInternal() {
+        runOnUiThread(() -> {
+            try {
+                if (swordSpeechRecognizer != null) {
+                    swordSpeechRecognizer.cancel();
+                    swordSpeechRecognizer.destroy();
+                    swordSpeechRecognizer = null;
+                }
+            } catch (Exception ignored) {}
+        });
+    }
+
+    private void startSwordRecognitionInternal(String mode) {
+        pendingSwordSpeechMode = mode == null ? "" : mode;
+        runOnUiThread(() -> {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M
+                    && checkSelfPermission(Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
+                requestPermissions(new String[]{Manifest.permission.RECORD_AUDIO}, AUDIO_PERMISSION_REQUEST);
+                return;
+            }
+            beginSwordRecognition(pendingSwordSpeechMode);
+        });
+    }
+
+    private void beginSwordRecognition(String mode) {
+        try {
+            if (!SpeechRecognizer.isRecognitionAvailable(this)) {
+                sendSwordSpeechError("Reconhecimento de voz indisponível neste aparelho.", mode);
+                return;
+            }
+            if (swordSpeechRecognizer != null) {
+                try { swordSpeechRecognizer.cancel(); swordSpeechRecognizer.destroy(); } catch (Exception ignored) {}
+            }
+            swordSpeechRecognizer = SpeechRecognizer.createSpeechRecognizer(this);
+            final String activeMode = mode == null ? "" : mode;
+            swordSpeechRecognizer.setRecognitionListener(new RecognitionListener() {
+                @Override public void onReadyForSpeech(Bundle params) {}
+                @Override public void onBeginningOfSpeech() {}
+                @Override public void onRmsChanged(float rmsdB) {}
+                @Override public void onBufferReceived(byte[] buffer) {}
+                @Override public void onEndOfSpeech() {}
+                @Override public void onError(int error) {
+                    if (error == SpeechRecognizer.ERROR_CLIENT) return;
+                    sendSwordSpeechError(error == SpeechRecognizer.ERROR_INSUFFICIENT_PERMISSIONS
+                            ? "Permissão de microfone necessária."
+                            : "Reconhecimento de voz interrompido.", activeMode);
+                }
+                @Override public void onResults(Bundle results) {
+                    ArrayList<String> list = results.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
+                    if (list != null && !list.isEmpty()) sendSwordSpeech(list.get(0), true, activeMode);
+                    else sendSwordSpeech("", true, activeMode);
+                }
+                @Override public void onPartialResults(Bundle partialResults) {
+                    ArrayList<String> list = partialResults.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
+                    if (list != null && !list.isEmpty()) sendSwordSpeech(list.get(0), false, activeMode);
+                }
+                @Override public void onEvent(int eventType, Bundle params) {}
+            });
+            Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
+            intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
+            intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, "pt-BR");
+            intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_PREFERENCE, "pt-BR");
+            intent.putExtra(RecognizerIntent.EXTRA_PARTIAL_RESULTS, true);
+            intent.putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 5);
+            swordSpeechRecognizer.startListening(intent);
+        } catch (Exception e) {
+            sendSwordSpeechError("Não foi possível iniciar o microfone.", mode);
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == AUDIO_PERMISSION_REQUEST) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                beginSwordRecognition(pendingSwordSpeechMode);
+            } else {
+                sendSwordSpeechError("Permissão de microfone necessária.", pendingSwordSpeechMode);
+            }
+        }
+    }
+
     public class AndroidUpdaterBridge {
+        @JavascriptInterface
+        public void startSwordRecognition(String mode) {
+            startSwordRecognitionInternal(mode);
+        }
+
+        @JavascriptInterface
+        public void stopSwordRecognition() {
+            stopSwordRecognitionInternal();
+        }
+
         @JavascriptInterface
         public String getVersionName() {
             return versionName();
@@ -500,6 +616,12 @@ public class MainActivity extends Activity {
             return;
         }
         super.onActivityResult(requestCode, resultCode, data);
+    }
+
+    @Override
+    protected void onDestroy() {
+        stopSwordRecognitionInternal();
+        super.onDestroy();
     }
 
     @Override

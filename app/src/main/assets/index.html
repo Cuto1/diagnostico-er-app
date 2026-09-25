@@ -59,6 +59,23 @@ body{font-size:calc(16px * var(--font-scale))}
   .exam.image-card h4{font-size:calc(15px * var(--font-scale))}
   .exam.image-card p{font-size:calc(11px * var(--font-scale))}
 }
+
+/* Esgrima Bíblica */
+.sword-card{background:linear-gradient(145deg,#061a33,#0b5ed7);color:#fff;border:2px solid var(--gold)}
+.sword-card p{color:#dceaff}.sword-card .ico{background:#ffffff18}
+.sword-setup-title{font-size:21px;margin:0 0 6px}.sword-help{font-size:12px;line-height:1.5;color:var(--muted);margin:6px 0 14px}
+.sword-version-note{border-radius:13px;padding:10px 12px;background:#fff8d8;border:1px solid #f1d56a;color:#5f4b00;font-size:11px;line-height:1.45;margin:10px 0}
+.sword-arena{text-align:center}.sword-version-badge{display:inline-flex;padding:6px 10px;border-radius:999px;background:#e9f3ff;color:#0b54ba;font-size:10px;font-weight:1000;margin-bottom:9px}
+.sword-reference{font-size:31px;font-weight:1000;letter-spacing:.2px;margin:10px 0 2px;color:var(--text)}
+.sword-timer{font-variant-numeric:tabular-nums;font-size:44px;font-weight:1000;line-height:1;color:var(--blue);margin:13px 0}
+.sword-listening{display:flex;align-items:center;justify-content:center;gap:8px;min-height:28px;font-size:12px;font-weight:900;color:#375d87}
+.sword-mic-dot{width:10px;height:10px;border-radius:50%;background:#98aac0}.sword-listening.live .sword-mic-dot{background:#e43c57;box-shadow:0 0 0 5px #e43c5718;animation:swordPulse 1s infinite}
+@keyframes swordPulse{50%{transform:scale(1.35)}}.sword-found-btn{font-size:22px;padding:15px 18px;margin-top:12px;letter-spacing:.5px}
+.sword-validation{margin-top:13px;border-radius:16px;padding:14px;background:#f4f8fd;border:1px solid #dbe8f5;text-align:left}
+.sword-validation strong{display:block;margin-bottom:5px}.sword-validation .countdown{font-size:26px;font-weight:1000;color:var(--blue);float:right}
+.sword-result-ok{background:#eaf9f1;border-color:#a8dfc3;color:#086941}.sword-result-bad{background:#fff0f2;border-color:#f2b6c0;color:#9c2940}
+.sword-session-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px}.sword-session-grid div{background:#f2f7fc;border-radius:13px;padding:10px 5px;text-align:center}.sword-session-grid strong{display:block;font-size:20px}.sword-session-grid span{font-size:9px;color:var(--muted);font-weight:800}
+
 </style>
 <link rel="manifest" href="./manifest.webmanifest">
 <meta name="theme-color" content="#061a33">
@@ -142,6 +159,7 @@ body{font-size:calc(16px * var(--font-scale))}
       <div id="examCardEvangelhos" class="exam"><div><div id="examEvangelhosIcon" class="ico"><img id="examEvangelhosIconImg" alt=""><span id="examEvangelhosIconText">✝️</span></div><h4 id="examEvangelhosName">Evangelhos</h4><p id="examEvangelhosSubtitle">Mateus, Marcos, Lucas e João</p><span id="examEvangelhosBadge" class="exam-badge"></span></div><button id="examEvangelhosStart" onclick="openSetup('Evangelhos',rankExamLabel('Evangelhos'))"><span class="exam-start-label">Começar</span><span class="exam-arrow">→</span></button></div>
       <div id="examCardBratcher" class="exam"><div><div id="examBratcherIcon" class="ico"><img id="examBratcherIconImg" alt=""><span id="examBratcherIconText">🧭</span></div><h4 id="examBratcherName">Livro Missionário</h4><p id="examBratcherSubtitle">O Apóstolo do Sertão</p><span id="examBratcherBadge" class="exam-badge"></span></div><button id="examBratcherStart" onclick="openSetup('Bratcher',rankExamLabel('Bratcher'))"><span class="exam-start-label">Começar</span><span class="exam-arrow">→</span></button></div>
       <div id="examCardBwah" class="exam"><div><div id="examBwahIcon" class="ico"><img id="examBwahIconImg" alt=""><span id="examBwahIconText">🏅</span></div><h4 id="examBwahName">Sempre Embaixador</h4><p id="examBwahSubtitle">William Alvin Hatton</p><span id="examBwahBadge" class="exam-badge"></span></div><button id="examBwahStart" onclick="openSetup('BWAH',rankExamLabel('BWAH'))"><span class="exam-start-label">Começar</span><span class="exam-arrow">→</span></button></div>
+      <div id="bibleSwordCard" class="exam sword-card"><div><div class="ico">⚔️</div><h4>Esgrima Bíblica</h4><p>Encontre a referência, diga “ACHEI!” e valide por voz.</p></div><button onclick="openBibleSword()"><span class="exam-start-label">Treinar</span><span class="exam-arrow">→</span></button></div>
       <div id="competitionPrepCard" class="exam" style="background:linear-gradient(135deg,var(--navy),var(--blue));color:white;border-color:var(--blue)"><div><div class="ico" style="background:#ffffff1d">🏆</div><h4 id="homeCompeteTitle">Prepare-se para competir</h4><p id="homeCompeteText" style="color:#d8e8ff">Pratique até dominar o conteúdo.</p></div></div>
     </div>
 
@@ -294,6 +312,46 @@ body{font-size:calc(16px * var(--font-scale))}
       <button id="chatSendBtn" class="btn primary" onclick="sendChatMessage()">Enviar</button>
     </div>
     <div id="chatStatus" style="color:#6d83a1;font-size:10px;margin-top:6px"></div>
+  </div>
+</section>
+
+<section id="sword" class="screen">
+  <div class="toolbar"><button onclick="closeBibleSword()">← Início</button><strong>⚔️ Esgrima Bíblica</strong><span>🎙️</span></div>
+  <div class="wrap">
+    <div id="swordSetup" class="card">
+      <h2 class="sword-setup-title">Antes de começar</h2>
+      <p class="sword-help">Qual é a versão da Bíblia que o participante está usando? A referência e a correção das três primeiras palavras seguirão essa versão.</p>
+      <div class="field">
+        <label>VERSÃO DA BÍBLIA</label>
+        <select id="swordVersion">
+          <option value="">Escolha a versão</option>
+          <option value="ARA">ARA — Almeida Revista e Atualizada</option>
+          <option value="ARC">ARC — Almeida Revista e Corrigida</option>
+          <option value="NAA">NAA — Nova Almeida Atualizada</option>
+          <option value="NVI">NVI — Nova Versão Internacional</option>
+        </select>
+      </div>
+      <div class="field" style="margin-top:10px">
+        <label>REFERÊNCIAS POR TREINO</label>
+        <select id="swordRoundCount"><option value="5">5 referências</option><option value="10" selected>10 referências</option></select>
+      </div>
+      <div class="sword-version-note">O app falará a referência. Ao encontrar, diga <b>“ACHEI!”</b>. O cronômetro para nesse instante; depois você terá <b>4 segundos</b> para falar as três primeiras palavras do versículo.</div>
+      <button class="btn primary block" onclick="startBibleSword()">Começar Esgrima</button>
+      <div id="swordSetupStatus" class="muted" style="font-size:11px;margin-top:9px"></div>
+    </div>
+
+    <div id="swordArena" class="card sword-arena hidden">
+      <span id="swordVersionBadge" class="sword-version-badge"></span>
+      <div id="swordRoundLabel" class="muted" style="font-size:11px;font-weight:900"></div>
+      <div id="swordReference" class="sword-reference">—</div>
+      <div id="swordTimer" class="sword-timer">00,00</div>
+      <div id="swordListening" class="sword-listening"><span class="sword-mic-dot"></span><span id="swordListeningText">Preparando...</span></div>
+      <button id="swordFoundBtn" class="btn gold block sword-found-btn" onclick="swordFound('botão')">ACHEI!</button>
+      <div id="swordValidation" class="sword-validation hidden"></div>
+      <button id="swordNextBtn" class="btn primary block hidden" style="margin-top:12px" onclick="nextSwordRound()">Próxima referência</button>
+    </div>
+
+    <div id="swordSummary" class="card hidden"></div>
   </div>
 </section>
 
@@ -569,6 +627,138 @@ function historyData(){try{return JSON.parse(localStorage.getItem(userKey('er_hi
 function saveHistory(x){const h=historyData();h.unshift(x);localStorage.setItem(userKey('er_history'),JSON.stringify(h.slice(0,100)))}
 function weekPoints(){const now=new Date(),day=(now.getDay()+6)%7,start=new Date(now);start.setHours(0,0,0,0);start.setDate(start.getDate()-day);return historyData().filter(x=>new Date(x.date)>=start).reduce((s,x)=>s+x.score,0)}
 function refreshHome(){const p=getPlayer();$('homePlayerName').textContent=p.name||'Embaixador';$('homePlayerGroup').textContent=p.group?p.group:'Estude, revise e acompanhe sua evolução.';setAvatarBox('homeAvatarBox','homeAvatarImg','homeAvatarInitials',p.avatar,p.name);setAvatarBox('heroProfileBtn','heroProfileImg','heroProfileInitials',p.avatar,p.name);const h=historyData(),done=h.length,total=h.reduce((s,x)=>s+x.total,0),right=h.reduce((s,x)=>s+x.score,0);homePerformanceValues.done=String(done);homePerformanceValues.accuracy=total?Math.round(right*100/total)+'%':'0%';homePerformanceValues.week=String(weekPoints());renderHomePerformanceValues();refreshHomeRankMetric().catch(()=>{});const progressRaw=localStorage.getItem(userKey('er_progress'));if(progressRaw){try{const q=JSON.parse(progressRaw),current=Math.min((Number(q.pos)||0)+1,Array.isArray(q.ids)?q.ids.length:0),totalQ=Array.isArray(q.ids)?q.ids.length:0,pct=totalQ?Math.max(0,Math.min(100,((current-1)/totalQ)*100)):0;$('continueArea').classList.remove('hidden');$('continueExamText').textContent='Prova de '+(q.label||rankExamLabel(q.exam)||'Estudo');$('continueQuestionText').textContent='Questão '+current+' de '+totalQ;$('continueProgressCount').textContent=current+'/'+totalQ;$('continueProgressBar').style.width=pct+'%'}catch(e){$('continueArea').classList.add('hidden')}}else $('continueArea').classList.add('hidden');renderNextCompetition();renderMaterials();refreshBankInfo()}
+
+const SWORD_VERSIONS={
+  ARA:'Almeida Revista e Atualizada',
+  ARC:'Almeida Revista e Corrigida',
+  NAA:'Nova Almeida Atualizada',
+  NVI:'Nova Versão Internacional'
+};
+const SWORD_BANK=[
+  {ref:'João 3:16',words:{ARA:'Porque Deus amou',ARC:'Porque Deus amou',NAA:'Porque Deus amou',NVI:'Porque Deus tanto'}},
+  {ref:'Salmos 23:1',words:{ARA:'O SENHOR é',ARC:'O SENHOR é',NAA:'O SENHOR é',NVI:'O SENHOR é'}},
+  {ref:'Filipenses 4:13',words:{ARA:'tudo posso naquele',ARC:'Posso todas as',NAA:'Tudo posso naquele',NVI:'Tudo posso naquele'}},
+  {ref:'Hebreus 11:1',words:{ARA:'Ora, a fé',ARC:'Ora, a fé',NAA:'Ora, a fé',NVI:'Ora, a fé'}},
+  {ref:'Provérbios 3:5',words:{ARA:'Confia no SENHOR',ARC:'Confia no SENHOR',NAA:'Confie no SENHOR',NVI:'Confie no SENHOR'}},
+  {ref:'Romanos 8:28',words:{ARA:'Sabemos que todas',ARC:'E sabemos que',NAA:'Sabemos que todas',NVI:'Sabemos que todas'}},
+  {ref:'2 Timóteo 3:16',words:{ARA:'Toda a Escritura',ARC:'Toda Escritura divinamente',NAA:'Toda a Escritura',NVI:'Toda a Escritura'}},
+  {ref:'Salmos 119:105',words:{ARA:'Lâmpada para os',ARC:'Lâmpada para os',NAA:'Lâmpada para os',NVI:'A tua palavra'}},
+  {ref:'Josué 1:9',words:{ARA:'Não to mandei',ARC:'Não to mandei',NAA:'Não foi isso',NVI:'Não fui eu'}},
+  {ref:'Mateus 6:33',words:{ARA:'buscai, pois, em',ARC:'Mas buscai primeiro',NAA:'Mas busquem em',NVI:'Busquem, pois, em'}}
+];
+let swordSession=null,swordTimerHandle=null,swordValidationTimer=null,swordRecognition=null,swordSpeechBuffer='',swordListeningMode='',swordWebRestart=false;
+
+function swordNormalize(v){return String(v||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9ç ]/gi,' ').replace(/\s+/g,' ').trim()}
+function swordFormatTime(ms){return (Math.max(0,ms)/1000).toFixed(2).replace('.',',')}
+function swordSetListening(text,live=false){const box=$('swordListening');if(box)box.classList.toggle('live',!!live);if($('swordListeningText'))$('swordListeningText').textContent=text||''}
+function swordSpeak(text,onend){try{speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(text);u.lang='pt-BR';u.rate=.92;u.onend=()=>onend&&onend();u.onerror=()=>onend&&onend();speechSynthesis.speak(u)}catch(e){if(onend)onend()}}
+function openBibleSword(){
+  if(!currentUser()){show('auth');return}
+  swordStopListening();swordSession=null;
+  $('swordSetup').classList.remove('hidden');$('swordArena').classList.add('hidden');$('swordSummary').classList.add('hidden');
+  $('swordVersion').value='';$('swordSetupStatus').textContent='';
+  show('sword');
+  setTimeout(()=>swordSpeak('Qual é a versão da Bíblia que você está usando?'),250);
+}
+function closeBibleSword(){swordStopListening();if(swordTimerHandle){clearInterval(swordTimerHandle);swordTimerHandle=null}if(swordValidationTimer){clearInterval(swordValidationTimer);swordValidationTimer=null}try{speechSynthesis.cancel()}catch(e){}show('home')}
+function startBibleSword(){
+  const version=$('swordVersion').value,count=Number($('swordRoundCount').value||10);
+  if(!version){$('swordSetupStatus').textContent='Escolha primeiro a versão da Bíblia usada pelo participante.';swordSpeak('Escolha primeiro a versão da Bíblia.');return}
+  const rounds=shuffle(SWORD_BANK).slice(0,Math.min(count,SWORD_BANK.length));
+  swordSession={version,rounds,index:0,hits:0,misses:0,times:[],state:'ready',startedAt:0,foundAt:0};
+  $('swordSetup').classList.add('hidden');$('swordSummary').classList.add('hidden');$('swordArena').classList.remove('hidden');
+  $('swordVersionBadge').textContent=version+' • '+SWORD_VERSIONS[version];
+  renderSwordRound();
+}
+function renderSwordRound(){
+  swordStopListening();if(swordValidationTimer){clearInterval(swordValidationTimer);swordValidationTimer=null}
+  const s=swordSession;if(!s)return;
+  const row=s.rounds[s.index];if(!row){finishBibleSword();return}
+  s.state='announce';swordSpeechBuffer='';$('swordRoundLabel').textContent='Referência '+(s.index+1)+' de '+s.rounds.length;
+  $('swordReference').textContent=row.ref;$('swordTimer').textContent='00,00';$('swordFoundBtn').disabled=true;$('swordFoundBtn').classList.remove('hidden');
+  $('swordValidation').className='sword-validation hidden';$('swordValidation').innerHTML='';$('swordNextBtn').classList.add('hidden');
+  swordSetListening('Ouça a referência...',false);
+  swordSpeak(row.ref,()=>{if(!swordSession||swordSession.state!=='announce')return;swordBeginSearch()});
+}
+function swordBeginSearch(){
+  const s=swordSession;if(!s)return;s.state='search';s.startedAt=performance.now();$('swordFoundBtn').disabled=false;
+  if(swordTimerHandle)clearInterval(swordTimerHandle);
+  swordTimerHandle=setInterval(()=>{if(s?.state==='search')$('swordTimer').textContent=swordFormatTime(performance.now()-s.startedAt)},31);
+  swordSetListening('🎙️ Diga “ACHEI!” quando encontrar',true);swordStartListening('command');
+}
+function swordFound(source){
+  const s=swordSession;if(!s||s.state!=='search')return;
+  s.foundAt=performance.now();s.state='validate';if(swordTimerHandle){clearInterval(swordTimerHandle);swordTimerHandle=null}
+  const elapsed=s.foundAt-s.startedAt;s.currentTime=elapsed;$('swordTimer').textContent=swordFormatTime(elapsed);
+  $('swordFoundBtn').disabled=true;swordStopListening();swordSpeechBuffer='';
+  startSwordValidation();
+}
+function startSwordValidation(){
+  const s=swordSession,row=s.rounds[s.index],expected=row.words[s.version];if(!expected){swordValidationFail('Esta referência ainda não possui correção cadastrada para '+s.version+'.');return}
+  let remaining=4.0;
+  const v=$('swordValidation');v.className='sword-validation';v.innerHTML='<span id="swordValidationCountdown" class="countdown">4,0s</span><strong>Validação por voz</strong><div>Fale agora as <b>3 primeiras palavras</b> do versículo.</div><div id="swordHeard" class="muted" style="font-size:10px;margin-top:7px">Escutando...</div>';
+  swordSetListening('Validando as três primeiras palavras...',true);swordStartListening('validate');
+  const started=performance.now();
+  swordValidationTimer=setInterval(()=>{
+    const spent=(performance.now()-started)/1000;remaining=Math.max(0,4-spent);
+    if($('swordValidationCountdown'))$('swordValidationCountdown').textContent=remaining.toFixed(1).replace('.',',')+'s';
+    if(remaining<=0){clearInterval(swordValidationTimer);swordValidationTimer=null;swordValidationFail('Não consegui confirmar as três palavras dentro de 4 segundos.')}
+  },80);
+}
+function swordValidationPass(){
+  const s=swordSession;if(!s||s.state!=='validate')return;s.state='done';s.hits++;s.times.push(s.currentTime);swordStopListening();
+  if(swordValidationTimer){clearInterval(swordValidationTimer);swordValidationTimer=null}
+  const v=$('swordValidation');v.className='sword-validation sword-result-ok';v.innerHTML='<strong>✅ CORRETO</strong><div>Referência validada em <b>'+swordFormatTime(s.currentTime)+' s</b>.</div>';
+  swordSetListening('Validação concluída.',false);$('swordNextBtn').textContent=s.index+1>=s.rounds.length?'Ver resultado':'Próxima referência';$('swordNextBtn').classList.remove('hidden');
+}
+function swordValidationFail(message){
+  const s=swordSession;if(!s||s.state==='done')return;s.state='done';s.misses++;swordStopListening();
+  if(swordValidationTimer){clearInterval(swordValidationTimer);swordValidationTimer=null}
+  const v=$('swordValidation');v.className='sword-validation sword-result-bad';v.innerHTML='<strong>❌ NÃO VALIDADO</strong><div>'+esc(message||'As três primeiras palavras não foram reconhecidas dentro de 4 segundos.')+'</div>';
+  swordSetListening('Rodada encerrada.',false);$('swordNextBtn').textContent=s.index+1>=s.rounds.length?'Ver resultado':'Próxima referência';$('swordNextBtn').classList.remove('hidden');
+}
+function swordCheckSpeech(text,mode){
+  const s=swordSession;if(!s)return;const heard=swordNormalize(text);if(!heard)return;
+  if(mode==='command'&&s.state==='search'){
+    if(heard.split(' ').includes('achei')){swordFound('voz');return}
+  }
+  if(mode==='validate'&&s.state==='validate'){
+    swordSpeechBuffer=(swordSpeechBuffer+' '+heard).trim().slice(-240);
+    if($('swordHeard'))$('swordHeard').textContent='Ouvi: '+text;
+    const expected=swordNormalize(s.rounds[s.index].words[s.version]);
+    if(expected&&swordSpeechBuffer.includes(expected)){swordValidationPass();return}
+  }
+}
+function swordStartListening(mode){
+  swordStopListening();swordListeningMode=mode;swordSpeechBuffer=mode==='validate'?'':swordSpeechBuffer;
+  if(window.AndroidUpdater&&typeof AndroidUpdater.startSwordRecognition==='function'){
+    try{AndroidUpdater.startSwordRecognition(mode);return}catch(e){}
+  }
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  if(!SR){swordSetListening('Reconhecimento de voz indisponível aqui. Use o botão ACHEI! e, na validação, um aparelho compatível.',false);return}
+  try{
+    const r=new SR();swordRecognition=r;r.lang='pt-BR';r.continuous=false;r.interimResults=true;r.maxAlternatives=3;swordWebRestart=true;
+    r.onresult=e=>{for(let i=e.resultIndex;i<e.results.length;i++){const t=e.results[i][0]?.transcript||'';swordCheckSpeech(t,mode)}};
+    r.onerror=e=>{if(e.error==='not-allowed'||e.error==='service-not-allowed'){swordSetListening('Permita o uso do microfone para ativar os comandos de voz.',false);swordWebRestart=false}};
+    r.onend=()=>{const should=swordWebRestart&&swordSession&&((mode==='command'&&swordSession.state==='search')||(mode==='validate'&&swordSession.state==='validate'));swordRecognition=null;if(should)setTimeout(()=>swordStartListening(mode),120)};
+    r.start();
+  }catch(e){swordRecognition=null;swordSetListening('Não consegui iniciar o microfone. O botão ACHEI! continua disponível.',false)}
+}
+function swordStopListening(){
+  swordWebRestart=false;
+  if(window.AndroidUpdater&&typeof AndroidUpdater.stopSwordRecognition==='function'){try{AndroidUpdater.stopSwordRecognition()}catch(e){}}
+  if(swordRecognition){try{swordRecognition.onend=null;swordRecognition.abort()}catch(e){}swordRecognition=null}
+  swordListeningMode='';
+}
+window.onNativeSwordSpeech=function(text,isFinal,mode){mode=mode||swordListeningMode;swordCheckSpeech(text,mode);if(isFinal&&swordSession){const again=(mode==='command'&&swordSession.state==='search')||(mode==='validate'&&swordSession.state==='validate');if(again)setTimeout(()=>swordStartListening(mode),120)}}
+window.onNativeSwordSpeechError=function(message,mode){if(swordSession&&((mode==='command'&&swordSession.state==='search')||(mode==='validate'&&swordSession.state==='validate'))){if(String(message||'').toLowerCase().includes('permiss'))swordSetListening('Permita o microfone para usar a voz. O botão ACHEI! continua disponível.',false);else setTimeout(()=>swordStartListening(mode),180)}}
+function nextSwordRound(){const s=swordSession;if(!s)return;s.index++;if(s.index>=s.rounds.length)finishBibleSword();else renderSwordRound()}
+function finishBibleSword(){
+  swordStopListening();const s=swordSession;if(!s)return;s.state='finished';$('swordArena').classList.add('hidden');$('swordSummary').classList.remove('hidden');
+  const best=s.times.length?Math.min(...s.times):null,avg=s.times.length?s.times.reduce((a,b)=>a+b,0)/s.times.length:null;
+  $('swordSummary').innerHTML='<h3 style="margin-top:0">⚔️ Treino concluído</h3><p class="muted">Versão: <b>'+esc(s.version)+' — '+esc(SWORD_VERSIONS[s.version])+'</b></p><div class="sword-session-grid"><div><strong>'+s.hits+'</strong><span>VALIDADAS</span></div><div><strong>'+(best===null?'—':swordFormatTime(best)+'s')+'</strong><span>MELHOR TEMPO</span></div><div><strong>'+(avg===null?'—':swordFormatTime(avg)+'s')+'</strong><span>TEMPO MÉDIO</span></div></div><button class="btn primary block" style="margin-top:14px" onclick="openBibleSword()">Novo treino</button><button class="btn block" style="margin-top:8px" onclick="closeBibleSword()">Voltar ao início</button>';
+}
+
 function openSetup(exam,label){if(!currentUser()){show('auth');return}selectedExam=exam;selectedLabel=label;$('setupTitle').textContent=label;const p=getPlayer();if(!p.name){openProfile('setup');return}show('setup')}
 function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
 async function startQuiz(customIds,reviewOnly=false,attemptId=null){const rows=await qdb.byExam(selectedExam);if(!rows.length){alert('Nenhuma questão disponível. Conecte à internet e toque em Sincronizar.');show('home');return}const n=customIds?customIds.length:Math.min(Number($('countSel').value),rows.length),chosen=customIds?rows.filter(x=>customIds.includes(x.id)):shuffle(rows).slice(0,n);quiz={exam:selectedExam,label:selectedLabel,mode:$('modeSel').value,ids:chosen.map(x=>x.id),rows:chosen,pos:0,answers:{},locked:false,attemptId:attemptId||newAttemptId(),rankEligible:!reviewOnly,reviewOnly:!!reviewOnly};saveProgress();$('quizTitle').textContent=selectedLabel;show('quiz');renderQuestion()}
