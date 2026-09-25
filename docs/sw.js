@@ -1,4 +1,4 @@
-const CACHE='diagnostico-er-web-v37-ranking-detalhado';
+const CACHE='diagnostico-er-web-v38-ranking-acumulado';
 const ASSETS=['./','./index.html','./manifest.webmanifest'];
 
 self.addEventListener('install',event=>{
