@@ -1,4 +1,4 @@
-const CACHE='diagnostico-er-web-v39-pontos-desempate';
+const CACHE='diagnostico-er-web-v40-in-app-updater';
 const ASSETS=['./','./index.html','./manifest.webmanifest'];
 
 self.addEventListener('install',event=>{
