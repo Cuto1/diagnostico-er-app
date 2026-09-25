@@ -1,4 +1,4 @@
-const CACHE='diagnostico-er-web-v21-hero-natural-cover';
+const CACHE='diagnostico-er-web-v22-signup-no-confirm';
 const ASSETS=['./','./index.html','./manifest.webmanifest'];
 
 self.addEventListener('install',event=>{
