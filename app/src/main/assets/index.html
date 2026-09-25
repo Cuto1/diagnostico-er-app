@@ -329,6 +329,7 @@ body{font-size:calc(16px * var(--font-scale))}
           <option value="ARC">ARC — Almeida Revista e Corrigida</option>
           <option value="NAA">NAA — Nova Almeida Atualizada</option>
           <option value="NVI">NVI — Nova Versão Internacional</option>
+          <option value="NVT">NVT — Nova Versão Transformadora</option>
         </select>
       </div>
       <div class="field" style="margin-top:10px">
@@ -632,19 +633,20 @@ const SWORD_VERSIONS={
   ARA:'Almeida Revista e Atualizada',
   ARC:'Almeida Revista e Corrigida',
   NAA:'Nova Almeida Atualizada',
-  NVI:'Nova Versão Internacional'
+  NVI:'Nova Versão Internacional',
+  NVT:'Nova Versão Transformadora'
 };
 const SWORD_BANK=[
-  {ref:'João 3:16',words:{ARA:'Porque Deus amou',ARC:'Porque Deus amou',NAA:'Porque Deus amou',NVI:'Porque Deus tanto'}},
-  {ref:'Salmos 23:1',words:{ARA:'O SENHOR é',ARC:'O SENHOR é',NAA:'O SENHOR é',NVI:'O SENHOR é'}},
-  {ref:'Filipenses 4:13',words:{ARA:'tudo posso naquele',ARC:'Posso todas as',NAA:'Tudo posso naquele',NVI:'Tudo posso naquele'}},
-  {ref:'Hebreus 11:1',words:{ARA:'Ora, a fé',ARC:'Ora, a fé',NAA:'Ora, a fé',NVI:'Ora, a fé'}},
-  {ref:'Provérbios 3:5',words:{ARA:'Confia no SENHOR',ARC:'Confia no SENHOR',NAA:'Confie no SENHOR',NVI:'Confie no SENHOR'}},
-  {ref:'Romanos 8:28',words:{ARA:'Sabemos que todas',ARC:'E sabemos que',NAA:'Sabemos que todas',NVI:'Sabemos que todas'}},
-  {ref:'2 Timóteo 3:16',words:{ARA:'Toda a Escritura',ARC:'Toda Escritura divinamente',NAA:'Toda a Escritura',NVI:'Toda a Escritura'}},
-  {ref:'Salmos 119:105',words:{ARA:'Lâmpada para os',ARC:'Lâmpada para os',NAA:'Lâmpada para os',NVI:'A tua palavra'}},
-  {ref:'Josué 1:9',words:{ARA:'Não to mandei',ARC:'Não to mandei',NAA:'Não foi isso',NVI:'Não fui eu'}},
-  {ref:'Mateus 6:33',words:{ARA:'buscai, pois, em',ARC:'Mas buscai primeiro',NAA:'Mas busquem em',NVI:'Busquem, pois, em'}}
+  {ref:'João 3:16',words:{ARA:'Porque Deus amou',ARC:'Porque Deus amou',NAA:'Porque Deus amou',NVI:'Porque Deus tanto',NVT:'Porque Deus amou'}},
+  {ref:'Salmos 23:1',words:{ARA:'O SENHOR é',ARC:'O SENHOR é',NAA:'O SENHOR é',NVI:'O SENHOR é',NVT:'O Senhor é'}},
+  {ref:'Filipenses 4:13',words:{ARA:'tudo posso naquele',ARC:'Posso todas as',NAA:'Tudo posso naquele',NVI:'Tudo posso naquele',NVT:'Posso todas as'}},
+  {ref:'Hebreus 11:1',words:{ARA:'Ora, a fé',ARC:'Ora, a fé',NAA:'Ora, a fé',NVI:'Ora, a fé',NVT:'A fé mostra'}},
+  {ref:'Provérbios 3:5',words:{ARA:'Confia no SENHOR',ARC:'Confia no SENHOR',NAA:'Confie no SENHOR',NVI:'Confie no SENHOR',NVT:'Confie no Senhor'}},
+  {ref:'Romanos 8:28',words:{ARA:'Sabemos que todas',ARC:'E sabemos que',NAA:'Sabemos que todas',NVI:'Sabemos que todas',NVT:'E sabemos que'}},
+  {ref:'2 Timóteo 3:16',words:{ARA:'Toda a Escritura',ARC:'Toda Escritura divinamente',NAA:'Toda a Escritura',NVI:'Toda a Escritura',NVT:'Toda a Escritura'}},
+  {ref:'Salmos 119:105',words:{ARA:'Lâmpada para os',ARC:'Lâmpada para os',NAA:'Lâmpada para os',NVI:'A tua palavra',NVT:'Tua palavra é'}},
+  {ref:'Josué 1:9',words:{ARA:'Não to mandei',ARC:'Não to mandei',NAA:'Não foi isso',NVI:'Não fui eu',NVT:'Esta é minha'}},
+  {ref:'Mateus 6:33',words:{ARA:'buscai, pois, em',ARC:'Mas buscai primeiro',NAA:'Mas busquem em',NVI:'Busquem, pois, em',NVT:'Busquem, em primeiro'}}
 ];
 let swordSession=null,swordTimerHandle=null,swordValidationTimer=null,swordRecognition=null,swordSpeechBuffer='',swordListeningMode='',swordWebRestart=false;
 
