@@ -1,4 +1,4 @@
-const CACHE='diagnostico-er-web-v40-in-app-updater';
+const CACHE='diagnostico-er-web-v40-full-app-updater';
 const ASSETS=['./','./index.html','./manifest.webmanifest'];
 
 self.addEventListener('install',event=>{
