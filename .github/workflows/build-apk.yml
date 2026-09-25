@@ -32,10 +32,19 @@ jobs:
           gradle-version: '8.9'
 
       - name: Restore stable Android signing key
+        id: signing_key
         uses: actions/cache@v4
         with:
           path: ~/.android/debug.keystore
           key: diagnostico-er-debug-signing-v1
+
+      - name: Verify stable Android signing key
+        shell: bash
+        run: |
+          if [ "${{ steps.signing_key.outputs.cache-hit }}" != "true" ] || [ ! -f ~/.android/debug.keystore ]; then
+            echo "::error::A chave fixa de assinatura Android não foi restaurada. Build interrompido para evitar publicar um APK incompatível com instalações existentes."
+            exit 1
+          fi
 
       - name: Build debug APK
         run: gradle assembleDebug --stacktrace
