@@ -32,6 +32,15 @@ jobs:
         with:
           enablement: true
 
+      - name: Disponibilizar APK Android
+        shell: bash
+        run: |
+          mkdir -p docs/downloads
+          curl -L --fail --retry 3 \
+            "https://github.com/Cuto1/diagnostico-er-app/releases/download/android-v32/Diagnostico-ER-Sincronizacao.apk" \
+            -o docs/downloads/Diagnostico-ER-v32.apk
+          test -s docs/downloads/Diagnostico-ER-v32.apk
+
       - name: Enviar site
         uses: actions/upload-pages-artifact@v3
         with:
