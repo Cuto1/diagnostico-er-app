@@ -168,7 +168,7 @@ function chessCastleMoves(chess,color){
 function chessMoveIsCastle(m){return String(m?.flags||'').includes('k')||String(m?.flags||'').includes('q')||m?.san==='O-O'||m?.san==='O-O-O'}
 async function startSoloChess(){
   const Chess=await loadChess();const chess=new Chess(),base=Number(el('gameSoloClock')?.value||0),inc=Number(el('gameSoloInc')?.value||0);
-  G.state={chess,userColor:'w',aiMemory:{positions:{},moves:[]}};G.clock=base?{w:base*1000,b:base*1000,inc:inc*1000,last:Date.now(),running:'w'}:null;
+  G.state={chess,userColor:'w',aiMemory:{positions:{},recentPositions:[],moves:[]}};chessRememberPosition(chess);G.clock=base?{w:base*1000,b:base*1000,inc:inc*1000,last:Date.now(),running:'w'}:null;
   renderChess();if(G.clock)startSoloChessClock();
 }
 function startSoloChessClock(){
@@ -181,6 +181,15 @@ function startSoloChessClock(){
 }
 function updateChessClocks(){if(el('clockW'))el('clockW').textContent=fmtClock(G.clock?.w||0);if(el('clockB'))el('clockB').textContent=fmtClock(G.clock?.b||0)}
 function chessFenKey(chess){return chess.fen().split(' ').slice(0,4).join(' ')}
+function chessMemory(){
+  const s=G.state||(G.state={}),m=s.aiMemory||(s.aiMemory={positions:{},recentPositions:[],moves:[]});
+  if(!m.positions)m.positions={};if(!Array.isArray(m.recentPositions))m.recentPositions=[];if(!Array.isArray(m.moves))m.moves=[];
+  return m;
+}
+function chessRememberPosition(chess){
+  const m=chessMemory(),key=chessFenKey(chess);m.positions[key]=(m.positions[key]||0)+1;m.recentPositions.push(key);if(m.recentPositions.length>18)m.recentPositions.shift();return key;
+}
+function chessForcingMove(m){return !!(m?.captured||m?.promotion||chessMoveIsCastle(m)||String(m?.san||'').includes('+')||String(m?.san||'').includes('#'))}
 function chessCenterBonus(square){const f=square.charCodeAt(0)-97,r=Number(square[1])-1,df=Math.abs(3.5-f),dr=Math.abs(3.5-r);return Math.max(0,4-(df+dr))*4}
 function chessPositionEval(chess){
   if(chess.isCheckmate())return chess.turn()==='w'?100000:-100000;
@@ -199,12 +208,21 @@ function chessSearch(chess,depth,alpha,beta,maximizing,limit){
   let best=Infinity;for(const m of moves){chess.move(m);best=Math.min(best,chessSearch(chess,depth-1,alpha,beta,true,limit));chess.undo();beta=Math.min(beta,best);if(beta<=alpha)break}return best;
 }
 function chessAiPick(chess,level){
-  const moves=chess.moves({verbose:true});if(!moves.length)return null;const mem=G.state.aiMemory||(G.state.aiMemory={positions:{},moves:[]}),depth=level==='hard'?5:level==='medium'?3:1,limit=level==='hard'?22:level==='medium'?16:10,scored=[];
-  for(const m of moves){const from=m.from,to=m.to,prev=mem.moves[mem.moves.length-1],reverse=prev&&prev.from===to&&prev.to===from;chess.move(m);let sc=depth>1?chessSearch(chess,depth-1,-Infinity,Infinity,false,limit):chessPositionEval(chess),key=chessFenKey(chess),seen=mem.positions[key]||0;sc-=seen*(level==='hard'?320:level==='medium'?190:55);if(reverse&&!m.captured&&!m.promotion&&!m.san?.includes('+'))sc-=level==='hard'?420:level==='medium'?260:80;
+  const moves=chess.moves({verbose:true});if(!moves.length)return null;
+  const mem=chessMemory(),depth=level==='hard'?5:level==='medium'?3:1,limit=level==='hard'?22:level==='medium'?16:10,scored=[];
+  for(const m of moves){
+    const from=m.from,to=m.to,prev=mem.moves[mem.moves.length-1],reverse=!!(prev&&prev.from===to&&prev.to===from),forcing=chessForcingMove(m);
+    const recentPieceUse=mem.moves.slice(-5).filter(x=>x.from===from||x.to===from).length;
+    chess.move(m);
+    let sc=depth>1?chessSearch(chess,depth-1,-Infinity,Infinity,false,limit):chessPositionEval(chess);
+    const key=chessFenKey(chess),seen=mem.positions[key]||0,recentHits=mem.recentPositions.slice(-12).filter(k=>k===key).length,threefold=typeof chess.isThreefoldRepetition==='function'&&chess.isThreefoldRepetition();
+    const cycle=!forcing&&(reverse||recentHits>0||seen>0||threefold);
+    sc-=seen*(level==='hard'?420:level==='medium'?300:70);
+    sc-=recentHits*(level==='hard'?360:level==='medium'?260:50);
+    if(reverse&&!forcing)sc-=level==='hard'?650:level==='medium'?520:100;
+    if(threefold&&!forcing)sc-=1400;
+    if(recentPieceUse>=2&&!forcing)sc-=recentPieceUse*(level==='hard'?95:level==='medium'?75:25);
     if(level==='hard'){
-      const recent=mem.moves.slice(-8);
-      const samePieceMoves=recent.filter(x=>x.from===from||x.to===from).length;
-      sc-=samePieceMoves*70;
       if((m.piece==='n'||m.piece==='b')&&['b8','g8'].includes(from))sc+=80;
       if(m.piece==='q'&&chess.history().length<12)sc-=70;
       if(chessMoveIsCastle(m))sc+=190;
@@ -214,8 +232,26 @@ function chessAiPick(chess,level){
     }else if(level==='medium'){
       if(chessMoveIsCastle(m))sc+=130;
     }
-    if(m.captured)sc+=level==='hard'?45:25;if(m.promotion)sc+=level==='hard'?160:100;chess.undo();const noise=level==='easy'?Math.random()*130-65:level==='medium'?Math.random()*5-2.5:0;scored.push({m,sc:sc+noise})}
-  scored.sort((a,b)=>b.sc-a.sc);if(level==='easy'){const pool=scored.slice(0,Math.min(4,scored.length)),weights=pool.map((_,i)=>4-i),sum=weights.reduce((a,b)=>a+b,0);let r=Math.random()*sum;for(let i=0;i<pool.length;i++){r-=weights[i];if(r<=0)return pool[i].m}}return scored[0].m;
+    if(m.captured)sc+=level==='hard'?45:25;if(m.promotion)sc+=level==='hard'?160:100;
+    chess.undo();
+    const noise=level==='easy'?Math.random()*130-65:level==='medium'?Math.random()*5-2.5:0;
+    scored.push({m,sc:sc+noise,cycle,forcing,reverse,seen,recentHits});
+  }
+  scored.sort((a,b)=>b.sc-a.sc);
+  if(level==='easy'){
+    const pool=scored.slice(0,Math.min(4,scored.length)),weights=pool.map((_,i)=>4-i),sum=weights.reduce((a,b)=>a+b,0);let r=Math.random()*sum;
+    for(let i=0;i<pool.length;i++){r-=weights[i];if(r<=0)return pool[i].m}
+    return scored[0].m;
+  }
+  const clean=scored.filter(x=>!x.cycle);
+  if(clean.length){
+    const best=scored[0],bestClean=clean[0],maxSacrifice=level==='hard'?320:450;
+    if(best.cycle&&!best.forcing&&bestClean.sc>=best.sc-maxSacrifice)return bestClean.m;
+    if(!best.cycle)return best.m;
+  }
+  const nonReverse=scored.filter(x=>!x.reverse||x.forcing);
+  if(nonReverse.length)return nonReverse[0].m;
+  return scored[0].m;
 }
 
 function chessFinished(chess,moverColor){
@@ -306,13 +342,14 @@ window.clickChessSquare=async function(sq){
     }catch(e){showAppToast('Xadrez',err(e));await loadOnlineGame(true)}
     return;
   }
+  chessRememberPosition(chess);
   if(G.clock){G.clock.w+=G.clock.inc;G.clock.running='b';G.clock.last=Date.now()}
   if(fin){await recordSolo(fin.winner==='w'?'win':'draw');resultScreen(fin.winner==='w'?'win':'draw',fin.winner==='w'?'Xeque-mate! Você venceu.':'Partida empatada.');return}
   renderChess();setTimeout(chessAiTurn,300);
 };
 async function chessAiTurn(){
   const chess=G.state?.chess;if(!chess||chess.turn()!=='b')return;
-  const m=chessAiPick(chess,G.aiLevel);if(!m)return;const mover='b',mem=G.state.aiMemory||(G.state.aiMemory={positions:{},moves:[]});chess.move(m);const key=chessFenKey(chess);mem.positions[key]=(mem.positions[key]||0)+1;mem.moves.push({from:m.from,to:m.to});if(mem.moves.length>10)mem.moves.shift();
+  const m=chessAiPick(chess,G.aiLevel);if(!m)return;const mover='b',mem=chessMemory();chess.move(m);chessRememberPosition(chess);mem.moves.push({from:m.from,to:m.to});if(mem.moves.length>12)mem.moves.shift();
   if(G.clock){G.clock.b+=G.clock.inc;G.clock.running='w';G.clock.last=Date.now()}
   const fin=chessFinished(chess,mover);
   if(fin){await recordSolo(fin.winner==='b'?'loss':'draw');resultScreen(fin.winner==='b'?'loss':'draw',fin.winner==='b'?'Xeque-mate. A IA venceu.':'Partida empatada.');return}

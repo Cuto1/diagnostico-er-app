@@ -1242,7 +1242,7 @@ function restoreAndroidBundledVersion(){if(!window.AndroidUpdater)return;if(conf
 async function afterLogin(){await migrateLocalAccountData();await loadMyProfile();await loadNotices(false);await loadMaterials(false);startCommunityRealtime();refreshHome();renderNotices();$('bottomNav').classList.remove('hidden');const p=getPlayer();if(!p.name){openProfile('home')}else{show('home');syncNow(false);setTimeout(async()=>{await checkLiveQuizOverview(true);if(!document.getElementById('livequiz')?.classList.contains('active'))await checkDuelOverview(true);if(!document.getElementById('duel')?.classList.contains('active')&&!document.getElementById('livequiz')?.classList.contains('active'))await checkSwordChallengeOverview(true)},500)}}
 (async()=>{initAndroidUpdater();if(!localStorage.getItem('er_auth_reset_20260925')){clearSession();localStorage.setItem('er_auth_reset_20260925','1')}applyBranding(readBrandingCache());await loadBranding(true).catch(()=>{});await qdb.open();consumeAuthHash();const sess=await ensureSession();if(sess?.user){await afterLogin()}else{setAuthMode('login');show('auth')}})();
 </script>
-<script src="https://cuto1.github.io/diagnostico-er-app/games.js?v=20260925-1"></script>
+<script src="https://cuto1.github.io/diagnostico-er-app/games.js?v=20260925-anti-ciclo-2"></script>
 <script>
 if('serviceWorker' in navigator){
   window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}));
