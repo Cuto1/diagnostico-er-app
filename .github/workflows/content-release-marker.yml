@@ -1,0 +1,27 @@
+name: Publicar marcador de conteúdo
+
+permissions:
+  contents: write
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'docs/content-release-marker.txt'
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Publicar release de conteúdo
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          gh release delete content-current --yes --cleanup-tag >/dev/null 2>&1 || true
+          gh release create content-current \
+            --title "Diagnóstico E.R. — Atualização de conteúdo" \
+            --notes "Marcador temporário para que instalações Android existentes recebam atualizações de conteúdo sem tentar instalar um APK incompatível."
