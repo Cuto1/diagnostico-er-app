@@ -3,6 +3,7 @@ plugins {
 }
 
 android {
+    // Base de assinatura permanente a partir da v32
     namespace 'com.diagnosticoer.app'
     compileSdk 35
 
