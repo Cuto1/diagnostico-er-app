@@ -1,3 +1,4 @@
 content-current
 published_for_android_content_updater=true
 date=2026-09-26
+trigger=1
