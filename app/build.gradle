@@ -10,8 +10,8 @@ android {
         applicationId 'com.diagnosticoer.app'
         minSdk 24
         targetSdk 35
-        versionCode 31
-        versionName '2.7.1-ia-medio-refinada'
+        versionCode 32
+        versionName '2.8.0-assinatura-permanente'
     }
 
     signingConfigs {
