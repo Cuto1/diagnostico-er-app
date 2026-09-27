@@ -1,4 +1,4 @@
-const CACHE='diagnostico-er-web-v50-xadrez-anti-ciclo';
+const CACHE='diagnostico-er-web-v51-inicio-aleatorio';
 const ASSETS=['./','./index.html','./games.css','./games.js','./manifest.webmanifest'];
 
 self.addEventListener('install',event=>{

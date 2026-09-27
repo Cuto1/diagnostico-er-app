@@ -167,9 +167,9 @@ function chessCastleMoves(chess,color){
 }
 function chessMoveIsCastle(m){return String(m?.flags||'').includes('k')||String(m?.flags||'').includes('q')||m?.san==='O-O'||m?.san==='O-O-O'}
 async function startSoloChess(){
-  const Chess=await loadChess();const chess=new Chess(),base=Number(el('gameSoloClock')?.value||0),inc=Number(el('gameSoloInc')?.value||0);
-  G.state={chess,userColor:'w',aiMemory:{positions:{},recentPositions:[],moves:[]}};chessRememberPosition(chess);G.clock=base?{w:base*1000,b:base*1000,inc:inc*1000,last:Date.now(),running:'w'}:null;
-  renderChess();if(G.clock)startSoloChessClock();
+  const Chess=await loadChess();const chess=new Chess(),base=Number(el('gameSoloClock')?.value||0),inc=Number(el('gameSoloInc')?.value||0),userColor=Math.random()<.5?'w':'b',aiColor=userColor==='w'?'b':'w';
+  G.state={chess,userColor,aiColor,aiMemory:{positions:{},recentPositions:[],moves:[]}};chessRememberPosition(chess);G.clock=base?{w:base*1000,b:base*1000,inc:inc*1000,last:Date.now(),running:'w'}:null;
+  renderChess();if(G.clock)startSoloChessClock();if(aiColor==='w')setTimeout(chessAiTurn,450);
 }
 function startSoloChessClock(){
   stopLocalTimer();G.timer=setInterval(()=>{
@@ -207,14 +207,14 @@ function chessSearch(chess,depth,alpha,beta,maximizing,limit){
   if(maximizing){let best=-Infinity;for(const m of moves){chess.move(m);best=Math.max(best,chessSearch(chess,depth-1,alpha,beta,false,limit));chess.undo();alpha=Math.max(alpha,best);if(beta<=alpha)break}return best}
   let best=Infinity;for(const m of moves){chess.move(m);best=Math.min(best,chessSearch(chess,depth-1,alpha,beta,true,limit));chess.undo();beta=Math.min(beta,best);if(beta<=alpha)break}return best;
 }
-function chessAiPick(chess,level){
+function chessAiPick(chess,level,aiColor='b'){
   const moves=chess.moves({verbose:true});if(!moves.length)return null;
   const mem=chessMemory(),depth=level==='hard'?5:level==='medium'?3:1,limit=level==='hard'?22:level==='medium'?16:10,scored=[];
   for(const m of moves){
     const from=m.from,to=m.to,prev=mem.moves[mem.moves.length-1],reverse=!!(prev&&prev.from===to&&prev.to===from),forcing=chessForcingMove(m);
     const recentPieceUse=mem.moves.slice(-5).filter(x=>x.from===from||x.to===from).length;
     chess.move(m);
-    let sc=depth>1?chessSearch(chess,depth-1,-Infinity,Infinity,false,limit):chessPositionEval(chess);
+    const raw=depth>1?chessSearch(chess,depth-1,-Infinity,Infinity,chess.turn()==='b',limit):chessPositionEval(chess);let sc=raw*(aiColor==='b'?1:-1);
     const key=chessFenKey(chess),seen=mem.positions[key]||0,recentHits=mem.recentPositions.slice(-12).filter(k=>k===key).length,threefold=typeof chess.isThreefoldRepetition==='function'&&chess.isThreefoldRepetition();
     const cycle=!forcing&&(reverse||recentHits>0||seen>0||threefold);
     sc-=seen*(level==='hard'?420:level==='medium'?300:70);
@@ -223,7 +223,7 @@ function chessAiPick(chess,level){
     if(threefold&&!forcing)sc-=1400;
     if(recentPieceUse>=2&&!forcing)sc-=recentPieceUse*(level==='hard'?95:level==='medium'?75:25);
     if(level==='hard'){
-      if((m.piece==='n'||m.piece==='b')&&['b8','g8'].includes(from))sc+=80;
+      if((m.piece==='n'||m.piece==='b')&&(aiColor==='b'?['b8','g8']:['b1','g1']).includes(from))sc+=80;
       if(m.piece==='q'&&chess.history().length<12)sc-=70;
       if(chessMoveIsCastle(m))sc+=190;
       sc+=chessCenterBonus(m.to)*3.4;
@@ -260,12 +260,12 @@ function chessFinished(chess,moverColor){
   return {winner:null,reason:'empate'};
 }
 function renderChess(onlineState){
-  const online=G.kind==='online',chess=G.state.chess,meSeat=online?onlineState.players.find(p=>p.is_me)?.seat:0,orientation=meSeat===1?'b':'w';
-  const myColor=meSeat===1?'b':'w',canMove=online?(onlineState.status==='active'&&onlineState.current_turn_seat===meSeat&&chess.turn()===myColor):(chess.turn()==='w');
+  const online=G.kind==='online',chess=G.state.chess,meSeat=online?onlineState.players.find(p=>p.is_me)?.seat:0,soloColor=G.state.userColor||'w',orientation=online?(meSeat===1?'b':'w'):soloColor;
+  const myColor=online?(meSeat===1?'b':'w'):soloColor,canMove=online?(onlineState.status==='active'&&onlineState.current_turn_seat===meSeat&&chess.turn()===myColor):(chess.turn()===myColor);
   const board=chess.board(),ranks=orientation==='w'?[0,1,2,3,4,5,6,7]:[7,6,5,4,3,2,1,0],files=orientation==='w'?[0,1,2,3,4,5,6,7]:[7,6,5,4,3,2,1,0];
   let clocks='';
   if(online){const ps=onlineState.players||[];clocks='<div class="game-score-row">'+ps.map(p=>'<div class="game-player-chip '+(p.seat===onlineState.current_turn_seat?'active':'')+'"><strong>'+esc2(p.name)+(p.is_me?' • você':'')+'</strong><span class="game-clock">'+fmtClock(p.clock_ms)+'</span></div>').join('')+'</div>'}
-  else if(G.clock)clocks='<div class="game-score-row"><div class="game-player-chip '+(chess.turn()==='w'?'active':'')+'"><strong>Você • Brancas</strong><span id="clockW" class="game-clock">'+fmtClock(G.clock.w)+'</span></div><div class="game-player-chip '+(chess.turn()==='b'?'active':'')+'"><strong>IA • Pretas</strong><span id="clockB" class="game-clock">'+fmtClock(G.clock.b)+'</span></div></div>';
+  else if(G.clock){const u=myColor,a=myColor==='w'?'b':'w';clocks='<div class="game-score-row"><div class="game-player-chip '+(chess.turn()===u?'active':'')+'"><strong>Você • '+(u==='w'?'Brancas':'Pretas')+'</strong><span id="clock'+u.toUpperCase()+'" class="game-clock">'+fmtClock(G.clock[u])+'</span></div><div class="game-player-chip '+(chess.turn()===a?'active':'')+'"><strong>IA • '+(a==='w'?'Brancas':'Pretas')+'</strong><span id="clock'+a.toUpperCase()+'" class="game-clock">'+fmtClock(G.clock[a])+'</span></div></div>';}
   let squares='';
   for(const ri of ranks)for(const fi of files){
     const sq=String.fromCharCode(97+fi)+(8-ri),p=board[ri][fi],isSel=G.selected===sq,legal=G.legal.find(m=>m.to===sq),isCheck=p?.type==='k'&&p.color===chess.turn()&&chess.inCheck();
@@ -273,7 +273,7 @@ function renderChess(onlineState){
     const extra=(isSel?' selected':'')+(legal?' '+(legal.captured?'capture':'legal'):'')+(isCheck?' in-check':'');
     squares+='<button class="game-square '+(((ri+fi)%2)?'dark':'light')+extra+'" data-square="'+sq+'" onclick="clickChessSquare(\''+sq+'\')">'+piece+'</button>';
   }
-  const status=online?(onlineState.status==='active'?(onlineState.current_turn_seat===meSeat?'Sua vez':'Vez de '+esc2(onlineState.players.find(p=>p.seat===onlineState.current_turn_seat)?.name||'adversário')):'Partida encerrada'):(chess.turn()==='w'?'Sua vez':'IA pensando...');
+  const status=online?(onlineState.status==='active'?(onlineState.current_turn_seat===meSeat?'Sua vez':'Vez de '+esc2(onlineState.players.find(p=>p.seat===onlineState.current_turn_seat)?.name||'adversário')):'Partida encerrada'):(chess.turn()===myColor?'Sua vez':'IA pensando...');
   const castles=canMove?chessCastleMoves(chess,myColor):[];
   const castleBtns=castles.length?'<div class="chess-special-actions"><span>Jogada especial disponível:</span>'+castles.map(m=>'<button class="btn gold" onclick="performChessCastle(\''+(m.san==='O-O-O'||String(m.flags||'').includes('q')?'queen':'king')+'\')">'+(m.san==='O-O-O'||String(m.flags||'').includes('q')?'Roque grande':'Roque pequeno')+'</button>').join('')+'</div>':'';
   content().innerHTML='<div class="card chess-card">'+clocks+'<div class="game-board-wrap"><div class="game-board">'+squares+'</div><div class="chess-board-caption"><span>'+(orientation==='w'?'Brancas':'Pretas')+'</span><span>Toque na peça e depois na casa de destino.</span></div></div><div class="game-status">'+status+(chess.inCheck()?' • XEQUE':'')+'</div>'+castleBtns+'<div class="game-actions"><button class="btn" onclick="'+(online?'leaveOnlineGame()':'openERGame(\'chess\')')+'">Sair</button></div></div>';
@@ -282,7 +282,7 @@ function renderChess(onlineState){
 
 window.performChessCastle=async function(side){
   const chess=G.state?.chess;if(!chess)return;
-  const online=G.kind==='online',st=G.online?.state,meSeat=online?st.players.find(p=>p.is_me)?.seat:0,myColor=meSeat===1?'b':'w';
+  const online=G.kind==='online',st=G.online?.state,meSeat=online?st.players.find(p=>p.is_me)?.seat:0,myColor=online?(meSeat===1?'b':'w'):(G.state.userColor||'w');
   if(online&&(st.status!=='active'||st.current_turn_seat!==meSeat))return;
   if(!online&&chess.turn()!=='w')return;
   if(chess.turn()!==myColor)return;
@@ -313,9 +313,9 @@ function chooseChessPromotion(color){
 
 window.clickChessSquare=async function(sq){
   const chess=G.state?.chess;if(!chess)return;
-  const online=G.kind==='online',st=G.online?.state,meSeat=online?st.players.find(p=>p.is_me)?.seat:0,myColor=meSeat===0?'w':'b';
+  const online=G.kind==='online',st=G.online?.state,meSeat=online?st.players.find(p=>p.is_me)?.seat:0,myColor=online?(meSeat===0?'w':'b'):(G.state.userColor||'w');
   if(online&&(st.status!=='active'||st.current_turn_seat!==meSeat))return;
-  if(!online&&chess.turn()!=='w')return;
+  if(!online&&chess.turn()!==myColor)return;
   if(chess.turn()!==myColor)return;
   const piece=chess.get(sq);
   if(!G.selected){
@@ -343,16 +343,16 @@ window.clickChessSquare=async function(sq){
     return;
   }
   chessRememberPosition(chess);
-  if(G.clock){G.clock.w+=G.clock.inc;G.clock.running='b';G.clock.last=Date.now()}
-  if(fin){await recordSolo(fin.winner==='w'?'win':'draw');resultScreen(fin.winner==='w'?'win':'draw',fin.winner==='w'?'Xeque-mate! Você venceu.':'Partida empatada.');return}
+  if(G.clock){G.clock[myColor]+=G.clock.inc;G.clock.running=myColor==='w'?'b':'w';G.clock.last=Date.now()}
+  if(fin){const won=fin.winner===myColor,res=fin.winner?(won?'win':'loss'):'draw';await recordSolo(res);resultScreen(res,won?'Xeque-mate! Você venceu.':fin.winner?'Xeque-mate. A IA venceu.':'Partida empatada.');return}
   renderChess();setTimeout(chessAiTurn,300);
 };
 async function chessAiTurn(){
-  const chess=G.state?.chess;if(!chess||chess.turn()!=='b')return;
-  const m=chessAiPick(chess,G.aiLevel);if(!m)return;const mover='b',mem=chessMemory();chess.move(m);chessRememberPosition(chess);mem.moves.push({from:m.from,to:m.to});if(mem.moves.length>12)mem.moves.shift();
-  if(G.clock){G.clock.b+=G.clock.inc;G.clock.running='w';G.clock.last=Date.now()}
+  const chess=G.state?.chess,aiColor=G.state?.aiColor||(G.state?.userColor==='b'?'w':'b');if(!chess||chess.turn()!==aiColor)return;
+  const m=chessAiPick(chess,G.aiLevel,aiColor);if(!m)return;const mover=aiColor,mem=chessMemory();chess.move(m);chessRememberPosition(chess);mem.moves.push({from:m.from,to:m.to});if(mem.moves.length>12)mem.moves.shift();
+  if(G.clock){G.clock[aiColor]+=G.clock.inc;G.clock.running=G.state.userColor;G.clock.last=Date.now()}
   const fin=chessFinished(chess,mover);
-  if(fin){await recordSolo(fin.winner==='b'?'loss':'draw');resultScreen(fin.winner==='b'?'loss':'draw',fin.winner==='b'?'Xeque-mate. A IA venceu.':'Partida empatada.');return}
+  if(fin){const aiWon=fin.winner===aiColor,res=fin.winner?(aiWon?'loss':'win'):'draw';await recordSolo(res);resultScreen(res,aiWon?'Xeque-mate. A IA venceu.':fin.winner?'Xeque-mate! Você venceu.':'Partida empatada.');return}
   renderChess();
 }
 
@@ -398,7 +398,7 @@ function renderCheckers(onlineState){
   const name=online?(turn===meSeat?'Sua vez':'Vez de '+esc2(onlineState.players.find(p=>p.seat===turn)?.name||'adversário')):(turn===0?'Sua vez':'IA pensando...');
   content().innerHTML='<div class="card">'+(online?'<div class="game-score-row">'+onlineState.players.map(p=>'<div class="game-player-chip '+(p.seat===turn?'active':'')+'"><strong>'+esc2(p.name)+(p.is_me?' • você':'')+'</strong></div>').join('')+'</div>':'')+'<div class="game-board-wrap"><div class="game-board">'+squares+'</div></div><div class="game-status">'+name+(state.forced?' • continue capturando':'')+'</div><div class="game-actions"><button class="btn" onclick="'+(online?'leaveOnlineGame()':'openERGame(\'checkers\')')+'">Sair</button></div></div>';
 }
-function startSoloCheckers(){G.state={board:checkersStart(),turn:0,forced:null,aiMemory:{positions:{},moves:[]}};renderCheckers()}
+function startSoloCheckers(){const starter=Math.random()<.5?0:1;G.state={board:checkersStart(),turn:starter,forced:null,aiMemory:{positions:{},moves:[]}};renderCheckers();if(starter===1)setTimeout(checkersAiTurn,450)}
 window.clickChecker=async function(r,c){
   const s=G.state,online=G.kind==='online',st=G.online?.state,turn=online?st.current_turn_seat:s.turn,me=online?st.players.find(p=>p.is_me)?.seat:0;if(online&&turn!==me)return;if(!online&&turn!==0)return;
   const key=r+','+c,p=s.board[r][c];
@@ -454,8 +454,9 @@ function domWinnerBlocked(s){
 }
 function startSoloDomino(){
   const n=Number(el('dominoSoloPlayers').value),team=n===4&&!!el('dominoSoloTeams')?.checked,deck=dominoDeck(),hands=Array.from({length:n},()=>[]);
-  let best={rank:-1,seat:0};for(let seat=0;seat<n;seat++)for(let j=0;j<7;j++){const t=deck.shift();hands[seat].push(t);const rank=t[0]===t[1]?100+t[0]:t[0]+t[1];if(rank>best.rank)best={rank,seat}}
-  G.state={hands,stock:deck,chain:[],left:null,right:null,turn:best.seat,pass:0,teamMode:team,n,aiMemory:{domino:{last:{},blocked:{}}}};renderSoloDomino();if(best.seat!==0)setTimeout(dominoAiLoop,400);
+  for(let seat=0;seat<n;seat++)for(let j=0;j<7;j++)hands[seat].push(deck.shift());
+  const starter=Math.floor(Math.random()*n);
+  G.state={hands,stock:deck,chain:[],left:null,right:null,turn:starter,pass:0,teamMode:team,n,aiMemory:{domino:{last:{},blocked:{}}}};renderSoloDomino();if(starter!==0)setTimeout(dominoAiLoop,400);
 }
 function renderSoloDomino(){
   const s=G.state,hand=s.hands[0],can=s.turn===0;
