@@ -1,4 +1,4 @@
-# Diagnóstico E.R.
+# Jornada E.R.
 
 Aplicativo Android para estudo e competições dos Embaixadores do Rei.
 
@@ -11,6 +11,6 @@ Aplicativo Android para estudo e competições dos Embaixadores do Rei.
 - Correção, explicação e referência
 - Continuar prova
 - Refazer somente questões erradas
-- Histórico, desempenho, avisos e pontuação semanal local
+- Histórico, desempenho, avisos e pontuação e histórico de desempenho
 
-O workflow do GitHub Actions gera um APK debug instalável.
+O workflow do GitHub Actions gera um APK release assinado com a chave permanente do aplicativo.
