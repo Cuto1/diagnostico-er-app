@@ -1,4 +1,4 @@
-name: Build Diagnostico ER APK
+name: Build Jornada ER APK
 
 permissions:
   contents: write
@@ -72,14 +72,17 @@ jobs:
           ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
         run: gradle assembleRelease --stacktrace
 
-      - name: Rename APK
-        run: cp app/build/outputs/apk/release/app-release.apk Diagnostico-ER-Sincronizacao.apk
+      - name: Preparar APK Jornada E.R.
+        shell: bash
+        run: |
+          cp app/build/outputs/apk/release/app-release.apk Jornada-ER.apk
+          cp app/build/outputs/apk/release/app-release.apk Diagnostico-ER-Sincronizacao.apk
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: Diagnostico-ER-APK-Sincronizacao
-          path: Diagnostico-ER-Sincronizacao.apk
+          name: Jornada-ER-APK
+          path: Jornada-ER.apk
           if-no-files-found: error
 
       - name: Read Android version
@@ -100,9 +103,9 @@ jobs:
         run: |
           TAG="android-v${VERSION_CODE}"
           if gh release view "$TAG" >/dev/null 2>&1; then
-            gh release upload "$TAG" Diagnostico-ER-Sincronizacao.apk --clobber
+            gh release upload "$TAG" Jornada-ER.apk Diagnostico-ER-Sincronizacao.apk --clobber
           else
-            gh release create "$TAG" Diagnostico-ER-Sincronizacao.apk \
-              --title "Diagnóstico E.R. Android ${VERSION_NAME}" \
-              --notes "Atualização Android do Diagnóstico E.R. — versão ${VERSION_NAME}, código ${VERSION_CODE}."
+            gh release create "$TAG" Jornada-ER.apk Diagnostico-ER-Sincronizacao.apk \
+              --title "Jornada E.R. Android ${VERSION_NAME}" \
+              --notes "Atualização Android do Jornada E.R. — versão ${VERSION_NAME}, código ${VERSION_CODE}."
           fi
