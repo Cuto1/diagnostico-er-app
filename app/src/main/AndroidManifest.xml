@@ -7,7 +7,7 @@
         android:allowBackup="true"
         android:usesCleartextTraffic="false"
         android:theme="@style/AppTheme"
-        android:label="Diagnóstico E.R."
+        android:label="Jornada E.R."
         android:icon="@mipmap/ic_launcher"
         android:roundIcon="@mipmap/ic_launcher_round">
         <activity
