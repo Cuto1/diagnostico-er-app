@@ -23,5 +23,5 @@ jobs:
         run: |
           gh release delete content-current --yes --cleanup-tag >/dev/null 2>&1 || true
           gh release create content-current \
-            --title "Diagnóstico E.R. — Atualização de conteúdo" \
+            --title "Jornada E.R. — Atualização de conteúdo" \
             --notes "Marcador temporário para que instalações Android existentes recebam atualizações de conteúdo sem tentar instalar um APK incompatível."
