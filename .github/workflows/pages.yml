@@ -37,8 +37,12 @@ jobs:
         run: |
           mkdir -p docs/downloads
           curl -L --fail --retry 3 \
+            "https://github.com/Cuto1/diagnostico-er-app/releases/download/android-v33/Jornada-ER.apk" \
+            -o docs/downloads/Jornada-ER.apk
+          curl -L --fail --retry 3 \
             "https://github.com/Cuto1/diagnostico-er-app/releases/download/android-v32/Diagnostico-ER-Sincronizacao.apk" \
             -o docs/downloads/Diagnostico-ER-v32.apk
+          test -s docs/downloads/Jornada-ER.apk
           test -s docs/downloads/Diagnostico-ER-v32.apk
 
       - name: Enviar site
