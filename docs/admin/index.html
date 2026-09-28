@@ -802,14 +802,27 @@ async function adminAuthedFetch(path,opts={}){
   opts.headers=Object.assign({apikey:KEY,Authorization:'Bearer '+ss.access_token},opts.headers||{});
   const r=await fetch(SUPA+path,opts);if(!r.ok){let t=await r.text();throw new Error(t)}return r;
 }
-async function triggerEmbassyEmail(requestId){try{await adminAuthedFetch('/functions/v1/embassy-email',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({request_id:requestId})})}catch(e){}}
+async function triggerEmbassyEmail(requestId){
+ const rr=await adminAuthedFetch('/functions/v1/embassy-email',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({request_id:requestId})});
+ const data=await rr.json().catch(()=>({}));
+ if(data?.ok===false||data?.error)throw new Error(data.error||'Não foi possível enviar o e-mail.');
+ return data;
+}
+async function retryEmbassyEmail(requestId){
+ try{
+  const out=await triggerEmbassyEmail(requestId);
+  alert((out?.sent||0)+' e-mail(s) enviado(s).');
+ }catch(e){
+  alert('A solicitação está salva, mas o e-mail não foi enviado: '+String(e.message||e));
+ }
+}
 async function loadMasterEmbassies(){
  if(!adminContext?.is_master)return;
  setStatus('masterRequestsStatus','Carregando...');
  try{
   masterRequestRows=await rpc('master_list_embassy_requests',{p_status:null});
   masterEmbassyRows=await rpc('master_list_embassies');
-  $('masterRequestsBody').innerHTML=masterRequestRows.length?masterRequestRows.map(x=>'<tr><td><b>'+esc(x.embassy_name)+'</b><div class="muted">'+esc(x.church)+'</div></td><td>'+esc(x.responsible_name)+'<div class="muted">'+esc(x.embassy_email||'')+'<br>'+esc(x.phone||'')+'</div></td><td>'+esc(x.city)+' / '+esc(x.state)+'<div class="muted">DCER: '+esc(x.dcer||'—')+' • DAER: '+esc(x.daer||'—')+'</div></td><td><span class="pill">'+esc({pending:'Pendente',in_review:'Em análise',correction_requested:'Correção',approved:'Aprovada',rejected:'Recusada'}[x.status]||x.status)+'</span></td><td>'+(x.attachment_path?'<button class="btn small" onclick="downloadRequestAttachment(\''+encodeURIComponent(x.attachment_path)+'\',\''+encodeURIComponent(x.attachment_name||'anexo')+'\')">Abrir</button>':'—')+'</td><td><div class="actions">'+((x.status==='pending'||x.status==='in_review'||x.status==='correction_requested')?'<button class="btn primary small" onclick="reviewEmbassyRequest(\''+x.request_id+'\',\'approve\')">Aprovar</button><button class="btn warn small" onclick="reviewEmbassyRequest(\''+x.request_id+'\',\'correction\')">Pedir correção</button><button class="btn danger small" onclick="reviewEmbassyRequest(\''+x.request_id+'\',\'reject\')">Recusar</button>':'')+'</div></td></tr>').join(''):'<tr><td colspan="6" class="empty">Nenhuma solicitação.</td></tr>';
+  $('masterRequestsBody').innerHTML=masterRequestRows.length?masterRequestRows.map(x=>'<tr><td><b>'+esc(x.embassy_name)+'</b><div class="muted">'+esc(x.church)+'</div></td><td>'+esc(x.responsible_name)+'<div class="muted">'+esc(x.embassy_email||'')+'<br>'+esc(x.phone||'')+'</div></td><td>'+esc(x.city)+' / '+esc(x.state)+'<div class="muted">DCER: '+esc(x.dcer||'—')+' • DAER: '+esc(x.daer||'—')+'</div></td><td><span class="pill">'+esc({pending:'Pendente',in_review:'Em análise',correction_requested:'Correção',approved:'Aprovada',rejected:'Recusada'}[x.status]||x.status)+'</span></td><td>'+(x.attachment_path?'<button class="btn small" onclick="downloadRequestAttachment(\''+encodeURIComponent(x.attachment_path)+'\',\''+encodeURIComponent(x.attachment_name||'anexo')+'\')">Abrir</button>':'—')+'</td><td><div class="actions">'+((x.status==='pending'||x.status==='in_review'||x.status==='correction_requested')?'<button class="btn primary small" onclick="reviewEmbassyRequest(\''+x.request_id+'\',\'approve\')">Aprovar</button><button class="btn warn small" onclick="reviewEmbassyRequest(\''+x.request_id+'\',\'correction\')">Pedir correção</button><button class="btn danger small" onclick="reviewEmbassyRequest(\''+x.request_id+'\',\'reject\')">Recusar</button>':'')+'<button class="btn small" onclick="retryEmbassyEmail(\''+x.request_id+'\')">Reenviar e-mail</button>'+'</div></td></tr>').join(''):'<tr><td colspan="6" class="empty">Nenhuma solicitação.</td></tr>';
   $('masterEmbassiesBody').innerHTML=masterEmbassyRows.length?masterEmbassyRows.map(e=>'<tr><td><b>'+esc(e.name)+'</b><div class="muted">'+esc(e.church)+'</div></td><td><b>'+esc(e.code)+'</b></td><td>'+esc(e.city)+' / '+esc(e.state)+'</td><td>'+esc(e.members)+'</td><td><span class="pill '+(e.status==='active'?'ok':'off')+'">'+esc(e.status==='active'?'Ativa':'Bloqueada')+'</span></td><td><button class="btn small '+(e.status==='active'?'danger':'primary')+'" onclick="toggleEmbassyStatus(\''+e.embassy_id+'\',\''+(e.status==='active'?'blocked':'active')+'\')">'+(e.status==='active'?'Bloquear':'Ativar')+'</button></td></tr>').join(''):'<tr><td colspan="6" class="empty">Nenhuma Embaixada cadastrada.</td></tr>';
   setStatus('masterRequestsStatus',masterRequestRows.length+' solicitação(ões).');
  }catch(e){setStatus('masterRequestsStatus','Erro: '+e.message,'bad')}
@@ -818,7 +831,14 @@ async function reviewEmbassyRequest(id,action){
  const label={approve:'APROVAR',correction:'SOLICITAR CORREÇÃO',reject:'RECUSAR'}[action]||action;
  const note=prompt(label+' — observação'+(action==='approve'?' (opcional)':' / motivo')+':','');if(note===null)return;
  if(action==='approve'&&!confirm('Confirmar a criação desta Embaixada e liberar o solicitante como ADM principal?'))return;
- try{const out=await rpc('master_review_embassy_request',{p_request_id:id,p_action:action,p_note:note||null});await triggerEmbassyEmail(id);if(action==='approve'&&out?.embassy)alert('Embaixada aprovada. Código: '+out.embassy.code);await loadMasterEmbassies()}catch(e){alert('Erro: '+e.message)}
+ try{
+  const out=await rpc('master_review_embassy_request',{p_request_id:id,p_action:action,p_note:note||null});
+  let emailOk=true,emailMsg='';
+  try{const mail=await triggerEmbassyEmail(id);emailMsg=(mail?.sent||0)+' e-mail(s) enviado(s).'}catch(mailErr){emailOk=false;emailMsg='A decisão foi salva, mas o e-mail não foi enviado: '+String(mailErr.message||mailErr)}
+  if(action==='approve'&&out?.embassy)alert('Embaixada aprovada. Código: '+out.embassy.code+'\n\n'+emailMsg);
+  else alert(emailMsg);
+  await loadMasterEmbassies();
+ }catch(e){alert('Erro: '+e.message)}
 }
 async function toggleEmbassyStatus(id,status){if(!confirm((status==='blocked'?'Bloquear':'Ativar')+' esta Embaixada?'))return;try{await rpc('master_set_embassy_status',{p_embassy_id:id,p_status:status});loadMasterEmbassies()}catch(e){alert(e.message)}}
 async function downloadRequestAttachment(pathEnc,nameEnc){
