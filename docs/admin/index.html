@@ -81,6 +81,18 @@
         <div class="table-wrap"><table class="table"><thead><tr><th>Embaixada</th><th>Responsável</th><th>Local</th><th>Status</th><th>Anexo</th><th>Ações</th></tr></thead><tbody id="masterRequestsBody"></tbody></table></div>
       </div>
       <div class="card" style="margin-top:14px"><strong>Embaixadas cadastradas</strong><div class="table-wrap" style="margin-top:10px"><table class="table"><thead><tr><th>Embaixada</th><th>Código</th><th>Local</th><th>Membros</th><th>Status</th><th>Ações</th></tr></thead><tbody id="masterEmbassiesBody"></tbody></table></div></div>
+
+      <div class="card" style="margin-top:14px">
+        <strong>Migrar conta existente para uma Embaixada</strong>
+        <p class="muted">Use esta opção para vincular contas antigas ou transferir membros comuns. Login, senha e perfil são preservados. O histórico de ranking e chat pode acompanhar a conta.</p>
+        <div class="grid2">
+          <div class="field"><label>USUÁRIO</label><select id="migrationUser"></select></div>
+          <div class="field"><label>EMBAIXADA DE DESTINO</label><select id="migrationEmbassy"></select></div>
+        </div>
+        <label style="display:flex;gap:8px;align-items:center;margin-top:10px;font-size:12px"><input id="migrationHistory" type="checkbox" checked> Levar histórico de ranking e mensagens do chat para a Embaixada de destino</label>
+        <div class="actions" style="margin-top:12px"><button class="btn primary" onclick="migrateExistingUser()">Migrar conta</button><button class="btn" onclick="loadMasterMigrationUsers()">Atualizar contas</button></div>
+        <div id="migrationStatus" class="status"></div>
+      </div>
     </section>
 
     <section id="embassyAdmin" class="panel">
@@ -796,7 +808,7 @@ async function resetSelectedExamScores(){const exam=$('rankExam').value;if(!exam
 async function resetScores(){if(!confirm('Tem certeza que deseja apagar TODAS as pontuações do ranking?'))return;if(!confirm('Confirma novamente? Esta ação não pode ser desfeita.'))return;try{const n=await rpc('admin_reset_scores');alert(n+' pontuação(ões) removida(s).');loadScores();loadDashboard()}catch(e){setStatus('scoresStatus','Erro: '+e.message,'bad')}}
 
 
-let masterRequestRows=[],masterEmbassyRows=[],localMemberRows=[];
+let masterRequestRows=[],masterEmbassyRows=[],masterMigrationUsers=[],localMemberRows=[];
 async function adminAuthedFetch(path,opts={}){
   const ss=await ensureSession();if(!ss?.access_token)throw new Error('Sessão expirada');
   opts.headers=Object.assign({apikey:KEY,Authorization:'Bearer '+ss.access_token},opts.headers||{});
@@ -820,12 +832,62 @@ async function loadMasterEmbassies(){
  if(!adminContext?.is_master)return;
  setStatus('masterRequestsStatus','Carregando...');
  try{
-  masterRequestRows=await rpc('master_list_embassy_requests',{p_status:null});
-  masterEmbassyRows=await rpc('master_list_embassies');
+  [masterRequestRows,masterEmbassyRows,masterMigrationUsers]=await Promise.all([
+   rpc('master_list_embassy_requests',{p_status:null}),
+   rpc('master_list_embassies'),
+   rpc('master_list_users_for_embassy_migration')
+  ]);
   $('masterRequestsBody').innerHTML=masterRequestRows.length?masterRequestRows.map(x=>'<tr><td><b>'+esc(x.embassy_name)+'</b><div class="muted">'+esc(x.church)+'</div></td><td>'+esc(x.responsible_name)+'<div class="muted">'+esc(x.embassy_email||'')+'<br>'+esc(x.phone||'')+'</div></td><td>'+esc(x.city)+' / '+esc(x.state)+'<div class="muted">DCER: '+esc(x.dcer||'—')+' • DAER: '+esc(x.daer||'—')+'</div></td><td><span class="pill">'+esc({pending:'Pendente',in_review:'Em análise',correction_requested:'Correção',approved:'Aprovada',rejected:'Recusada'}[x.status]||x.status)+'</span></td><td>'+(x.attachment_path?'<button class="btn small" onclick="downloadRequestAttachment(\''+encodeURIComponent(x.attachment_path)+'\',\''+encodeURIComponent(x.attachment_name||'anexo')+'\')">Abrir</button>':'—')+'</td><td><div class="actions">'+((x.status==='pending'||x.status==='in_review'||x.status==='correction_requested')?'<button class="btn primary small" onclick="reviewEmbassyRequest(\''+x.request_id+'\',\'approve\')">Aprovar</button><button class="btn warn small" onclick="reviewEmbassyRequest(\''+x.request_id+'\',\'correction\')">Pedir correção</button><button class="btn danger small" onclick="reviewEmbassyRequest(\''+x.request_id+'\',\'reject\')">Recusar</button>':'')+'<button class="btn small" onclick="retryEmbassyEmail(\''+x.request_id+'\')">Reenviar e-mail</button>'+'</div></td></tr>').join(''):'<tr><td colspan="6" class="empty">Nenhuma solicitação.</td></tr>';
   $('masterEmbassiesBody').innerHTML=masterEmbassyRows.length?masterEmbassyRows.map(e=>'<tr><td><b>'+esc(e.name)+'</b><div class="muted">'+esc(e.church)+'</div></td><td><b>'+esc(e.code)+'</b></td><td>'+esc(e.city)+' / '+esc(e.state)+'</td><td>'+esc(e.members)+'</td><td><span class="pill '+(e.status==='active'?'ok':'off')+'">'+esc(e.status==='active'?'Ativa':'Bloqueada')+'</span></td><td><button class="btn small '+(e.status==='active'?'danger':'primary')+'" onclick="toggleEmbassyStatus(\''+e.embassy_id+'\',\''+(e.status==='active'?'blocked':'active')+'\')">'+(e.status==='active'?'Bloquear':'Ativar')+'</button></td></tr>').join(''):'<tr><td colspan="6" class="empty">Nenhuma Embaixada cadastrada.</td></tr>';
+  renderMasterMigrationOptions();
   setStatus('masterRequestsStatus',masterRequestRows.length+' solicitação(ões).');
- }catch(e){setStatus('masterRequestsStatus','Erro: '+e.message,'bad')}
+ }catch(e){setStatus('masterRequestsStatus','Erro: '+e.message,'bad');setStatus('migrationStatus','Não foi possível carregar as contas: '+e.message,'bad')}
+}
+
+function renderMasterMigrationOptions(){
+ const userSel=$('migrationUser'),embSel=$('migrationEmbassy');
+ if(!userSel||!embSel)return;
+ const users=[...masterMigrationUsers].sort((a,b)=>String(a.display_name||a.email||'').localeCompare(String(b.display_name||b.email||''),'pt-BR'));
+ userSel.innerHTML='<option value="">Selecione uma conta</option>'+users.map(u=>{
+   const who=esc(u.display_name||u.email||'Conta sem nome');
+   const email=u.display_name&&u.email?' — '+esc(u.email):'';
+   const current=u.current_embassy_name?' • Atual: '+esc(u.current_embassy_name):' • Sem Embaixada';
+   const role=u.admin_role?' • '+esc(u.admin_role==='owner'?'ADM principal':'ADM local'):'';
+   const disabled=!u.player_id?' disabled':'';
+   const suffix=!u.player_id?' • Perfil incompleto':'';
+   return '<option value="'+esc(u.user_id)+'"'+disabled+'>'+who+email+current+role+suffix+'</option>';
+ }).join('');
+ const active=masterEmbassyRows.filter(e=>e.status==='active').sort((a,b)=>String(a.name||'').localeCompare(String(b.name||''),'pt-BR'));
+ embSel.innerHTML='<option value="">Selecione a Embaixada</option>'+active.map(e=>'<option value="'+esc(e.embassy_id)+'">'+esc(e.name)+' — '+esc(e.code)+'</option>').join('');
+ setStatus('migrationStatus',users.filter(u=>u.player_id).length+' conta(s) com perfil disponíveis para migração.');
+}
+
+async function loadMasterMigrationUsers(){
+ if(!adminContext?.is_master)return;
+ try{
+  setStatus('migrationStatus','Atualizando contas...');
+  masterMigrationUsers=await rpc('master_list_users_for_embassy_migration');
+  renderMasterMigrationOptions();
+ }catch(e){setStatus('migrationStatus','Erro: '+e.message,'bad')}
+}
+
+async function migrateExistingUser(){
+ const userId=$('migrationUser').value,embassyId=$('migrationEmbassy').value,moveHistory=$('migrationHistory').checked;
+ if(!userId||!embassyId){setStatus('migrationStatus','Selecione o usuário e a Embaixada de destino.','bad');return}
+ const u=masterMigrationUsers.find(x=>x.user_id===userId),e=masterEmbassyRows.find(x=>x.embassy_id===embassyId);
+ if(!u||!e){setStatus('migrationStatus','Seleção inválida. Atualize a lista e tente novamente.','bad');return}
+ if(u.admin_role&&u.current_embassy_id&&u.current_embassy_id!==embassyId){
+   setStatus('migrationStatus','Este usuário é ADM de outra Embaixada. Remova primeiro o papel administrativo antes da transferência.','bad');return
+ }
+ const from=u.current_embassy_name||'sem Embaixada';
+ const historyText=moveHistory?'O histórico de ranking e chat também será transferido.':'O histórico permanecerá com a vinculação atual.';
+ if(!confirm('Migrar '+(u.display_name||u.email)+' de '+from+' para '+e.name+'?\n\n'+historyText))return;
+ try{
+  setStatus('migrationStatus','Migrando conta...');
+  const out=await rpc('master_migrate_user_to_embassy',{p_user_id:userId,p_embassy_id:embassyId,p_move_history:moveHistory});
+  setStatus('migrationStatus','Migração concluída: '+(out.scores_moved||0)+' resultado(s) e '+(out.chat_messages_moved||0)+' mensagem(ns) atualizados.','ok');
+  await loadMasterEmbassies();
+ }catch(err){setStatus('migrationStatus','Erro: '+err.message,'bad')}
 }
 async function reviewEmbassyRequest(id,action){
  const label={approve:'APROVAR',correction:'SOLICITAR CORREÇÃO',reject:'RECUSAR'}[action]||action;
