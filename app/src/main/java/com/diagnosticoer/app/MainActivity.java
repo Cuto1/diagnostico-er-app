@@ -45,7 +45,7 @@ public class MainActivity extends Activity {
     private static final int AUDIO_PERMISSION_REQUEST = 1002;
     private static final String REMOTE_INDEX_URL = "https://raw.githubusercontent.com/Cuto1/diagnostico-er-app/main/docs/index.html";
     private static final String RELEASE_API_URL = "https://api.github.com/repos/Cuto1/diagnostico-er-app/releases/latest";
-    private static final String APK_ASSET_NAME = "Diagnostico-ER-Sincronizacao.apk";
+    private static final String APK_ASSET_NAME = "Jornada-ER.apk";
     private static final String UPDATE_FILE_NAME = "diagnostico_er_updated_index.html";
     private static final String APK_MIME = "application/vnd.android.package-archive";
 
@@ -165,7 +165,7 @@ public class MainActivity extends Activity {
         connection.setInstanceFollowRedirects(true);
         connection.setRequestProperty("Cache-Control", "no-cache");
         connection.setRequestProperty("Accept", "application/vnd.github+json");
-        connection.setRequestProperty("User-Agent", "Diagnostico-ER-Android-Updater");
+        connection.setRequestProperty("User-Agent", "Jornada-ER-Android-Updater");
         return connection;
     }
 
@@ -214,7 +214,7 @@ public class MainActivity extends Activity {
     private boolean isValidAppHtml(String html) {
         return html != null
                 && html.length() > 20000
-                && html.contains("Diagnóstico E.R.")
+                && (html.contains("Jornada E.R.") || html.contains("Diagnóstico E.R."))
                 && html.contains("const SUPA=")
                 && html.contains("<section id=\"home\"");
     }
