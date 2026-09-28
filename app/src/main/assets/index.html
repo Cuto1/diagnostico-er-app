@@ -181,6 +181,7 @@ body{font-size:calc(16px * var(--font-scale))}
       <div id="examCardBratcher" class="exam"><div><div id="examBratcherIcon" class="ico"><img id="examBratcherIconImg" alt=""><span id="examBratcherIconText">🧭</span></div><h4 id="examBratcherName">Livro Missionário</h4><p id="examBratcherSubtitle">O Apóstolo do Sertão</p><span id="examBratcherBadge" class="exam-badge"></span></div><button id="examBratcherStart" onclick="openSetup('Bratcher',rankExamLabel('Bratcher'))"><span class="exam-start-label">Começar</span><span class="exam-arrow">→</span></button></div>
       <div id="examCardBwah" class="exam"><div><div id="examBwahIcon" class="ico"><img id="examBwahIconImg" alt=""><span id="examBwahIconText">🏅</span></div><h4 id="examBwahName">Sempre Embaixador</h4><p id="examBwahSubtitle">William Alvin Hatton</p><span id="examBwahBadge" class="exam-badge"></span></div><button id="examBwahStart" onclick="openSetup('BWAH',rankExamLabel('BWAH'))"><span class="exam-start-label">Começar</span><span class="exam-arrow">→</span></button></div>
       <div id="bibleSwordCard" class="exam sword-card"><div><div id="swordHomeIcon" class="ico"><img id="swordHomeIconImg" alt=""><span id="swordHomeIconText">⚔️</span></div><h4 id="swordHomeName">Esgrima Bíblica</h4><p id="swordHomeSubtitle">Encontre a referência, diga “ACHEI!” e valide por voz.</p><span id="swordHomeBadge" class="exam-badge"></span></div><button onclick="openBibleSword()"><span id="swordHomeButton" class="exam-start-label">Treinar</span><span class="exam-arrow">→</span></button></div>
+      <div id="bibleAssemblyCard" class="exam"><div><div class="ico">✍️</div><h4>Montagem Bíblica</h4><p>Cadastre sua caligrafia e corrija a montagem manuscrita por foto, com nota de 0 a 100.</p><span id="bibleAssemblyBadge" class="exam-badge"></span></div><button onclick="openBibleAssembly()"><span class="exam-start-label">Abrir corretor</span><span class="exam-arrow">→</span></button></div>
       <div id="competitionPrepCard" class="exam" style="background:linear-gradient(135deg,var(--navy),var(--blue));color:white;border-color:var(--blue)"><div><div class="ico" style="background:#ffffff1d">🏆</div><h4 id="homeCompeteTitle">Prepare-se para competir</h4><p id="homeCompeteText" style="color:#d8e8ff">Pratique até dominar o conteúdo.</p></div></div>
     </div>
 
@@ -198,6 +199,48 @@ body{font-size:calc(16px * var(--font-scale))}
       <div id="statCardWeek" class="stat"><div id="statWeekIcon" class="stat-icon"><img id="statWeekIconImg" alt=""><span id="statWeekIconText">🏆</span></div><strong id="statWeek">0</strong><span id="statWeekLabel">Pontos na semana</span><i id="statWeekAccent" class="stat-accent"></i></div>
     </div>
     <div id="homeVisualBanner" class="home-visual-banner hidden"><div><div id="homeBannerQuote" class="banner-quote"></div><div id="homeBannerReference" class="banner-ref"></div></div><img id="homeBannerLogo" alt=""></div>
+  </div>
+</section>
+
+<section id="bibleassembly" class="screen">
+  <div class="toolbar"><button onclick="show('home')">←</button><strong>✍️ Montagem Bíblica</strong><span>0–100</span></div>
+  <div class="wrap">
+    <div class="card">
+      <h3 style="margin:0 0 6px">Corretor de Montagem Bíblica</h3>
+      <p style="color:#6d83a1;font-size:11px;line-height:1.55;margin:0">O sistema usa uma amostra da sua própria caligrafia para ajudar a reconhecer a montagem escrita em <b>folha branca ou de caderno</b>. A nota é calculada objetivamente sobre os 66 livros da Bíblia.</p>
+    </div>
+
+    <div class="card" style="margin-top:12px">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:10px">
+        <div><strong>1. Cadastre sua escrita</strong><div id="baSampleStatus" style="color:#6d83a1;font-size:10px;margin-top:4px">Verificando...</div></div>
+        <span id="baSampleBadge" class="pill">—</span>
+      </div>
+      <p style="color:#6d83a1;font-size:11px;line-height:1.5">Preencha uma única vez o modelo com <b>A–Z, a–z e 0–9</b> usando sua letra normal. Depois fotografe a folha inteira, reta e bem iluminada.</p>
+      <div class="actions">
+        <button class="btn" onclick="printBibleAssemblyHandwritingTemplate()">🖨️ Abrir modelo</button>
+        <button class="btn primary" onclick="$('baSampleInput').click()">📷 Cadastrar / atualizar escrita</button>
+      </div>
+      <input id="baSampleInput" type="file" accept="image/jpeg,image/png,image/webp" capture="environment" class="hidden" onchange="uploadBibleAssemblySample(this)">
+      <div id="baSampleUploadStatus" style="color:#6d83a1;font-size:10px;margin-top:8px"></div>
+    </div>
+
+    <div class="card" style="margin-top:12px">
+      <strong>2. Corrigir uma montagem</strong>
+      <p style="color:#6d83a1;font-size:11px;line-height:1.5">Escreva a Montagem Bíblica completa em papel comum. Pode ser folha branca ou de caderno. Fotografe a página inteira; não é necessário usar quadrinhos ou formulário.</p>
+      <div style="background:#f6f8fb;border:1px solid #e5eaf0;border-radius:10px;padding:10px;font-size:10px;line-height:1.5;color:#5b718e;margin-bottom:10px">
+        <b>Para melhorar a leitura:</b> boa luz, câmera paralela ao papel, folha inteira visível e sem sombra sobre a escrita. Rasuras são permitidas, mas podem reduzir a confiança do reconhecimento.
+      </div>
+      <button id="baCorrectionBtn" class="btn primary block" onclick="$('baAnswerInput').click()">📷 Fotografar / escolher folha para corrigir</button>
+      <input id="baAnswerInput" type="file" accept="image/jpeg,image/png,image/webp" capture="environment" class="hidden" onchange="submitBibleAssembly(this)">
+      <div id="baCorrectionStatus" style="color:#6d83a1;font-size:10px;margin-top:8px"></div>
+    </div>
+
+    <div id="baLatestResult" class="card hidden" style="margin-top:12px"></div>
+
+    <div class="card" style="margin-top:12px">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:10px"><strong>Histórico</strong><button class="btn small" onclick="loadBibleAssemblyStatus()">Atualizar</button></div>
+      <div id="baHistory" style="margin-top:8px"><div class="empty">Carregando...</div></div>
+    </div>
   </div>
 </section>
 
@@ -677,6 +720,127 @@ async function loadMyProfile(){if(!currentUid()||!navigator.onLine)return getPla
 async function upsertMyProfile(p){const r=await protectedApi('/rest/v1/rpc/upsert_my_profile',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({p_name:p.name,p_group:p.group||null,p_avatar:p.avatar||null})});return r}
 async function registerPlayer(){const p=getPlayer();if(!p.name)return false;await upsertMyProfile(p);return true}
 
+let bibleAssemblyState=null;
+
+function openBibleAssembly(){
+  if(!currentUser()){show('auth');return}
+  show('bibleassembly');
+}
+function baError(e){
+  const raw=String(e?.message||e||'Erro');
+  try{const j=JSON.parse(raw);return String(j.message||j.error||j.hint||raw)}catch(x){return raw.replace(/^Error:\s*/,'')}
+}
+function baFmtBook(s){
+  return String(s||'').replace(/\b\w/g,m=>m.toUpperCase());
+}
+async function prepareBibleAssemblyImage(file,maxSide=2200){
+  if(!file||!/^image\/(jpeg|png|webp)$/i.test(file.type||''))throw new Error('Escolha uma foto JPG, PNG ou WEBP.');
+  if(file.size>20*1024*1024)throw new Error('A imagem está muito grande. Use uma foto de até 20 MB.');
+  const url=URL.createObjectURL(file);
+  try{
+    const img=await new Promise((resolve,reject)=>{const x=new Image();x.onload=()=>resolve(x);x.onerror=()=>reject(new Error('Não foi possível abrir a foto.'));x.src=url});
+    const scale=Math.min(1,maxSide/Math.max(img.naturalWidth,img.naturalHeight));
+    const w=Math.max(1,Math.round(img.naturalWidth*scale)),h=Math.max(1,Math.round(img.naturalHeight*scale));
+    const canvas=document.createElement('canvas');canvas.width=w;canvas.height=h;
+    const ctx=canvas.getContext('2d');ctx.fillStyle='#fff';ctx.fillRect(0,0,w,h);ctx.drawImage(img,0,0,w,h);
+    const blob=await new Promise((resolve,reject)=>canvas.toBlob(b=>b?resolve(b):reject(new Error('Falha ao preparar a foto.')),'image/jpeg',0.88));
+    return blob;
+  }finally{URL.revokeObjectURL(url)}
+}
+async function uploadBibleAssemblyBlob(path,blob,upsert=false){
+  const encoded=path.split('/').map(encodeURIComponent).join('/');
+  const r=await protectedApi('/storage/v1/object/bible-assembly/'+encoded,{method:'POST',headers:{'Content-Type':'image/jpeg','x-upsert':upsert?'true':'false'},body:blob});
+  return r;
+}
+async function uploadBibleAssemblySample(input){
+  const file=input.files&&input.files[0];if(!file)return;
+  const st=$('baSampleUploadStatus');st.textContent='Preparando a foto da sua escrita...';
+  try{
+    const blob=await prepareBibleAssemblyImage(file,2200),path=currentUid()+'/handwriting/sample.jpg';
+    st.textContent='Enviando amostra com segurança...';
+    await uploadBibleAssemblyBlob(path,blob,true);
+    await journeyRpc('set_my_bible_assembly_handwriting_sample',{p_path:path});
+    st.textContent='✅ Escrita cadastrada. Você já pode corrigir uma Montagem Bíblica.';
+    await loadBibleAssemblyStatus();
+  }catch(e){st.textContent='Não foi possível cadastrar: '+baError(e)}
+  finally{input.value=''}
+}
+async function submitBibleAssembly(input){
+  const file=input.files&&input.files[0];if(!file)return;
+  const st=$('baCorrectionStatus'),btn=$('baCorrectionBtn');btn.disabled=true;st.textContent='Preparando a foto da montagem...';
+  try{
+    if(!bibleAssemblyState?.sample_uploaded)throw new Error('Cadastre primeiro sua folha de caligrafia.');
+    const blob=await prepareBibleAssemblyImage(file,2400);
+    const nonce=(crypto.randomUUID?crypto.randomUUID():Date.now()+'-'+Math.random().toString(16).slice(2));
+    const path=currentUid()+'/submissions/'+Date.now()+'-'+nonce+'.jpg';
+    st.textContent='Enviando folha...';await uploadBibleAssemblyBlob(path,blob,false);
+    const submissionId=await journeyRpc('create_my_bible_assembly_submission',{p_path:path});
+    st.textContent='Lendo sua escrita e corrigindo os 66 livros...';
+    await runBibleAssemblyCorrection(submissionId);
+  }catch(e){st.textContent='Não foi possível corrigir: '+baError(e)}
+  finally{btn.disabled=false;input.value='';await loadBibleAssemblyStatus()}
+}
+async function runBibleAssemblyCorrection(id){
+  const st=$('baCorrectionStatus');st.textContent='Analisando a caligrafia e a folha. Isso pode levar alguns instantes...';
+  try{
+    const r=await protectedApi('/functions/v1/bible-assembly-corrector',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({submission_id:id})});
+    const out=await r.json();
+    st.textContent='✅ Correção concluída: '+Number(out.score||0).toFixed(2).replace('.',',')+' / 100';
+    renderBibleAssemblyResult(out);
+    return out;
+  }catch(e){
+    const msg=baError(e);st.textContent='A folha foi salva, mas a correção automática não terminou: '+msg;throw e;
+  }
+}
+function renderBibleAssemblyResult(out){
+  const box=$('baLatestResult');if(!box)return;
+  const score=Number(out?.score||0),correct=Number(out?.correct_count||0),total=Number(out?.total_count||66);
+  const wrong=Array.isArray(out?.wrong)?out.wrong:[];
+  const review=Array.isArray(out?.needs_review)?out.needs_review:[];
+  box.classList.remove('hidden');
+  box.innerHTML='<div style="text-align:center"><div style="font-size:11px;color:#6d83a1;font-weight:800">NOTA DA MONTAGEM</div><div style="font-size:38px;font-weight:1000;color:var(--blue);margin:5px 0">'+score.toFixed(2).replace('.',',')+'</div><div style="font-size:12px;font-weight:800">'+correct+' de '+total+' respostas corretas</div></div>'+
+   (review.length?'<div style="margin-top:12px;padding:9px;border-radius:9px;background:#fff7df;font-size:10px"><b>⚠️ '+review.length+' leitura(s) com baixa confiança.</b> Confira os itens abaixo antes de considerar a nota definitiva.</div>':'')+
+   (wrong.length?'<details style="margin-top:12px"><summary style="cursor:pointer;font-weight:900;font-size:12px">Ver '+wrong.length+' item(ns) não confirmados/corretos</summary><div style="margin-top:8px">'+wrong.slice(0,66).map(x=>'<div class="list-item" style="display:block"><strong>'+esc(baFmtBook(x.book))+' — correto: '+esc(x.expected_chapter)+'</strong><small>Leitura: '+esc(x.observed||'não reconhecido')+(x.confidence?(' • confiança '+Math.round(x.confidence*100)+'%'):'')+'</small></div>').join('')+'</div></details>':'<div style="margin-top:12px;text-align:center;font-weight:900">✅ Todos os 66 itens foram reconhecidos como corretos.</div>');
+}
+function renderBibleAssemblyHistory(rows){
+  const el=$('baHistory');if(!el)return;
+  if(!rows?.length){el.innerHTML='<div class="empty">Nenhuma montagem corrigida ainda.</div>';return}
+  el.innerHTML=rows.map(r=>{
+    const status={pending:'Aguardando correção',processing:'Processando',completed:'Concluída',failed:'Falhou'}[r.status]||r.status;
+    const result=r.result_json||{};
+    const score=r.score==null?'—':Number(r.score).toFixed(2).replace('.',',');
+    const retry=(r.status==='pending'||r.status==='failed')?'<button class="btn small" onclick="retryBibleAssemblyCorrection(\''+r.id+'\')">Tentar corrigir</button>':'';
+    return '<div class="list-item" style="display:flex;align-items:center;justify-content:space-between;gap:10px"><div><strong>'+score+' / 100</strong><small>'+esc(status)+' • '+new Date(r.created_at).toLocaleString('pt-BR')+(r.correct_count!=null?' • '+r.correct_count+'/66 acertos':'')+'</small></div>'+retry+'</div>';
+  }).join('');
+}
+async function retryBibleAssemblyCorrection(id){
+  try{await runBibleAssemblyCorrection(id)}catch(e){}finally{await loadBibleAssemblyStatus()}
+}
+async function loadBibleAssemblyStatus(){
+  if(!currentUid()||!navigator.onLine)return;
+  try{
+    bibleAssemblyState=await journeyRpc('get_my_bible_assembly_status',{});
+    const ok=!!bibleAssemblyState?.sample_uploaded;
+    $('baSampleBadge').textContent=ok?'Cadastrada':'Pendente';
+    $('baSampleBadge').className='pill '+(ok?'ok':'');
+    $('baSampleStatus').textContent=ok?'Amostra disponível'+(bibleAssemblyState.sample_updated_at?' • atualizada em '+new Date(bibleAssemblyState.sample_updated_at).toLocaleDateString('pt-BR'):''):'Envie primeiro a folha com A–Z, a–z e 0–9.';
+    $('bibleAssemblyBadge').textContent=ok?'Escrita cadastrada':'Cadastre sua escrita';
+    renderBibleAssemblyHistory(bibleAssemblyState?.submissions||[]);
+    const last=(bibleAssemblyState?.submissions||[]).find(x=>x.status==='completed');
+    if(last?.result_json&&Object.keys(last.result_json).length)renderBibleAssemblyResult(last.result_json);
+  }catch(e){
+    $('baSampleStatus').textContent='Não foi possível verificar agora.';
+    $('baHistory').innerHTML='<div class="empty">Falha ao carregar histórico.</div>';
+  }
+}
+function printBibleAssemblyHandwritingTemplate(){
+  const letters='ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split(''),lower='abcdefghijklmnopqrstuvwxyz'.split(''),nums='1234567890'.split('');
+  const row=(arr)=>'<table><tr>'+arr.map(x=>'<td>'+x+'</td>').join('')+'</tr><tr>'+arr.map(()=>'<td class="write"></td>').join('')+'</tr></table>';
+  const w=window.open('','_blank');if(!w){alert('Permita a abertura da janela para visualizar o modelo.');return}
+  w.document.write('<!doctype html><html><head><meta charset="utf-8"><title>Modelo de caligrafia — Jornada E.R.</title><style>@page{size:A4;margin:12mm}body{font-family:Arial,sans-serif;color:#111}h1{text-align:center;font-size:20px;margin:0 0 8px}p{text-align:center;font-size:11px;margin:0 0 20px}table{border-collapse:collapse;margin:0 auto 20px;width:100%;table-layout:fixed}td{border:1px solid #222;text-align:center;height:24px;font-size:12px}.write{height:42px}.numbers{width:72%}@media print{button{display:none}}</style></head><body><h1>Jornada E.R. — Cadastro de Caligrafia</h1><p>Escreva em cada espaço o mesmo caractere mostrado acima, usando sua letra normal. Depois fotografe a folha inteira.</p>'+row(letters)+row(lower)+'<div class="numbers">'+row(nums)+'</div><div style="text-align:center"><button onclick="window.print()">Imprimir</button></div></body></html>');
+  w.document.close();
+}
+
 function openProfile(returnTo='home'){if(!currentUser()){show('auth');return}profileReturn=returnTo;const p=getPlayer();pendingAvatar=p.avatar||'';$('profileEmail').textContent=currentUser()?.email||'Conta conectada';$('playerName').value=p.name||'';$('playerGroup').value=p.group||'';$('playerPhotoInput').value='';$('profileStatus').textContent='';const jp=journeyContext?.player||{};$('playerErNoCard').checked=jp.er_card_missing!==false;$('playerErCard').value=jp.er_card_number||'';$('playerErCard').disabled=$('playerErNoCard').checked;$('playerGroup').readOnly=!!journeyContext?.embassy;setAvatarBox('profileAvatarBox','profileAvatarImg','profileAvatarInitials',pendingAvatar,p.name);show('profile')}
 function removePhoto(){pendingAvatar='';setAvatarBox('profileAvatarBox','profileAvatarImg','profileAvatarInitials','',$('playerName').value)}
 async function handlePhoto(input){const file=input.files&&input.files[0];if(!file)return;if(!file.type.startsWith('image/')){$('profileStatus').textContent='Escolha um arquivo de imagem.';return}$('profileStatus').textContent='Preparando foto...';try{pendingAvatar=await compressPhoto(file);setAvatarBox('profileAvatarBox','profileAvatarImg','profileAvatarInitials',pendingAvatar,$('playerName').value);$('profileStatus').textContent='Foto pronta. Toque em Salvar perfil.'}catch(e){$('profileStatus').textContent='Não foi possível preparar essa foto.'}}
@@ -750,7 +914,7 @@ async function flushScoreQueue(){if(!navigator.onLine||!currentUid())return;cons
 const qdb={db:null,async open(){if(this.db)return this.db;this.db=await new Promise((res,rej)=>{const r=indexedDB.open('diagnostico_er',2);r.onupgradeneeded=e=>{const d=e.target.result;if(!d.objectStoreNames.contains('questions')){const s=d.createObjectStore('questions',{keyPath:'id'});s.createIndex('exam','exam',{unique:false})}};r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)});return this.db},async putMany(rows){const d=await this.open();return new Promise((res,rej)=>{const t=d.transaction('questions','readwrite'),s=t.objectStore('questions');rows.forEach(r=>{if(r.active===false)s.delete(r.id);else s.put(r)});t.oncomplete=()=>res();t.onerror=()=>rej(t.error)})},async byExam(exam){const d=await this.open();return new Promise((res,rej)=>{const t=d.transaction('questions','readonly'),idx=t.objectStore('questions').index('exam'),r=idx.getAll(exam);r.onsuccess=()=>res(r.result||[]);r.onerror=()=>rej(r.error)})},async count(){const d=await this.open();return new Promise((res,rej)=>{const r=d.transaction('questions','readonly').objectStore('questions').count();r.onsuccess=()=>res(r.result||0);r.onerror=()=>rej(r.error)})},async clear(){const d=await this.open();return new Promise((res,rej)=>{const t=d.transaction('questions','readwrite'),r=t.objectStore('questions').clear();r.onsuccess=()=>res();r.onerror=()=>rej(r.error)})}};
 function esc(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
 function headers(){return {'apikey':KEY}}
-function show(id){document.querySelectorAll('.screen').forEach(x=>x.classList.remove('active'));$(id).classList.add('active');if(id==='embassy')setTimeout(renderMyEmbassy,0);$('bottomNav').classList.toggle('hidden',id==='auth'||!currentUser());document.querySelectorAll('.bottom button').forEach(b=>b.classList.toggle('active',b.dataset.screen===id));if(id==='home')refreshHome();if(id==='materials')loadMaterials(false);if(id==='notices')loadNotices(true);if(id==='chat'){if(!journeyContext?.embassy)chatScope='general';updateChatScopeUI();if(chatScope==='embassy'){renderOnlineUsers();touchOnlineHeartbeat()}loadChat();startChatPolling()}else stopChatPolling();if(id==='duel'){loadDuelState(true);startDuelStatePolling()}else if(document.getElementById('duel')&&!document.getElementById('duel').classList.contains('active'))stopDuelStatePolling();if(id==='livequiz'){loadLiveQuizState(true);startLiveQuizPolling()}else if(document.getElementById('livequiz')&&!document.getElementById('livequiz').classList.contains('active'))stopLiveQuizPolling();if(id==='history')renderHistory();if(id==='status'){loadPerformance(false);if(window.loadERActivityStatus)window.loadERActivityStatus().then(()=>{if(['Sword','Chess','Checkers','Domino'].includes(statusExam)&&window.renderERActivityStatus)window.renderERActivityStatus(statusExam)})};if(id==='ranking'){renderRanking();startRankingAutoRefresh()}else stopRankingAutoRefresh();window.scrollTo(0,0)}
+function show(id){document.querySelectorAll('.screen').forEach(x=>x.classList.remove('active'));$(id).classList.add('active');if(id==='embassy')setTimeout(renderMyEmbassy,0);$('bottomNav').classList.toggle('hidden',id==='auth'||!currentUser());document.querySelectorAll('.bottom button').forEach(b=>b.classList.toggle('active',b.dataset.screen===id));if(id==='home')refreshHome();if(id==='materials')loadMaterials(false);if(id==='notices')loadNotices(true);if(id==='bibleassembly')loadBibleAssemblyStatus();if(id==='chat'){if(!journeyContext?.embassy)chatScope='general';updateChatScopeUI();if(chatScope==='embassy'){renderOnlineUsers();touchOnlineHeartbeat()}loadChat();startChatPolling()}else stopChatPolling();if(id==='duel'){loadDuelState(true);startDuelStatePolling()}else if(document.getElementById('duel')&&!document.getElementById('duel').classList.contains('active'))stopDuelStatePolling();if(id==='livequiz'){loadLiveQuizState(true);startLiveQuizPolling()}else if(document.getElementById('livequiz')&&!document.getElementById('livequiz').classList.contains('active'))stopLiveQuizPolling();if(id==='history')renderHistory();if(id==='status'){loadPerformance(false);if(window.loadERActivityStatus)window.loadERActivityStatus().then(()=>{if(['Sword','Chess','Checkers','Domino'].includes(statusExam)&&window.renderERActivityStatus)window.renderERActivityStatus(statusExam)})};if(id==='ranking'){renderRanking();startRankingAutoRefresh()}else stopRankingAutoRefresh();window.scrollTo(0,0)}
 function setSync(msg,type){$('syncStatus').textContent=msg;$('syncDot').className='dot '+(type||'')}
 function setSyncProgress(pct,text,show=true){const p=Math.max(0,Math.min(100,Math.round(Number(pct)||0)));$('syncProgress').classList.toggle('hidden',!show);$('syncProgressBar').style.width=p+'%';$('syncProgressPct').textContent=p+'%';$('syncProgressText').textContent=text||'Sincronizando...'}
 async function api(path,opts={}){opts.headers=Object.assign({},headers(),opts.headers||{});const r=await fetch(SUPA+path,opts);if(!r.ok)throw new Error(await r.text());return r}
