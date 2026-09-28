@@ -3,18 +3,16 @@ plugins {
 }
 
 android {
-    // Identidade Jornada E.R. v35
-    // Publicacao Jornada E.R. v35
-    // Base de assinatura permanente a partir da v32
+    // Base estável de instalação restaurada a partir da v32
     namespace 'com.diagnosticoer.app'
     compileSdk 35
 
     defaultConfig {
-        applicationId 'com.jornadaer.app'
-        minSdk 21
+        applicationId 'com.diagnosticoer.app'
+        minSdk 24
         targetSdk 35
         versionCode 36
-        versionName '3.0.2-compatibilidade'
+        versionName '3.0.2-estavel-v32'
     }
 
     signingConfigs {
