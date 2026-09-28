@@ -718,14 +718,21 @@ async function uploadEmbassyRequestAttachment(file){
   await protectedApi('/storage/v1/object/embassy-requests/'+path,{method:'POST',headers:{'Content-Type':file.type||'application/octet-stream','x-upsert':'false'},body:file});
   return {path,name:file.name};
 }
-async function notifyEmbassyEmail(requestId){try{await protectedApi('/functions/v1/embassy-email',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({request_id:requestId})})}catch(e){}}
+async function notifyEmbassyEmail(requestId){
+ const rr=await protectedApi('/functions/v1/embassy-email',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({request_id:requestId})});
+ const data=await rr.json().catch(()=>({}));
+ if(data?.ok===false||data?.error)throw new Error(data.error||'Não foi possível enviar o aviso por e-mail.');
+ return data;
+}
 async function submitEmbassyRequest(edit){
   const btn=$('reqSubmitBtn'),status=$('reqStatus');btn.disabled=true;status.textContent='Enviando...';
   try{
     const f=$('reqAttachment').files?.[0],up=await uploadEmbassyRequestAttachment(f);
     const p={p_embassy_name:$('reqEmbName').value.trim(),p_church:$('reqChurch').value.trim(),p_city:$('reqCity').value.trim(),p_state:$('reqState').value.trim(),p_responsible_name:$('reqResponsible').value.trim(),p_phone:$('reqPhone').value.trim()||null,p_embassy_email:$('reqEmail').value.trim(),p_dcer:$('reqDcer').value.trim()||null,p_daer:$('reqDaer').value.trim()||null,p_notes:$('reqNotes').value.trim()||null,p_attachment_path:up.path,p_attachment_name:up.name};
     const id=edit?await journeyRpc('update_my_embassy_request',Object.assign({p_request_id:journeyContext.pending_request.id},p)):await journeyRpc('submit_embassy_request',p);
-    await notifyEmbassyEmail(id);await loadJourneyContext();await renderMyEmbassy();showAppToast('Solicitação enviada','O ADM Master receberá a solicitação para análise.');
+    let emailMsg='O ADM Master receberá a solicitação para análise.';
+    try{await notifyEmbassyEmail(id)}catch(mailErr){emailMsg='Solicitação salva, mas o aviso por e-mail não foi enviado. O ADM Master ainda poderá vê-la no painel.'}
+    await loadJourneyContext();await renderMyEmbassy();showAppToast('Solicitação enviada',emailMsg);
   }catch(e){status.textContent=String(e.message||e).replace(/^Error:\s*/,'')}finally{btn.disabled=false}
 }
 async function loadEmbassyBranding(){if(!navigator.onLine||!currentUid())return;try{const cfg=await journeyRpc('get_my_embassy_branding',{});if(cfg&&typeof cfg==='object'&&Object.keys(cfg).length){currentBranding=Object.assign({},currentBranding,cfg);applyBranding(currentBranding)}}catch(e){}}
