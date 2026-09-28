@@ -1,4 +1,4 @@
-const CACHE='jornada-er-web-v53-identidade';
+const CACHE='jornada-er-web-v54-multiembaixadas';
 const ASSETS=['./','./index.html','./games.css','./games.js','./manifest.webmanifest'];
 
 self.addEventListener('install',event=>{
