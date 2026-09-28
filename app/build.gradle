@@ -3,7 +3,7 @@ plugins {
 }
 
 android {
-    // Base estável de instalação restaurada a partir da v32
+    // Base estável v32 confirmada para instalação
     namespace 'com.diagnosticoer.app'
     compileSdk 35
 
