@@ -48,6 +48,8 @@
   <main class="wrap">
     <div class="tabs">
       <button class="tab active" data-panel="dashboard" onclick="openPanel('dashboard',this)">Resumo</button>
+      <button class="tab" data-panel="embassies" onclick="openPanel('embassies',this)">Embaixadas</button>
+      <button class="tab" data-panel="embassyAdmin" onclick="openPanel('embassyAdmin',this)">Minha Embaixada</button>
       <button class="tab" data-panel="branding" onclick="openPanel('branding',this)">Aparência</button>
       <button class="tab" data-panel="questions" onclick="openPanel('questions',this)">Questões</button>
       <button class="tab" data-panel="spreadsheets" onclick="openPanel('spreadsheets',this)">Planilhas</button>
@@ -70,6 +72,83 @@
         <div class="card metric"><strong id="mIntegrated">—</strong><span>questões integradas</span></div>
       </div>
       <div class="card" style="margin-top:14px"><strong>Status do banco</strong><p id="dbStatus" class="muted">Carregando...</p><button class="btn" onclick="loadDashboard()">Atualizar resumo</button></div>
+    </section>
+
+
+    <section id="embassies" class="panel">
+      <div class="section-head"><h2>Embaixadas — ADM Master</h2><button class="btn" onclick="loadMasterEmbassies()">Atualizar</button></div>
+      <div class="card"><strong>Solicitações</strong><p class="muted">A criação de uma nova Embaixada só acontece após sua aprovação.</p><div id="masterRequestsStatus" class="status"></div>
+        <div class="table-wrap"><table class="table"><thead><tr><th>Embaixada</th><th>Responsável</th><th>Local</th><th>Status</th><th>Anexo</th><th>Ações</th></tr></thead><tbody id="masterRequestsBody"></tbody></table></div>
+      </div>
+      <div class="card" style="margin-top:14px"><strong>Embaixadas cadastradas</strong><div class="table-wrap" style="margin-top:10px"><table class="table"><thead><tr><th>Embaixada</th><th>Código</th><th>Local</th><th>Membros</th><th>Status</th><th>Ações</th></tr></thead><tbody id="masterEmbassiesBody"></tbody></table></div></div>
+    </section>
+
+    <section id="embassyAdmin" class="panel">
+      <div class="section-head"><div><h2 id="localEmbassyTitle">Minha Embaixada</h2><p id="localEmbassySubtitle" class="muted"></p></div><button class="btn" onclick="loadLocalEmbassyAdmin()">Atualizar</button></div>
+      <div class="cards">
+        <div class="card metric"><strong id="leMembers">—</strong><span>membros</span></div>
+        <div class="card metric"><strong id="leScores">—</strong><span>resultados</span></div>
+        <div class="card metric"><strong id="leNotices">—</strong><span>avisos</span></div>
+        <div class="card metric"><strong id="leCompetitions">—</strong><span>competições</span></div>
+      </div>
+
+      <div class="card" style="margin-top:14px"><strong>Dados da Embaixada</strong>
+        <div class="grid2">
+          <div class="field"><label>NOME DA EMBAIXADA</label><input id="leName"></div>
+          <div class="field"><label>IGREJA</label><input id="leChurch"></div>
+          <div class="field"><label>CIDADE</label><input id="leCity"></div>
+          <div class="field"><label>ESTADO</label><input id="leState"></div>
+          <div class="field"><label>RESPONSÁVEL</label><input id="leResponsible"></div>
+          <div class="field"><label>TELEFONE / CONTATO</label><input id="lePhone"></div>
+          <div class="field"><label>E-MAIL DA EMBAIXADA</label><input id="leEmail" type="email"></div>
+          <div class="field"><label>CÓDIGO DE ENTRADA</label><input id="leCode" readonly></div>
+          <div class="field"><label>DCER</label><input id="leDcer"></div>
+          <div class="field"><label>DAER</label><input id="leDaer"></div>
+        </div>
+        <button class="btn primary" style="margin-top:10px" onclick="saveLocalEmbassyDetails()">Salvar dados</button><span id="leDetailsStatus" class="status"></span>
+      </div>
+
+      <div class="card" style="margin-top:14px"><strong>Membros e administradores</strong>
+        <p class="muted">O administrador principal pode promover outros membros a ADM local. Ninguém aqui pode criar outra Embaixada ou virar ADM Master.</p>
+        <div class="table-wrap"><table class="table"><thead><tr><th>Membro</th><th>Carteirinha</th><th>Perfil</th><th>Último acesso</th><th>Ações</th></tr></thead><tbody id="leMembersBody"></tbody></table></div>
+      </div>
+
+      <div class="card" style="margin-top:14px"><strong>Aparência da Embaixada</strong>
+        <p class="muted">Personalização local. A marca Jornada E.R. continua sendo a plataforma principal.</p>
+        <div class="grid2">
+          <div class="field"><label>SUBTÍTULO LOCAL</label><input id="leBrandSubtitle" maxlength="120"></div>
+          <div class="field"><label>FRASE PRINCIPAL</label><input id="leBrandHero" maxlength="160"></div>
+          <div class="field"><label>AZUL/PRINCIPAL</label><input id="leBrandPrimary" type="color" value="#0b5ed7"></div>
+          <div class="field"><label>DESTAQUE</label><input id="leBrandAccent" type="color" value="#f4c542"></div>
+          <div class="field"><label>FUNDO</label><input id="leBrandBackground" type="color" value="#eef5fd"></div>
+          <div class="field"><label>TEXTO DO LOGO</label><input id="leBrandLogoText" maxlength="12" value="E.R."></div>
+        </div>
+        <button class="btn primary" style="margin-top:10px" onclick="saveLocalBranding()">Salvar aparência local</button><span id="leBrandStatus" class="status"></span>
+      </div>
+
+      <div class="grid2" style="margin-top:14px">
+        <div class="card"><strong>Avisos da Embaixada</strong>
+          <div class="field"><label>TÍTULO</label><input id="leNoticeTitle"></div><div class="field"><label>MENSAGEM</label><textarea id="leNoticeBody"></textarea></div>
+          <button class="btn primary" onclick="createLocalNotice()">Publicar aviso</button><div id="leNoticesList" style="margin-top:10px"></div>
+        </div>
+        <div class="card"><strong>Competições da Embaixada</strong>
+          <div class="field"><label>NOME</label><input id="leCompTitle"></div><div class="field"><label>DATA</label><input id="leCompDate" type="date"></div><div class="field"><label>LOCAL</label><input id="leCompLocation"></div>
+          <button class="btn primary" onclick="createLocalCompetition()">Criar competição</button><div id="leCompetitionsList" style="margin-top:10px"></div>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:14px"><strong>Materiais da Embaixada</strong>
+        <div class="grid2"><div class="field"><label>TÍTULO</label><input id="leMatTitle"></div><div class="field"><label>ARQUIVO</label><input id="leMatFile" type="file"></div></div>
+        <div class="field"><label>DESCRIÇÃO</label><textarea id="leMatDesc"></textarea></div>
+        <button class="btn primary" onclick="uploadLocalMaterial()">Enviar material</button><div id="leMaterialsList" style="margin-top:10px"></div>
+      </div>
+
+      <div class="card" style="margin-top:14px"><strong>Moderação do chat</strong><div id="leChatList"></div></div>
+
+      <div class="card danger-zone" style="margin-top:14px"><strong>Ranking da Embaixada</strong>
+        <div class="toolbar" style="margin-top:8px"><select id="leRankExam" onchange="loadLocalScores()"><option value="">Todas as provas</option><option>Lucas</option><option>CGB</option><option>Evangelhos</option><option value="Bratcher">Livro Missionário</option><option value="BWAH">Sempre Embaixador</option></select><button class="btn" onclick="loadLocalScores()">Atualizar</button><button class="btn warn" onclick="resetLocalRanking()">Resetar seleção</button></div>
+        <div class="table-wrap"><table class="table"><thead><tr><th>Embaixador</th><th>Prova</th><th>Resultado</th><th>%</th><th>Data</th><th></th></tr></thead><tbody id="leScoresBody"></tbody></table></div>
+      </div>
     </section>
 
     <section id="branding" class="panel">
@@ -482,10 +561,28 @@ async function rpc(name,body={}){const r=await api('/rest/v1/rpc/'+name,{method:
 
 async function login(){const email=$('loginEmail').value.trim().toLowerCase(),password=$('loginPassword').value;if(!email||!password){setStatus('loginStatus','Informe e-mail e senha.','bad');return}if(password.length<8){setStatus('loginStatus','A senha precisa ter pelo menos 8 caracteres.','bad');return}$('loginBtn').disabled=true;setStatus('loginStatus','Entrando...');try{let d;try{d=await authPost('/auth/v1/token?grant_type=password',{email,password})}catch(loginError){setStatus('loginStatus','Conta não encontrada. Recriando acesso administrativo...');const r=await fetch(SUPA+'/functions/v1/signup-no-confirm',{method:'POST',headers:{apikey:KEY,'Content-Type':'application/json'},body:JSON.stringify({email,password})});let created={};try{created=await r.json()}catch(e){}if(!r.ok)throw new Error(created.error||created.message||'Não foi possível recriar a conta.');d=created}if(!saveSession(d))throw new Error('Não foi possível iniciar a sessão.');await enterAdmin();setStatus('loginStatus','Acesso administrativo restaurado.','ok')}catch(e){clearSession();const msg=String(e?.message||e||'');if(/administrativ|acesso/i.test(msg))setStatus('loginStatus','Este e-mail não possui acesso administrativo.','bad');else if(/já está cadastrado|already|registered/i.test(msg))setStatus('loginStatus','A conta existe, mas a senha informada não confere.','bad');else setStatus('loginStatus','Não foi possível entrar: '+msg.replace(/^Error:\s*/,''),'bad')}finally{$('loginBtn').disabled=false}}
 async function recoverPassword(){const email=$('loginEmail').value.trim().toLowerCase();if(!email){setStatus('loginStatus','Digite seu e-mail primeiro.','bad');return}try{await authPost('/auth/v1/recover',{email,redirect_to:location.origin+'/diagnostico-er-app/'});setStatus('loginStatus','Se a conta existir, o e-mail de recuperação será enviado.','ok')}catch(e){setStatus('loginStatus','Não foi possível solicitar a recuperação.','bad')}}
-async function enterAdmin(){try{await rpc('admin_dashboard_stats');const s=session();$('adminEmail').textContent=s?.user?.email||'';$('loginView').classList.add('hidden');$('adminView').classList.remove('hidden');await loadDashboard()}catch(e){clearSession();$('adminView').classList.add('hidden');$('loginView').classList.remove('hidden');throw e}}
+let adminContext=null;
+async function enterAdmin(){
+  try{
+    adminContext=await rpc('get_admin_context');
+    const ss=session();$('adminEmail').textContent=ss?.user?.email||'';
+    $('loginView').classList.add('hidden');$('adminView').classList.remove('hidden');
+    configureAdminAccess();
+    if(adminContext?.is_master){await loadDashboard();const b=document.querySelector('.tab[data-panel="dashboard"]');openPanel('dashboard',b)}
+    else{await loadLocalEmbassyAdmin();const b=document.querySelector('.tab[data-panel="embassyAdmin"]');openPanel('embassyAdmin',b)}
+  }catch(e){clearSession();$('adminView').classList.add('hidden');$('loginView').classList.remove('hidden');throw e}
+}
+function configureAdminAccess(){
+  document.querySelectorAll('.tab').forEach(b=>{
+    const p=b.dataset.panel;
+    if(adminContext?.is_master)b.classList.toggle('hidden',p==='embassyAdmin');
+    else b.classList.toggle('hidden',p!=='embassyAdmin');
+  });
+  if(!adminContext?.is_master){$('localEmbassyTitle').textContent=adminContext?.embassy?.name||'Minha Embaixada';$('localEmbassySubtitle').textContent=(adminContext?.embassy?.church||'')+' • '+(adminContext?.role==='owner'?'Administrador principal':'Administrador local')}
+}
 async function logout(){try{const s=session();if(s?.access_token)await fetch(SUPA+'/auth/v1/logout',{method:'POST',headers:{apikey:KEY,Authorization:'Bearer '+s.access_token}})}catch(e){}clearSession();location.reload()}
 
-function openPanel(id,btn){document.querySelectorAll('.panel').forEach(x=>x.classList.toggle('active',x.id===id));document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('active',x===btn));if(id==='branding')loadBrandingAdmin();if(id==='questions')loadQuestions();if(id==='notices')loadNotices();if(id==='materials')loadMaterials();if(id==='competitions')loadCompetitions();if(id==='chat')loadAdminChat();if(id==='users')loadUsers();if(id==='ranking')loadScores();}
+function openPanel(id,btn){document.querySelectorAll('.panel').forEach(x=>x.classList.toggle('active',x.id===id));document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('active',x===btn));if(id==='embassies')loadMasterEmbassies();if(id==='embassyAdmin')loadLocalEmbassyAdmin();if(id==='branding')loadBrandingAdmin();if(id==='questions')loadQuestions();if(id==='notices')loadNotices();if(id==='materials')loadMaterials();if(id==='competitions')loadCompetitions();if(id==='chat')loadAdminChat();if(id==='users')loadUsers();if(id==='ranking')loadScores();}
 
 async function loadDashboard(){try{const d=await rpc('admin_dashboard_stats');$('mQuestions').textContent=d.questions_active;$('mUsers').textContent=d.users_total;$('mProfiles').textContent=d.profiles_total;$('mScores').textContent=d.scores_total;$('mNotices').textContent=d.notices_total;$('mVersion').textContent=typeof d.content_version==='object'?(d.content_version.version??JSON.stringify(d.content_version)):d.content_version;$('mIntegrated').textContent=d.questions_integrated;$('dbStatus').textContent=d.questions_integrated===0?'Banco sem questões integradas.':'Atenção: '+d.questions_integrated+' questão(ões) integrada(s) ainda existem.'}catch(e){$('dbStatus').textContent='Falha ao carregar: '+e.message}}
 
@@ -698,6 +795,69 @@ async function deleteScore(id){if(!confirm('Excluir esta pontuação?'))return;t
 async function resetSelectedExamScores(){const exam=$('rankExam').value;if(!exam){alert('Selecione uma prova primeiro.');return}const label=qLabel(exam);if(!confirm('Resetar somente o ranking de '+label+'?'))return;if(!confirm('Confirma novamente? Todas as pontuações de '+label+' serão apagadas e esta ação não pode ser desfeita.'))return;try{const n=await rpc('admin_reset_exam_scores',{p_exam:exam});alert(n+' pontuação(ões) de '+label+' removida(s).');loadScores();loadDashboard()}catch(e){setStatus('scoresStatus','Erro: '+e.message,'bad')}}
 async function resetScores(){if(!confirm('Tem certeza que deseja apagar TODAS as pontuações do ranking?'))return;if(!confirm('Confirma novamente? Esta ação não pode ser desfeita.'))return;try{const n=await rpc('admin_reset_scores');alert(n+' pontuação(ões) removida(s).');loadScores();loadDashboard()}catch(e){setStatus('scoresStatus','Erro: '+e.message,'bad')}}
 
+
+let masterRequestRows=[],masterEmbassyRows=[],localMemberRows=[];
+async function adminAuthedFetch(path,opts={}){
+  const ss=await ensureSession();if(!ss?.access_token)throw new Error('Sessão expirada');
+  opts.headers=Object.assign({apikey:KEY,Authorization:'Bearer '+ss.access_token},opts.headers||{});
+  const r=await fetch(SUPA+path,opts);if(!r.ok){let t=await r.text();throw new Error(t)}return r;
+}
+async function triggerEmbassyEmail(requestId){try{await adminAuthedFetch('/functions/v1/embassy-email',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({request_id:requestId})})}catch(e){}}
+async function loadMasterEmbassies(){
+ if(!adminContext?.is_master)return;
+ setStatus('masterRequestsStatus','Carregando...');
+ try{
+  masterRequestRows=await rpc('master_list_embassy_requests',{p_status:null});
+  masterEmbassyRows=await rpc('master_list_embassies');
+  $('masterRequestsBody').innerHTML=masterRequestRows.length?masterRequestRows.map(x=>'<tr><td><b>'+esc(x.embassy_name)+'</b><div class="muted">'+esc(x.church)+'</div></td><td>'+esc(x.responsible_name)+'<div class="muted">'+esc(x.embassy_email||'')+'<br>'+esc(x.phone||'')+'</div></td><td>'+esc(x.city)+' / '+esc(x.state)+'<div class="muted">DCER: '+esc(x.dcer||'—')+' • DAER: '+esc(x.daer||'—')+'</div></td><td><span class="pill">'+esc({pending:'Pendente',in_review:'Em análise',correction_requested:'Correção',approved:'Aprovada',rejected:'Recusada'}[x.status]||x.status)+'</span></td><td>'+(x.attachment_path?'<button class="btn small" onclick="downloadRequestAttachment(\''+encodeURIComponent(x.attachment_path)+'\',\''+encodeURIComponent(x.attachment_name||'anexo')+'\')">Abrir</button>':'—')+'</td><td><div class="actions">'+((x.status==='pending'||x.status==='in_review'||x.status==='correction_requested')?'<button class="btn primary small" onclick="reviewEmbassyRequest(\''+x.request_id+'\',\'approve\')">Aprovar</button><button class="btn warn small" onclick="reviewEmbassyRequest(\''+x.request_id+'\',\'correction\')">Pedir correção</button><button class="btn danger small" onclick="reviewEmbassyRequest(\''+x.request_id+'\',\'reject\')">Recusar</button>':'')+'</div></td></tr>').join(''):'<tr><td colspan="6" class="empty">Nenhuma solicitação.</td></tr>';
+  $('masterEmbassiesBody').innerHTML=masterEmbassyRows.length?masterEmbassyRows.map(e=>'<tr><td><b>'+esc(e.name)+'</b><div class="muted">'+esc(e.church)+'</div></td><td><b>'+esc(e.code)+'</b></td><td>'+esc(e.city)+' / '+esc(e.state)+'</td><td>'+esc(e.members)+'</td><td><span class="pill '+(e.status==='active'?'ok':'off')+'">'+esc(e.status==='active'?'Ativa':'Bloqueada')+'</span></td><td><button class="btn small '+(e.status==='active'?'danger':'primary')+'" onclick="toggleEmbassyStatus(\''+e.embassy_id+'\',\''+(e.status==='active'?'blocked':'active')+'\')">'+(e.status==='active'?'Bloquear':'Ativar')+'</button></td></tr>').join(''):'<tr><td colspan="6" class="empty">Nenhuma Embaixada cadastrada.</td></tr>';
+  setStatus('masterRequestsStatus',masterRequestRows.length+' solicitação(ões).');
+ }catch(e){setStatus('masterRequestsStatus','Erro: '+e.message,'bad')}
+}
+async function reviewEmbassyRequest(id,action){
+ const label={approve:'APROVAR',correction:'SOLICITAR CORREÇÃO',reject:'RECUSAR'}[action]||action;
+ const note=prompt(label+' — observação'+(action==='approve'?' (opcional)':' / motivo')+':','');if(note===null)return;
+ if(action==='approve'&&!confirm('Confirmar a criação desta Embaixada e liberar o solicitante como ADM principal?'))return;
+ try{const out=await rpc('master_review_embassy_request',{p_request_id:id,p_action:action,p_note:note||null});await triggerEmbassyEmail(id);if(action==='approve'&&out?.embassy)alert('Embaixada aprovada. Código: '+out.embassy.code);await loadMasterEmbassies()}catch(e){alert('Erro: '+e.message)}
+}
+async function toggleEmbassyStatus(id,status){if(!confirm((status==='blocked'?'Bloquear':'Ativar')+' esta Embaixada?'))return;try{await rpc('master_set_embassy_status',{p_embassy_id:id,p_status:status});loadMasterEmbassies()}catch(e){alert(e.message)}}
+async function downloadRequestAttachment(pathEnc,nameEnc){
+ try{const path=decodeURIComponent(pathEnc),name=decodeURIComponent(nameEnc);const rr=await adminAuthedFetch('/storage/v1/object/authenticated/embassy-requests/'+path);const blob=await rr.blob(),u=URL.createObjectURL(blob),a=document.createElement('a');a.href=u;a.download=name||'anexo';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),1500)}catch(e){alert('Não foi possível abrir o anexo: '+e.message)}
+}
+
+async function loadLocalEmbassyAdmin(){
+ if(adminContext?.is_master)return;
+ try{
+  const [stats,members,notices,comps,mats,chat,scores,branding]=await Promise.all([
+   rpc('embassy_admin_dashboard_stats'),rpc('embassy_admin_list_members'),rpc('embassy_admin_list_notices'),rpc('embassy_admin_list_competitions'),
+   rpc('embassy_admin_list_materials'),rpc('embassy_admin_list_chat_messages',{p_limit:100}),rpc('embassy_admin_list_scores',{p_exam:null,p_limit:200}),rpc('get_my_embassy_branding')
+  ]);
+  $('leMembers').textContent=stats.members;$('leScores').textContent=stats.scores;$('leNotices').textContent=stats.notices;$('leCompetitions').textContent=stats.competitions;
+  const e=adminContext.embassy||{};$('leName').value=e.name||'';$('leChurch').value=e.church||'';$('leCity').value=e.city||'';$('leState').value=e.state||'';$('leResponsible').value=e.responsible_name||'';$('lePhone').value=e.phone||'';$('leEmail').value=e.email||'';$('leCode').value=e.code||'';$('leDcer').value=e.dcer||'';$('leDaer').value=e.daer||'';
+  localMemberRows=members;renderLocalMembers(members);renderLocalNotices(notices);renderLocalCompetitions(comps);renderLocalMaterials(mats);renderLocalChat(chat);renderLocalScores(scores);
+  const b=branding||{};$('leBrandSubtitle').value=b.subtitle||'';$('leBrandHero').value=b.hero_title||'';$('leBrandPrimary').value=b.primary_color||'#0b5ed7';$('leBrandAccent').value=b.accent_color||'#f4c542';$('leBrandBackground').value=b.background_color||'#eef5fd';$('leBrandLogoText').value=b.logo_text||'E.R.';
+ }catch(e){alert('Falha ao carregar ADM da Embaixada: '+e.message)}
+}
+function renderLocalMembers(rows){$('leMembersBody').innerHTML=rows.length?rows.map(m=>'<tr><td><b>'+esc(m.display_name||'Sem nome')+'</b><div class="muted">'+esc(m.email||'')+'</div></td><td>'+esc(m.er_card_missing?'Sem número':(m.er_card_number||'—'))+'</td><td><span class="pill">'+esc(m.role==='owner'?'ADM principal':m.role==='admin'?'ADM local':'Membro')+'</span></td><td>'+esc(m.last_sign_in_at?new Date(m.last_sign_in_at).toLocaleString('pt-BR'):'Nunca')+'</td><td><div class="actions">'+(adminContext.role==='owner'&&m.role!=='owner'?'<button class="btn small" onclick="setLocalMemberAdmin(\''+m.user_id+'\','+(m.role!=='admin')+')">'+(m.role==='admin'?'Remover ADM':'Tornar ADM')+'</button><button class="btn danger small" onclick="removeLocalMember(\''+m.user_id+'\')">Remover</button>':'')+'</div></td></tr>').join(''):'<tr><td colspan="5" class="empty">Nenhum membro.</td></tr>'}
+async function setLocalMemberAdmin(id,on){if(!confirm((on?'Tornar este membro administrador local?':'Remover permissão de administrador?')))return;await rpc('embassy_admin_set_member_admin',{p_user_id:id,p_make_admin:on});loadLocalEmbassyAdmin()}
+async function removeLocalMember(id){if(!confirm('Remover este membro da Embaixada? O histórico já registrado permanece na Embaixada.'))return;await rpc('embassy_admin_remove_member',{p_user_id:id});loadLocalEmbassyAdmin()}
+async function saveLocalEmbassyDetails(){try{const e=await rpc('embassy_admin_update_details',{p_name:$('leName').value,p_church:$('leChurch').value,p_city:$('leCity').value,p_state:$('leState').value,p_responsible:$('leResponsible').value,p_phone:$('lePhone').value,p_email:$('leEmail').value,p_dcer:$('leDcer').value,p_daer:$('leDaer').value});adminContext.embassy=e;setStatus('leDetailsStatus','Dados salvos.','ok')}catch(e){setStatus('leDetailsStatus','Erro: '+e.message,'bad')}}
+async function saveLocalBranding(){try{const cfg={subtitle:$('leBrandSubtitle').value.trim(),hero_title:$('leBrandHero').value.trim(),primary_color:$('leBrandPrimary').value,accent_color:$('leBrandAccent').value,background_color:$('leBrandBackground').value,logo_text:$('leBrandLogoText').value.trim()||'E.R.'};await rpc('embassy_admin_save_branding',{p_config:cfg});setStatus('leBrandStatus','Aparência local salva.','ok')}catch(e){setStatus('leBrandStatus','Erro: '+e.message,'bad')}}
+function renderLocalNotices(rows){$('leNoticesList').innerHTML=rows.length?rows.map(n=>'<div class="notice"><b>'+esc(n.title)+'</b><div class="muted">'+esc(n.body)+'</div><button class="btn danger small" onclick="deleteLocalNotice(\''+n.notice_id+'\')">Excluir</button></div>').join(''):'<div class="muted">Nenhum aviso local.</div>'}
+async function createLocalNotice(){const t=$('leNoticeTitle').value.trim(),b=$('leNoticeBody').value.trim();if(!t||!b)return alert('Preencha título e mensagem.');await rpc('embassy_admin_save_notice',{p_id:null,p_title:t,p_body:b,p_published:true});$('leNoticeTitle').value='';$('leNoticeBody').value='';loadLocalEmbassyAdmin()}
+async function deleteLocalNotice(id){if(!confirm('Excluir este aviso?'))return;await rpc('embassy_admin_delete_notice',{p_id:id});loadLocalEmbassyAdmin()}
+function renderLocalCompetitions(rows){$('leCompetitionsList').innerHTML=rows.length?rows.map(c=>'<div class="notice"><b>'+esc(c.title)+'</b><div class="muted">'+new Date(c.event_date+'T12:00:00').toLocaleDateString('pt-BR')+' • '+esc(c.location||'')+'</div><button class="btn danger small" onclick="deleteLocalCompetition(\''+c.competition_id+'\')">Excluir</button></div>').join(''):'<div class="muted">Nenhuma competição local.</div>'}
+async function createLocalCompetition(){const t=$('leCompTitle').value.trim(),d=$('leCompDate').value,l=$('leCompLocation').value.trim();if(!t||!d)return alert('Preencha nome e data.');await rpc('embassy_admin_save_competition',{p_id:null,p_title:t,p_event_date:d,p_location:l||null,p_published:true});$('leCompTitle').value='';$('leCompDate').value='';$('leCompLocation').value='';loadLocalEmbassyAdmin()}
+async function deleteLocalCompetition(id){if(!confirm('Excluir esta competição?'))return;await rpc('embassy_admin_delete_competition',{p_id:id});loadLocalEmbassyAdmin()}
+function renderLocalMaterials(rows){$('leMaterialsList').innerHTML=rows.length?rows.map(m=>'<div class="notice"><b>'+esc(m.title)+'</b><div class="muted">'+esc(m.original_name)+' • '+Math.round(Number(m.size_bytes||0)/1024)+' KB</div><button class="btn danger small" onclick="deleteLocalMaterial(\''+m.material_id+'\')">Excluir</button></div>').join(''):'<div class="muted">Nenhum material local.</div>'}
+async function uploadLocalMaterial(){const f=$('leMatFile').files?.[0],t=$('leMatTitle').value.trim(),d=$('leMatDesc').value.trim();if(!f||!t)return alert('Informe título e arquivo.');const form=new FormData();form.append('file',f);form.append('title',t);form.append('description',d);form.append('published','true');form.append('notify','true');await adminAuthedFetch('/functions/v1/materials?action=upload',{method:'POST',body:form});$('leMatTitle').value='';$('leMatDesc').value='';$('leMatFile').value='';loadLocalEmbassyAdmin()}
+async function deleteLocalMaterial(id){if(!confirm('Excluir este material?'))return;await adminAuthedFetch('/functions/v1/materials?action=delete',{method:'DELETE',headers:{'Content-Type':'application/json'},body:JSON.stringify({id})});loadLocalEmbassyAdmin()}
+function renderLocalChat(rows){$('leChatList').innerHTML=rows.length?rows.map(m=>'<div class="notice"><b>'+esc(m.display_name)+'</b><div>'+esc(m.body)+'</div><div class="muted">'+new Date(m.created_at).toLocaleString('pt-BR')+'</div><button class="btn danger small" onclick="deleteLocalChat(\''+m.message_id+'\')">Excluir</button></div>').join(''):'<div class="muted">Nenhuma mensagem.</div>'}
+async function deleteLocalChat(id){if(!confirm('Excluir esta mensagem?'))return;await rpc('embassy_admin_delete_chat_message',{p_message_id:id});loadLocalEmbassyAdmin()}
+function renderLocalScores(rows){$('leScoresBody').innerHTML=rows.length?rows.map(x=>'<tr><td>'+esc(x.display_name)+'</td><td>'+esc(x.exam)+'</td><td>'+esc(x.score)+' / '+esc(x.total)+'</td><td>'+Number(x.pct).toFixed(1)+'%</td><td>'+new Date(x.completed_at).toLocaleString('pt-BR')+'</td><td><button class="btn danger small" onclick="deleteLocalScore(\''+x.score_id+'\')">Excluir</button></td></tr>').join(''):'<tr><td colspan="6" class="empty">Nenhum resultado.</td></tr>'}
+async function loadLocalScores(){const exam=$('leRankExam').value||null;const rows=await rpc('embassy_admin_list_scores',{p_exam:exam,p_limit:500});renderLocalScores(rows)}
+async function deleteLocalScore(id){if(!confirm('Excluir esta pontuação?'))return;await rpc('embassy_admin_delete_score',{p_score_id:id});loadLocalScores()}
+async function resetLocalRanking(){const exam=$('leRankExam').value||null;if(!confirm('Resetar '+(exam?'o ranking de '+exam:'TODO o ranking desta Embaixada')+'?'))return;if(!confirm('Confirma novamente? Esta ação não pode ser desfeita.'))return;const n=await rpc('embassy_admin_reset_scores',{p_exam:exam});alert(n+' pontuação(ões) removida(s).');loadLocalEmbassyAdmin()}
 (async()=>{const s=await ensureSession();if(s){try{await enterAdmin()}catch(e){setStatus('loginStatus','A conta conectada não possui acesso administrativo.','bad')}}})();
 </script>
 </body>
