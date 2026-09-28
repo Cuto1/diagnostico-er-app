@@ -1,4 +1,4 @@
-const CACHE='diagnostico-er-web-v51-inicio-aleatorio';
+const CACHE='diagnostico-er-web-v52-ranking-acumulado';
 const ASSETS=['./','./index.html','./games.css','./games.js','./manifest.webmanifest'];
 
 self.addEventListener('install',event=>{
