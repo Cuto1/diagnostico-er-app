@@ -104,6 +104,9 @@ jobs:
           TAG="android-v${VERSION_CODE}"
           if gh release view "$TAG" >/dev/null 2>&1; then
             gh release upload "$TAG" Jornada-ER.apk Diagnostico-ER-Sincronizacao.apk --clobber
+            gh release edit "$TAG" \
+              --title "Jornada E.R. Android ${VERSION_NAME}" \
+              --notes "Atualização Android do Jornada E.R. — versão ${VERSION_NAME}, código ${VERSION_CODE}."
           else
             gh release create "$TAG" Jornada-ER.apk Diagnostico-ER-Sincronizacao.apk \
               --title "Jornada E.R. Android ${VERSION_NAME}" \
