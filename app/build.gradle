@@ -3,6 +3,7 @@ plugins {
 }
 
 android {
+    // Identidade Jornada E.R. v33
     // Base de assinatura permanente a partir da v32
     namespace 'com.diagnosticoer.app'
     compileSdk 35
