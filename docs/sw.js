@@ -1,4 +1,4 @@
-const CACHE='diagnostico-er-web-v52-ranking-acumulado';
+const CACHE='jornada-er-web-v53-identidade';
 const ASSETS=['./','./index.html','./games.css','./games.js','./manifest.webmanifest'];
 
 self.addEventListener('install',event=>{
