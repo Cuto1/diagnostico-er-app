@@ -59,6 +59,7 @@
       <button class="tab" data-panel="chat" onclick="openPanel('chat',this)">Chat</button>
       <button class="tab" data-panel="users" onclick="openPanel('users',this)">Usuários</button>
       <button class="tab" data-panel="ranking" onclick="openPanel('ranking',this)">Ranking</button>
+      <button class="tab" data-panel="analytics" onclick="openPanel('analytics',this)">📊 Estatísticas</button>
     </div>
 
     <section id="dashboard" class="panel active">
@@ -518,6 +519,48 @@
       <div id="usersStatus" class="status"></div>
     </section>
 
+
+    <section id="analytics" class="panel">
+      <div class="section-head">
+        <div><h2>📊 Estatísticas de uso</h2><p class="muted">Acompanhe frequência, tempo ativo, estudos, questões, jogos e áreas mais usadas no Jornada E.R.</p></div>
+        <button class="btn" onclick="loadAnalytics()">Atualizar</button>
+      </div>
+
+      <div class="card">
+        <div class="grid2">
+          <div class="field"><label>PERÍODO</label><select id="analyticsDays" onchange="loadAnalytics()"><option value="7">7 dias</option><option value="14">14 dias</option><option value="30" selected>30 dias</option><option value="90">90 dias</option></select></div>
+          <div id="analyticsEmbassyField" class="field"><label>EMBAIXADA</label><select id="analyticsEmbassy" onchange="loadAnalytics()"><option value="">Todas as Embaixadas</option></select></div>
+        </div>
+        <div id="analyticsStatus" class="status"></div>
+      </div>
+
+      <div class="cards" style="margin-top:14px">
+        <div class="card metric"><strong id="anActiveToday">—</strong><span>ativos hoje</span></div>
+        <div class="card metric"><strong id="anActivePeriod">—</strong><span>ativos no período</span></div>
+        <div class="card metric"><strong id="anLoginsToday">—</strong><span>logins hoje</span></div>
+        <div class="card metric"><strong id="anLoginsPeriod">—</strong><span>logins no período</span></div>
+        <div class="card metric"><strong id="anTime">—</strong><span>tempo ativo</span></div>
+        <div class="card metric"><strong id="anQuestions">—</strong><span>questões respondidas</span></div>
+        <div class="card metric"><strong id="anAttempts">—</strong><span>provas concluídas</span></div>
+        <div class="card metric"><strong id="anGames">—</strong><span>partidas/duelos</span></div>
+      </div>
+
+      <div class="grid2" style="margin-top:14px">
+        <div class="card"><strong>Atividade diária</strong><p class="muted">Logins e usuários ativos por dia.</p><div id="analyticsLoginChart" style="min-height:230px"></div></div>
+        <div class="card"><strong>Questões e partidas</strong><p class="muted">Volume diário de estudo e jogos.</p><div id="analyticsStudyChart" style="min-height:230px"></div></div>
+      </div>
+
+      <div class="grid2" style="margin-top:14px">
+        <div class="card"><strong>Áreas mais acessadas</strong><p class="muted">Telas que os Embaixadores mais abriram no período.</p><div id="analyticsScreens"></div></div>
+        <div class="card"><strong>Distribuição das atividades</strong><div id="analyticsBreakdown" style="margin-top:10px"></div></div>
+      </div>
+
+      <div class="card" style="margin-top:14px">
+        <div class="section-head" style="margin-top:0"><div><strong>Desempenho individual dos Embaixadores</strong><p class="muted">Login, tempo ativo, questões e partidas por usuário.</p></div><input id="analyticsUserSearch" placeholder="Buscar nome ou e-mail" oninput="renderAnalyticsUsers()" style="max-width:260px"></div>
+        <div class="table-wrap"><table class="table"><thead><tr><th>Embaixador</th><th>Último acesso</th><th>Logins</th><th>Tempo</th><th>Questões</th><th>Provas</th><th>Jogos</th><th>Duelos</th><th>Quiz ao vivo</th></tr></thead><tbody id="analyticsUsersBody"></tbody></table></div>
+      </div>
+    </section>
+
     <section id="ranking" class="panel">
       <div class="section-head"><h2>Resultados do ranking</h2><div class="toolbar"><select id="rankExam" onchange="loadScores()"><option value="">Todas as provas</option><option>Lucas</option><option>CGB</option><option>Evangelhos</option><option value="Bratcher">Livro Missionário</option><option value="BWAH">Sempre Embaixador</option></select><button class="btn" onclick="loadScores()">Atualizar</button></div></div>
       <div class="table-wrap"><table class="table"><thead><tr><th>Jogador</th><th>Prova</th><th>Nota</th><th>Percentual</th><th>Data</th><th>Ações</th></tr></thead><tbody id="scoresBody"></tbody></table></div>
@@ -619,13 +662,104 @@ function configureAdminAccess(){
   document.querySelectorAll('.tab').forEach(b=>{
     const p=b.dataset.panel;
     if(adminContext?.is_master)b.classList.toggle('hidden',p==='embassyAdmin');
-    else b.classList.toggle('hidden',p!=='embassyAdmin');
+    else b.classList.toggle('hidden',p!=='embassyAdmin'&&p!=='analytics');
   });
   if(!adminContext?.is_master){$('localEmbassyTitle').textContent=adminContext?.embassy?.name||'Minha Embaixada';$('localEmbassySubtitle').textContent=(adminContext?.embassy?.church||'')+' • '+(adminContext?.role==='owner'?'Administrador principal':'Administrador local')}
 }
 async function logout(){try{const s=session();if(s?.access_token)await fetch(SUPA+'/auth/v1/logout',{method:'POST',headers:{apikey:KEY,Authorization:'Bearer '+s.access_token}})}catch(e){}clearSession();location.reload()}
 
-function openPanel(id,btn){document.querySelectorAll('.panel').forEach(x=>x.classList.toggle('active',x.id===id));document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('active',x===btn));if(id==='embassies')loadMasterEmbassies();if(id==='embassyAdmin')loadLocalEmbassyAdmin();if(id==='branding')loadBrandingAdmin();if(id==='questions')loadQuestions();if(id==='notices')loadNotices();if(id==='materials')loadMaterials();if(id==='competitions')loadCompetitions();if(id==='chat')loadAdminChat();if(id==='users')loadUsers();if(id==='ranking'){loadScores();loadMasterDuelRanking();}}
+function openPanel(id,btn){document.querySelectorAll('.panel').forEach(x=>x.classList.toggle('active',x.id===id));document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('active',x===btn));if(id==='embassies')loadMasterEmbassies();if(id==='embassyAdmin')loadLocalEmbassyAdmin();if(id==='branding')loadBrandingAdmin();if(id==='questions')loadQuestions();if(id==='notices')loadNotices();if(id==='materials')loadMaterials();if(id==='competitions')loadCompetitions();if(id==='chat')loadAdminChat();if(id==='users')loadUsers();if(id==='ranking'){loadScores();loadMasterDuelRanking();}if(id==='analytics')loadAnalytics();}
+
+
+let analyticsUserRows=[],analyticsEmbassyLoaded=false;
+function analyticsFmtTime(mins){
+  const m=Math.max(0,Number(mins)||0),h=Math.floor(m/60),mm=Math.round(m%60);
+  return h? h+'h '+mm+'min' : mm+' min';
+}
+function analyticsLabel(screen){
+  return ({home:'Início',ranking:'Ranking',status:'Status',chat:'Chat',notices:'Alertas',history:'Histórico',materials:'Materiais',embassy:'Embaixada',quiz:'Prova',setup:'Configurar prova',sword:'Esgrima Bíblica',swordchallenge:'Desafio de Esgrima',duel:'Duelo E.R.',livequiz:'Quiz ao Vivo',bibleassembly:'Montagem Bíblica'})[screen]||String(screen||'Outros');
+}
+function analyticsBarChart(rows,keyA,keyB,labelA,labelB){
+  if(!rows?.length)return '<div class="empty">Ainda não há dados neste período.</div>';
+  const max=Math.max(1,...rows.map(r=>Math.max(Number(r[keyA])||0,Number(r[keyB])||0)));
+  return '<div style="display:flex;align-items:flex-end;gap:5px;height:190px;padding-top:12px;overflow-x:auto">'+rows.map(r=>{
+    const a=Math.max(2,Math.round((Number(r[keyA])||0)/max*145)),b=Math.max(2,Math.round((Number(r[keyB])||0)/max*145));
+    const dt=new Date(String(r.day)+'T12:00:00');
+    const lab=dt.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'});
+    return '<div style="min-width:34px;flex:1;text-align:center"><div style="height:150px;display:flex;align-items:flex-end;justify-content:center;gap:3px"><i title="'+labelA+': '+esc(r[keyA])+'" style="display:block;width:10px;height:'+a+'px;background:#0b5ed7;border-radius:4px 4px 0 0"></i><i title="'+labelB+': '+esc(r[keyB])+'" style="display:block;width:10px;height:'+b+'px;background:#f0bf32;border-radius:4px 4px 0 0"></i></div><small style="font-size:8px;color:#6d83a1">'+lab+'</small></div>'
+  }).join('')+'</div><div style="font-size:10px;color:#6d83a1;margin-top:5px"><b style="color:#0b5ed7">■</b> '+esc(labelA)+' &nbsp; <b style="color:#b88b00">■</b> '+esc(labelB)+'</div>';
+}
+function analyticsMetricRow(label,value,max){
+  const pct=max?Math.max(2,Math.min(100,Number(value||0)/max*100)):0;
+  return '<div style="margin:9px 0"><div style="display:flex;justify-content:space-between;font-size:11px"><b>'+esc(label)+'</b><span>'+esc(value)+'</span></div><div style="height:8px;background:#e8eef6;border-radius:99px;overflow:hidden;margin-top:4px"><i style="display:block;height:100%;width:'+pct+'%;background:#0b5ed7"></i></div></div>';
+}
+async function loadAnalyticsEmbassies(){
+  if(!adminContext?.is_master||analyticsEmbassyLoaded)return;
+  try{
+    const rows=await rpc('master_list_embassies');
+    const s=$('analyticsEmbassy');if(s)s.innerHTML='<option value="">Todas as Embaixadas</option>'+rows.map(e=>'<option value="'+e.embassy_id+'">'+esc(e.name)+'</option>').join('');
+    analyticsEmbassyLoaded=true;
+  }catch(e){}
+}
+async function loadAnalytics(){
+  const days=Number($('analyticsDays')?.value||30);
+  const isMaster=!!adminContext?.is_master;
+  $('analyticsEmbassyField')?.classList.toggle('hidden',!isMaster);
+  setStatus('analyticsStatus','Carregando estatísticas...');
+  try{
+    if(isMaster)await loadAnalyticsEmbassies();
+    const embassy=isMaster?($('analyticsEmbassy')?.value||null):null;
+    const [sum,daily,users,screens]=await Promise.all(
+      isMaster?[
+        rpc('admin_analytics_summary',{p_days:days,p_embassy_id:embassy}),
+        rpc('admin_analytics_daily',{p_days:Math.min(days,30),p_embassy_id:embassy}),
+        rpc('admin_analytics_users',{p_days:days,p_embassy_id:embassy}),
+        rpc('admin_analytics_screens',{p_days:days,p_embassy_id:embassy})
+      ]:[
+        rpc('embassy_admin_analytics_summary',{p_days:days}),
+        rpc('embassy_admin_analytics_daily',{p_days:Math.min(days,30)}),
+        rpc('embassy_admin_analytics_users',{p_days:days}),
+        rpc('embassy_admin_analytics_screens',{p_days:days})
+      ]
+    );
+    const questions=Number(sum.questions_quiz||0)+Number(sum.questions_duel||0)+Number(sum.questions_live||0);
+    const games=Number(sum.solo_games||0)+Number(sum.online_games||0)+Number(sum.duels||0);
+    $('anActiveToday').textContent=sum.active_today||0;
+    $('anActivePeriod').textContent=sum.active_period||0;
+    $('anLoginsToday').textContent=sum.logins_today||0;
+    $('anLoginsPeriod').textContent=sum.logins_period||0;
+    $('anTime').textContent=analyticsFmtTime(Number(sum.active_seconds||0)/60);
+    $('anQuestions').textContent=questions.toLocaleString('pt-BR');
+    $('anAttempts').textContent=Number(sum.quiz_attempts||0).toLocaleString('pt-BR');
+    $('anGames').textContent=games.toLocaleString('pt-BR');
+    $('analyticsLoginChart').innerHTML=analyticsBarChart(daily,'logins','active_users','Logins','Usuários ativos');
+    $('analyticsStudyChart').innerHTML=analyticsBarChart(daily,'questions','games','Questões','Partidas');
+    const maxScreen=Math.max(1,...(screens||[]).map(x=>Number(x.views)||0));
+    $('analyticsScreens').innerHTML=screens?.length?screens.slice(0,10).map(x=>analyticsMetricRow(analyticsLabel(x.screen),Number(x.views),maxScreen)).join(''):'<div class="empty">As telas mais acessadas aparecerão conforme os usuários utilizarem a nova versão.</div>';
+    const parts=[
+      ['Provas',Number(sum.quiz_attempts||0)],
+      ['Questões de prova',Number(sum.questions_quiz||0)],
+      ['Questões em duelos',Number(sum.questions_duel||0)],
+      ['Questões em quiz ao vivo',Number(sum.questions_live||0)],
+      ['Jogos contra IA',Number(sum.solo_games||0)],
+      ['Jogos online',Number(sum.online_games||0)],
+      ['Duelos',Number(sum.duels||0)],
+      ['Quiz ao vivo',Number(sum.live_quizzes||0)]
+    ];
+    const maxPart=Math.max(1,...parts.map(x=>x[1]));
+    $('analyticsBreakdown').innerHTML=parts.map(x=>analyticsMetricRow(x[0],x[1],maxPart)).join('');
+    analyticsUserRows=users||[];renderAnalyticsUsers();
+    setStatus('analyticsStatus','Atualizado agora. O tempo de uso e os acessos passam a ser medidos a partir da ativação deste painel.','ok');
+  }catch(e){setStatus('analyticsStatus','Erro ao carregar estatísticas: '+e.message,'bad')}
+}
+function renderAnalyticsUsers(){
+  const q=String($('analyticsUserSearch')?.value||'').trim().toLowerCase();
+  const rows=(analyticsUserRows||[]).filter(x=>!q||String(x.display_name||'').toLowerCase().includes(q)||String(x.email||'').toLowerCase().includes(q));
+  $('analyticsUsersBody').innerHTML=rows.length?rows.map(x=>{
+    const games=Number(x.solo_games||0)+Number(x.online_games||0);
+    return '<tr><td><b>'+esc(x.display_name||'Sem nome')+'</b><div class="muted">'+esc(x.email||'')+(x.embassy_name?'<br>'+esc(x.embassy_name):'')+'</div></td><td>'+esc(x.last_seen_at?new Date(x.last_seen_at).toLocaleString('pt-BR'):'Nunca')+'</td><td>'+Number(x.logins||0)+'</td><td>'+analyticsFmtTime(x.active_minutes)+'</td><td><b>'+Number(x.questions||0)+'</b></td><td>'+Number(x.quiz_attempts||0)+'</td><td>'+games+'</td><td>'+Number(x.duels||0)+'</td><td>'+Number(x.live_quizzes||0)+'</td></tr>'
+  }).join(''):'<tr><td colspan="9" class="empty">Nenhum usuário encontrado.</td></tr>';
+}
 
 async function loadDashboard(){try{const d=await rpc('admin_dashboard_stats');$('mQuestions').textContent=d.questions_active;$('mUsers').textContent=d.users_total;$('mProfiles').textContent=d.profiles_total;$('mScores').textContent=d.scores_total;$('mNotices').textContent=d.notices_total;$('mVersion').textContent=typeof d.content_version==='object'?(d.content_version.version??JSON.stringify(d.content_version)):d.content_version;$('mIntegrated').textContent=d.questions_integrated;$('dbStatus').textContent=d.questions_integrated===0?'Banco sem questões integradas.':'Atenção: '+d.questions_integrated+' questão(ões) integrada(s) ainda existem.'}catch(e){$('dbStatus').textContent='Falha ao carregar: '+e.message}}
 
