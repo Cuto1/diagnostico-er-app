@@ -52,3 +52,8 @@
 .chess-promotion-options .chess-piece{font-size:38px;margin-bottom:4px}
 .chess-promotion-options b{display:block;font-size:10px;color:#234f7e}
 @media(max-width:420px){.chess-promotion-options{grid-template-columns:repeat(2,1fr)}.chess-promotion-options .chess-piece{font-size:42px}}
+
+/* Dama: compatibilidade Safari/iOS */
+.game-board .game-square{-webkit-appearance:none;appearance:none;margin:0}
+.game-board .game-square.light{background-color:#edf2e4!important}
+.game-board .game-square.dark{background-color:#78936b!important}
