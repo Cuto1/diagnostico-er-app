@@ -1013,7 +1013,24 @@ let swordSession=null,swordTimerHandle=null,swordValidationTimer=null,swordRecog
 function swordNormalize(v){return String(v||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9ç ]/gi,' ').replace(/\s+/g,' ').trim()}
 function swordFormatTime(ms){return (Math.max(0,ms)/1000).toFixed(2).replace('.',',')}
 function swordSetListening(text,live=false){const box=$('swordListening');if(box)box.classList.toggle('live',!!live);if($('swordListeningText'))$('swordListeningText').textContent=text||''}
-function swordSpeak(text,onend){try{speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(text);u.lang='pt-BR';u.rate=.92;u.onend=()=>onend&&onend();u.onerror=()=>onend&&onend();speechSynthesis.speak(u)}catch(e){if(onend)onend()}}
+const swordNativeSpeakCallbacks={};
+let swordNativeSpeakSeq=0;
+window.onNativeSwordSpeakDone=function(id){const cb=swordNativeSpeakCallbacks[id];if(cb){delete swordNativeSpeakCallbacks[id];try{cb()}catch(e){}}};
+function swordSpeak(text,onend){
+  try{
+    if(window.AndroidUpdater&&typeof AndroidUpdater.speakSwordText==='function'){
+      const id='sword_'+Date.now()+'_'+(++swordNativeSpeakSeq);
+      if(onend)swordNativeSpeakCallbacks[id]=onend;
+      AndroidUpdater.speakSwordText(String(text||''),id);
+      return;
+    }
+  }catch(e){}
+  try{
+    speechSynthesis.cancel();
+    const u=new SpeechSynthesisUtterance(text);u.lang='pt-BR';u.rate=.92;
+    u.onend=()=>onend&&onend();u.onerror=()=>onend&&onend();speechSynthesis.speak(u)
+  }catch(e){if(onend)onend()}
+}
 function swordSpokenReference(ref){
   const m=String(ref||'').trim().match(/^(.*)\s+(\d+):(\d+)(?:-(\d+))?$/);
   if(!m)return String(ref||'');
