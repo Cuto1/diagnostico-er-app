@@ -118,6 +118,26 @@ public class MainActivity extends Activity {
         });
 
         loadBestContent();
+        autoUpdateContent();
+    }
+
+    private void autoUpdateContent() {
+        new Thread(() -> {
+            try {
+                String latest = downloadLatestContent();
+                String current = currentContent();
+                if (sha256(current).equals(sha256(latest))) return;
+
+                writeUpdate(latest);
+                runOnUiThread(() -> {
+                    try {
+                        loadHtml(latest);
+                    } catch (Exception ignored) {}
+                });
+            } catch (Exception ignored) {
+                // Sem internet ou servidor indisponível: mantém silenciosamente o conteúdo já instalado.
+            }
+        }).start();
     }
 
     private File updateFile() {
@@ -523,6 +543,11 @@ public class MainActivity extends Activity {
         @JavascriptInterface
         public long getVersionCode() {
             return versionCode();
+        }
+
+        @JavascriptInterface
+        public void updateContentNow() {
+            autoUpdateContent();
         }
 
         @JavascriptInterface
