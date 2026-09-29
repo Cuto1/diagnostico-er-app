@@ -284,7 +284,6 @@ window.performChessCastle=async function(side){
   const chess=G.state?.chess;if(!chess)return;
   const online=G.kind==='online',st=G.online?.state,meSeat=online?st.players.find(p=>p.is_me)?.seat:0,myColor=online?(meSeat===1?'b':'w'):(G.state.userColor||'w');
   if(online&&(st.status!=='active'||st.current_turn_seat!==meSeat))return;
-  if(!online&&chess.turn()!=='w')return;
   if(chess.turn()!==myColor)return;
   const kingSq=myColor==='w'?'e1':'e8',target=side==='queen'?(myColor==='w'?'c1':'c8'):(myColor==='w'?'g1':'g8');
   const legal=chess.moves({square:kingSq,verbose:true}),castle=legal.find(m=>m.to===target&&chessMoveIsCastle(m));
