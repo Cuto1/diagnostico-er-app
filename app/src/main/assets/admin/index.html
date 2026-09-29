@@ -125,6 +125,17 @@
         <div class="table-wrap"><table class="table"><thead><tr><th>Membro</th><th>Carteirinha</th><th>Perfil</th><th>Último acesso</th><th>Ações</th></tr></thead><tbody id="leMembersBody"></tbody></table></div>
       </div>
 
+      <div class="card" style="margin-top:14px">
+        <strong>➕ Adicionar Embaixador existente</strong>
+        <p class="muted">Use esta opção quando o garoto já tem conta no app, mas não conseguiu entrar na Embaixada pelo código. Só aparecem contas que ainda não pertencem a nenhuma Embaixada.</p>
+        <div class="toolbar" style="margin-top:10px">
+          <input id="leAddMemberSearch" placeholder="Nome, e-mail ou carteirinha" onkeydown="if(event.key==='Enter')searchLocalAvailableMembers()">
+          <button class="btn" onclick="searchLocalAvailableMembers()">Buscar</button>
+        </div>
+        <div id="leAddMemberStatus" class="status"></div>
+        <div class="table-wrap"><table class="table"><thead><tr><th>Nome</th><th>E-mail</th><th>Carteirinha</th><th>Último acesso</th><th>Ação</th></tr></thead><tbody id="leAvailableMembersBody"><tr><td colspan="5" class="empty">Digite um nome, e-mail ou carteirinha para buscar.</td></tr></tbody></table></div>
+      </div>
+
       <div class="card" style="margin-top:14px"><strong>Aparência da Embaixada</strong>
         <p class="muted">Personalização local. A marca Jornada E.R. continua sendo a plataforma principal.</p>
         <div class="grid2">
@@ -1017,6 +1028,25 @@ async function loadLocalEmbassyAdmin(){
  }catch(e){alert('Falha ao carregar ADM da Embaixada: '+e.message)}
 }
 function renderLocalMembers(rows){$('leMembersBody').innerHTML=rows.length?rows.map(m=>'<tr><td><b>'+esc(m.display_name||'Sem nome')+'</b><div class="muted">'+esc(m.email||'')+'</div></td><td>'+esc(m.er_card_missing?'Sem número':(m.er_card_number||'—'))+'</td><td><span class="pill">'+esc(m.role==='owner'?'ADM principal':m.role==='admin'?'ADM local':'Membro')+'</span></td><td>'+esc(m.last_sign_in_at?new Date(m.last_sign_in_at).toLocaleString('pt-BR'):'Nunca')+'</td><td><div class="actions">'+(adminContext.role==='owner'&&m.role!=='owner'?'<button class="btn small" onclick="setLocalMemberAdmin(\''+m.user_id+'\','+(m.role!=='admin')+')">'+(m.role==='admin'?'Remover ADM':'Tornar ADM')+'</button><button class="btn danger small" onclick="removeLocalMember(\''+m.user_id+'\')">Remover</button>':'')+'</div></td></tr>').join(''):'<tr><td colspan="5" class="empty">Nenhum membro.</td></tr>'}
+async function searchLocalAvailableMembers(){
+  const q=String($('leAddMemberSearch')?.value||'').trim();
+  setStatus('leAddMemberStatus','Buscando...');
+  try{
+    const rows=await rpc('embassy_admin_list_available_members',{p_search:q||null});
+    $('leAvailableMembersBody').innerHTML=rows.length?rows.map(m=>'<tr><td><b>'+esc(m.display_name||'Sem nome')+'</b></td><td>'+esc(m.email||'')+'</td><td>'+esc(m.er_card_missing?'Sem número':(m.er_card_number||'—'))+'</td><td>'+esc(m.last_sign_in_at?new Date(m.last_sign_in_at).toLocaleString('pt-BR'):'Nunca')+'</td><td><button class="btn primary small" onclick="addLocalMember(\''+m.user_id+'\',\''+encodeURIComponent(m.display_name||m.email||'Embaixador')+'\')">Adicionar</button></td></tr>').join(''):'<tr><td colspan="5" class="empty">Nenhuma conta disponível encontrada.</td></tr>';
+    setStatus('leAddMemberStatus',rows.length+' conta(s) disponível(is).');
+  }catch(e){setStatus('leAddMemberStatus','Erro: '+e.message,'bad')}
+}
+async function addLocalMember(id,label){
+  const name=decodeURIComponent(label||'Embaixador');
+  if(!confirm('Adicionar '+name+' à sua Embaixada?'))return;
+  try{
+    await rpc('embassy_admin_add_member',{p_user_id:id});
+    setStatus('leAddMemberStatus',name+' foi adicionado à Embaixada.','ok');
+    await loadLocalEmbassyAdmin();
+    await searchLocalAvailableMembers();
+  }catch(e){setStatus('leAddMemberStatus','Erro: '+e.message,'bad')}
+}
 async function setLocalMemberAdmin(id,on){if(!confirm((on?'Tornar este membro administrador local?':'Remover permissão de administrador?')))return;await rpc('embassy_admin_set_member_admin',{p_user_id:id,p_make_admin:on});loadLocalEmbassyAdmin()}
 async function removeLocalMember(id){if(!confirm('Remover este membro da Embaixada? O histórico já registrado permanece na Embaixada.'))return;await rpc('embassy_admin_remove_member',{p_user_id:id});loadLocalEmbassyAdmin()}
 async function saveLocalEmbassyDetails(){try{const e=await rpc('embassy_admin_update_details',{p_name:$('leName').value,p_church:$('leChurch').value,p_city:$('leCity').value,p_state:$('leState').value,p_responsible:$('leResponsible').value,p_phone:$('lePhone').value,p_email:$('leEmail').value,p_dcer:$('leDcer').value,p_daer:$('leDaer').value});adminContext.embassy=e;setStatus('leDetailsStatus','Dados salvos.','ok')}catch(e){setStatus('leDetailsStatus','Erro: '+e.message,'bad')}}
