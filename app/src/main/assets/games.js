@@ -159,7 +159,7 @@ function resultScreen(result,text){
 }
 
 /* XADREZ */
-const CHESS_SYMBOLS={wp:'♟︎',wn:'♞︎',wb:'♝︎',wr:'♜︎',wq:'♛︎',wk:'♚︎',bp:'♟︎',bn:'♞︎',bb:'♝︎',br:'♜︎',bq:'♛︎',bk:'♚︎'};
+const CHESS_SYMBOLS={wp:'♙︎',wn:'♘︎',wb:'♗︎',wr:'♖︎',wq:'♕︎',wk:'♔︎',bp:'♟︎',bn:'♞︎',bb:'♝︎',br:'♜︎',bq:'♛︎',bk:'♚︎'};
 function chessCastleMoves(chess,color){
   if(chess.turn()!==color)return[];
   const kingSq=color==='w'?'e1':'e8';
