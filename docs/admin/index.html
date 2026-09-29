@@ -556,8 +556,54 @@
       </div>
 
       <div class="card" style="margin-top:14px">
-        <div class="section-head" style="margin-top:0"><div><strong>Desempenho individual dos Embaixadores</strong><p class="muted">Login, tempo ativo, questões e partidas por usuário.</p></div><input id="analyticsUserSearch" placeholder="Buscar nome ou e-mail" oninput="renderAnalyticsUsers()" style="max-width:260px"></div>
-        <div class="table-wrap"><table class="table"><thead><tr><th>Embaixador</th><th>Último acesso</th><th>Logins</th><th>Tempo</th><th>Questões</th><th>Provas</th><th>Jogos</th><th>Duelos</th><th>Quiz ao vivo</th></tr></thead><tbody id="analyticsUsersBody"></tbody></table></div>
+        <div class="section-head" style="margin-top:0"><div><strong>Desempenho individual dos Embaixadores</strong><p class="muted">Escolha um Embaixador para abrir um painel semelhante ao “Meu Status” do aplicativo.</p></div><input id="analyticsUserSearch" placeholder="Buscar nome ou e-mail" oninput="renderAnalyticsUsers()" style="max-width:260px"></div>
+        <div class="field" style="margin:10px 0 14px"><label>VER STATUS DE</label><select id="analyticsSelectedUser" onchange="loadAnalyticsUserStatus(this.value)"><option value="">Selecione um Embaixador</option></select></div>
+        <div class="table-wrap"><table class="table"><thead><tr><th>Embaixador</th><th>Último acesso</th><th>Logins</th><th>Tempo</th><th>Questões</th><th>Provas</th><th>Jogos</th><th>Duelos</th><th>Quiz ao vivo</th><th></th></tr></thead><tbody id="analyticsUsersBody"></tbody></table></div>
+      </div>
+
+      <div id="analyticsUserStatus" class="hidden" style="margin-top:14px">
+        <div class="card">
+          <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+            <div id="ausAvatar" style="width:58px;height:58px;border-radius:50%;background:#e8f0fa;display:grid;place-items:center;font-weight:1000;font-size:20px;overflow:hidden"></div>
+            <div style="flex:1;min-width:180px"><h2 id="ausName" style="margin:0"></h2><div id="ausMeta" class="muted" style="margin-top:3px"></div></div>
+            <button class="btn" onclick="$('analyticsUserStatus').classList.add('hidden')">Fechar</button>
+          </div>
+        </div>
+
+        <div class="card" style="margin-top:12px">
+          <strong>Ver desempenho</strong>
+          <div id="ausExamTabs" class="rank-tabs" style="margin-top:10px">
+            <button class="rank-tab active" data-aus-exam="ALL" onclick="setAdminStatusExam('ALL',this)">Todas</button>
+            <button class="rank-tab" data-aus-exam="Lucas" onclick="setAdminStatusExam('Lucas',this)">Lucas</button>
+            <button class="rank-tab" data-aus-exam="CGB" onclick="setAdminStatusExam('CGB',this)">CGB</button>
+            <button class="rank-tab" data-aus-exam="Evangelhos" onclick="setAdminStatusExam('Evangelhos',this)">Evangelhos</button>
+            <button class="rank-tab" data-aus-exam="Bratcher" onclick="setAdminStatusExam('Bratcher',this)">Missionário</button>
+            <button class="rank-tab" data-aus-exam="BWAH" onclick="setAdminStatusExam('BWAH',this)">Sempre E.</button>
+          </div>
+        </div>
+
+        <div class="cards" style="margin-top:12px">
+          <div class="card metric"><strong id="ausBest">—</strong><span>melhor nota</span></div>
+          <div class="card metric"><strong id="ausAvg">—</strong><span>média</span></div>
+          <div class="card metric"><strong id="ausAttempts">0</strong><span>tentativas</span></div>
+          <div class="card metric"><strong id="ausAccuracy">—</strong><span>aproveitamento</span></div>
+          <div class="card metric"><strong id="ausLogins">0</strong><span>logins</span></div>
+          <div class="card metric"><strong id="ausTime">0 min</strong><span>tempo ativo</span></div>
+        </div>
+
+        <div class="grid2" style="margin-top:12px">
+          <div class="card"><strong>Evolução das tentativas</strong><p class="muted">Mesma leitura do “Meu Status”, usando o histórico real do Embaixador.</p><div id="ausLineChart" style="min-height:230px"></div></div>
+          <div class="card"><strong>Acertos x erros</strong><div style="display:flex;align-items:center;justify-content:center;gap:22px;flex-wrap:wrap;margin-top:18px"><div id="ausDonut" style="width:150px;height:150px;border-radius:50%;display:grid;place-items:center;background:conic-gradient(#0b5ed7 0%,#e5edf7 0)"><div style="width:94px;height:94px;border-radius:50%;background:#fff;display:grid;place-items:center"><strong id="ausDonutPct" style="font-size:22px">—</strong></div></div><div><div>✅ <b id="ausRight">0</b> acertos</div><div style="margin-top:8px">❌ <b id="ausWrong">0</b> erros</div></div></div></div>
+        </div>
+
+        <div class="card" style="margin-top:12px"><strong>Mapa de resultado por prova</strong><div id="ausExamMap" style="margin-top:10px"></div></div>
+
+        <div class="grid2" style="margin-top:12px">
+          <div class="card"><strong>Jogos E.R.</strong><div id="ausGames" style="margin-top:10px"></div></div>
+          <div class="card"><strong>Uso do aplicativo</strong><div id="ausUsage" style="margin-top:10px"></div></div>
+        </div>
+
+        <div class="card" style="margin-top:12px"><strong>Atividade recente</strong><p class="muted">Logins, tempo ativo e questões por dia.</p><div id="ausDailyChart" style="min-height:230px"></div></div>
       </div>
     </section>
 
@@ -749,6 +795,7 @@ async function loadAnalytics(){
     const maxPart=Math.max(1,...parts.map(x=>x[1]));
     $('analyticsBreakdown').innerHTML=parts.map(x=>analyticsMetricRow(x[0],x[1],maxPart)).join('');
     analyticsUserRows=users||[];renderAnalyticsUsers();
+    const sel=$('analyticsSelectedUser');if(sel){const keep=sel.value;sel.innerHTML='<option value="">Selecione um Embaixador</option>'+analyticsUserRows.map(x=>'<option value="'+x.user_id+'">'+esc(x.display_name||x.email||'Embaixador')+'</option>').join('');if(keep&&analyticsUserRows.some(x=>x.user_id===keep))sel.value=keep}
     setStatus('analyticsStatus','Atualizado agora. O tempo de uso e os acessos passam a ser medidos a partir da ativação deste painel.','ok');
   }catch(e){setStatus('analyticsStatus','Erro ao carregar estatísticas: '+e.message,'bad')}
 }
@@ -757,10 +804,79 @@ function renderAnalyticsUsers(){
   const rows=(analyticsUserRows||[]).filter(x=>!q||String(x.display_name||'').toLowerCase().includes(q)||String(x.email||'').toLowerCase().includes(q));
   $('analyticsUsersBody').innerHTML=rows.length?rows.map(x=>{
     const games=Number(x.solo_games||0)+Number(x.online_games||0);
-    return '<tr><td><b>'+esc(x.display_name||'Sem nome')+'</b><div class="muted">'+esc(x.email||'')+(x.embassy_name?'<br>'+esc(x.embassy_name):'')+'</div></td><td>'+esc(x.last_seen_at?new Date(x.last_seen_at).toLocaleString('pt-BR'):'Nunca')+'</td><td>'+Number(x.logins||0)+'</td><td>'+analyticsFmtTime(x.active_minutes)+'</td><td><b>'+Number(x.questions||0)+'</b></td><td>'+Number(x.quiz_attempts||0)+'</td><td>'+games+'</td><td>'+Number(x.duels||0)+'</td><td>'+Number(x.live_quizzes||0)+'</td></tr>'
+    return '<tr><td><b>'+esc(x.display_name||'Sem nome')+'</b><div class="muted">'+esc(x.email||'')+(x.embassy_name?'<br>'+esc(x.embassy_name):'')+'</div></td><td>'+esc(x.last_seen_at?new Date(x.last_seen_at).toLocaleString('pt-BR'):'Nunca')+'</td><td>'+Number(x.logins||0)+'</td><td>'+analyticsFmtTime(x.active_minutes)+'</td><td><b>'+Number(x.questions||0)+'</b></td><td>'+Number(x.quiz_attempts||0)+'</td><td>'+games+'</td><td>'+Number(x.duels||0)+'</td><td>'+Number(x.live_quizzes||0)+'</td><td><button class="btn primary small" onclick="openAnalyticsUserStatus(\''+x.user_id+'\')">Ver status</button></td></tr>'
   }).join(''):'<tr><td colspan="9" class="empty">Nenhum usuário encontrado.</td></tr>';
 }
 
+
+let analyticsUserStatusData=null,analyticsUserStatusExam='ALL';
+function adminStatusExamLabel(exam){return ({Lucas:'Lucas',CGB:'CGB',Evangelhos:'Evangelhos',Bratcher:'Livro Missionário',BWAH:'Sempre Embaixador'})[exam]||exam}
+function openAnalyticsUserStatus(id){const s=$('analyticsSelectedUser');if(s)s.value=id;loadAnalyticsUserStatus(id)}
+async function loadAnalyticsUserStatus(id){
+  if(!id){$('analyticsUserStatus')?.classList.add('hidden');return}
+  const days=Number($('analyticsDays')?.value||30);
+  setStatus('analyticsStatus','Carregando status individual...');
+  try{
+    analyticsUserStatusData=await rpc('admin_get_user_status',{p_user_id:id,p_days:days});
+    analyticsUserStatusExam='ALL';
+    document.querySelectorAll('[data-aus-exam]').forEach(b=>b.classList.toggle('active',b.dataset.ausExam==='ALL'));
+    const p=analyticsUserStatusData.profile||{};
+    $('ausName').textContent=p.display_name||'Embaixador';
+    $('ausMeta').textContent=(p.email||'')+(p.embassy_name?' • '+p.embassy_name:'')+(p.last_seen_at?' • último acesso '+new Date(p.last_seen_at).toLocaleString('pt-BR'):'');
+    const av=$('ausAvatar');if(av){if(p.avatar_data&&/^data:image\/(jpeg|jpg|png|webp);base64,/.test(p.avatar_data))av.innerHTML='<img src="'+p.avatar_data+'" style="width:100%;height:100%;object-fit:cover">';else av.textContent=String(p.display_name||'ER').split(/\s+/).slice(0,2).map(x=>x[0]||'').join('').toUpperCase()}
+    $('analyticsUserStatus').classList.remove('hidden');
+    renderAnalyticsUserStatus();
+    $('analyticsUserStatus').scrollIntoView({behavior:'smooth',block:'start'});
+    setStatus('analyticsStatus','Status de '+(p.display_name||'Embaixador')+' carregado.','ok');
+  }catch(e){setStatus('analyticsStatus','Erro ao abrir status: '+e.message,'bad')}
+}
+function setAdminStatusExam(exam,btn){
+  analyticsUserStatusExam=exam;
+  document.querySelectorAll('[data-aus-exam]').forEach(x=>x.classList.toggle('active',x===btn));
+  renderAnalyticsUserStatus();
+}
+function adminStatusRows(){
+  const a=analyticsUserStatusData?.performance||[];
+  return analyticsUserStatusExam==='ALL'?a:a.filter(x=>x.exam===analyticsUserStatusExam);
+}
+function adminStatusLine(rows){
+  const data=rows.slice(-12);if(!data.length)return '<div class="empty">Ainda não há tentativas para exibir.</div>';
+  const W=620,H=190,L=38,R=16,T=16,B=30,iw=W-L-R,ih=H-T-B;
+  const pts=data.map((r,i)=>{const x=L+(data.length===1?iw/2:(i/(data.length-1))*iw),y=T+ih-(Math.max(0,Math.min(100,Number(r.pct)))/100)*ih;return{x,y,p:Number(r.pct)}});
+  const poly=pts.map(p=>p.x.toFixed(1)+','+p.y.toFixed(1)).join(' ');
+  const grid=[0,50,100].map(v=>{const y=T+ih-(v/100)*ih;return '<line x1="'+L+'" y1="'+y+'" x2="'+(W-R)+'" y2="'+y+'" stroke="#dce6f2" stroke-width="1"/><text x="4" y="'+(y+4)+'" font-size="10" fill="#6d83a1">'+v+'%</text>'}).join('');
+  const dots=pts.map((p,i)=>'<circle cx="'+p.x+'" cy="'+p.y+'" r="4" fill="#0b5ed7"><title>'+(i+1)+'ª tentativa: '+p.p.toFixed(0)+'%</title></circle>').join('');
+  return '<svg viewBox="0 0 '+W+' '+H+'" style="width:100%;height:auto">'+grid+'<polyline points="'+poly+'" fill="none" stroke="#0b5ed7" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>'+dots+'<text x="'+(W/2-45)+'" y="'+(H-6)+'" font-size="10" fill="#6d83a1">Tentativas recentes</text></svg>';
+}
+function renderAnalyticsUserStatus(){
+  const d=analyticsUserStatusData;if(!d)return;
+  const rows=adminStatusRows(),attempts=rows.length;
+  const best=attempts?Math.max(...rows.map(x=>Number(x.pct)||0)):0;
+  const avg=attempts?rows.reduce((a,x)=>a+(Number(x.pct)||0),0)/attempts:0;
+  const total=rows.reduce((a,x)=>a+(Number(x.total)||0),0),right=rows.reduce((a,x)=>a+(Number(x.score)||0),0),accuracy=total?right*100/total:0;
+  $('ausBest').textContent=attempts?best.toFixed(0)+'%':'—';
+  $('ausAvg').textContent=attempts?avg.toFixed(0)+'%':'—';
+  $('ausAttempts').textContent=attempts;
+  $('ausAccuracy').textContent=total?accuracy.toFixed(0)+'%':'—';
+  $('ausRight').textContent=right;$('ausWrong').textContent=Math.max(0,total-right);
+  $('ausDonutPct').textContent=total?accuracy.toFixed(0)+'%':'—';
+  $('ausDonut').style.background='conic-gradient(#0b5ed7 '+Math.max(0,Math.min(100,accuracy))+'%,#e5edf7 0)';
+  $('ausLineChart').innerHTML=adminStatusLine(rows);
+
+  const usage=d.usage||{};$('ausLogins').textContent=Number(usage.logins||0);$('ausTime').textContent=analyticsFmtTime(usage.active_minutes||0);
+  const exams=['Lucas','CGB','Evangelhos','Bratcher','BWAH'];
+  $('ausExamMap').innerHTML=exams.map(ex=>{
+    const er=(d.performance||[]).filter(x=>x.exam===ex);const av=er.length?er.reduce((a,x)=>a+Number(x.pct||0),0)/er.length:0;const be=er.length?Math.max(...er.map(x=>Number(x.pct||0))):0;
+    return '<div style="margin:10px 0"><div style="display:flex;justify-content:space-between;gap:10px;font-size:11px"><b>'+adminStatusExamLabel(ex)+'</b><span>'+(er.length?('Média '+av.toFixed(0)+'% • Melhor '+be.toFixed(0)+'% • '+er.length+' tent.'):'Sem tentativas')+'</span></div><div style="height:9px;background:#e8eef6;border-radius:99px;overflow:hidden;margin-top:5px"><i style="display:block;height:100%;width:'+Math.max(0,Math.min(100,av))+'%;background:#0b5ed7"></i></div></div>'
+  }).join('');
+
+  const games=d.games||[];
+  $('ausGames').innerHTML=games.length?games.map(g=>'<div class="notice"><b>'+esc(({chess:'♟️ Xadrez',checkers:'🔴 Dama',domino:'🁫 Dominó'})[g.type]||g.type)+'</b><div class="muted">Competição: '+Number(g.competitive_matches||0)+' • vitórias '+Number(g.competitive_wins||0)+' • derrotas '+Number(g.competitive_losses||0)+' • empates '+Number(g.competitive_draws||0)+'</div><div class="muted">Treino/IA: '+Number(g.solo_matches||0)+' • vitórias '+Number(g.solo_wins||0)+'</div></div>').join(''):'<div class="empty">Nenhuma partida registrada no período.</div>';
+  const sword=d.sword||{},screens=usage.screens||[];
+  $('ausUsage').innerHTML='<div class="notice"><b>⚔️ Esgrima</b><div class="muted">'+Number(sword.challenges||0)+' desafio(s) • '+Number(sword.wins||0)+' vitória(s) • '+Number(sword.points||0)+' ponto(s)</div></div>'+
+    '<div style="margin-top:10px"><b style="font-size:11px">Telas mais acessadas</b>'+(screens.length?screens.slice(0,8).map(x=>'<div style="display:flex;justify-content:space-between;margin-top:7px;font-size:11px"><span>'+esc(analyticsLabel(x.screen))+'</span><b>'+Number(x.views||0)+'</b></div>').join(''):'<div class="muted" style="margin-top:6px">Ainda sem dados de navegação.</div>')+'</div>';
+  $('ausDailyChart').innerHTML=analyticsBarChart(d.daily||[],'logins','questions','Logins','Questões');
+}
 async function loadDashboard(){try{const d=await rpc('admin_dashboard_stats');$('mQuestions').textContent=d.questions_active;$('mUsers').textContent=d.users_total;$('mProfiles').textContent=d.profiles_total;$('mScores').textContent=d.scores_total;$('mNotices').textContent=d.notices_total;$('mVersion').textContent=typeof d.content_version==='object'?(d.content_version.version??JSON.stringify(d.content_version)):d.content_version;$('mIntegrated').textContent=d.questions_integrated;$('dbStatus').textContent=d.questions_integrated===0?'Banco sem questões integradas.':'Atenção: '+d.questions_integrated+' questão(ões) integrada(s) ainda existem.'}catch(e){$('dbStatus').textContent='Falha ao carregar: '+e.message}}
 
 const BRAND_THEMES={
