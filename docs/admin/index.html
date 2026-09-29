@@ -160,6 +160,16 @@
       <div class="card danger-zone" style="margin-top:14px"><strong>Ranking da Embaixada</strong>
         <div class="toolbar" style="margin-top:8px"><select id="leRankExam" onchange="loadLocalScores()"><option value="">Todas as provas</option><option>Lucas</option><option>CGB</option><option>Evangelhos</option><option value="Bratcher">Livro Missionário</option><option value="BWAH">Sempre Embaixador</option></select><button class="btn" onclick="loadLocalScores()">Atualizar</button><button class="btn warn" onclick="resetLocalRanking()">Resetar seleção</button></div>
         <div class="table-wrap"><table class="table"><thead><tr><th>Embaixador</th><th>Prova</th><th>Resultado</th><th>%</th><th>Data</th><th></th></tr></thead><tbody id="leScoresBody"></tbody></table></div>
+        <div style="margin-top:18px;border-top:1px solid #dce7f2;padding-top:14px">
+          <strong>⚔️ Ranking dos desafios</strong>
+          <p class="muted">Corrija o resultado ou retire um duelo da classificação desta Embaixada.</p>
+          <div class="actions" style="display:flex;gap:8px;flex-wrap:wrap;margin:10px 0">
+            <button class="btn" onclick="loadLocalDuelRanking()">Atualizar desafios</button>
+            <button class="btn warn" onclick="resetLocalDuelRanking()">Zerar ranking dos desafios</button>
+          </div>
+          <div class="table-wrap"><table class="table"><thead><tr><th>Desafio</th><th>Placar</th><th>Resultado</th><th>Ranking</th><th>Data</th><th>Ações</th></tr></thead><tbody id="leDuelAdminBody"></tbody></table></div>
+          <div id="leDuelAdminStatus" class="status"></div>
+        </div>
       </div>
     </section>
 
@@ -500,6 +510,16 @@
     <section id="ranking" class="panel">
       <div class="section-head"><h2>Resultados do ranking</h2><div class="toolbar"><select id="rankExam" onchange="loadScores()"><option value="">Todas as provas</option><option>Lucas</option><option>CGB</option><option>Evangelhos</option><option value="Bratcher">Livro Missionário</option><option value="BWAH">Sempre Embaixador</option></select><button class="btn" onclick="loadScores()">Atualizar</button></div></div>
       <div class="table-wrap"><table class="table"><thead><tr><th>Jogador</th><th>Prova</th><th>Nota</th><th>Percentual</th><th>Data</th><th>Ações</th></tr></thead><tbody id="scoresBody"></tbody></table></div>
+      <div class="card" style="margin-top:14px">
+        <strong>⚔️ Ranking dos desafios</strong>
+        <p class="muted">Aqui você pode corrigir o vencedor, retirar um duelo do ranking, restaurá-lo ou apagar o registro definitivamente.</p>
+        <div class="actions" style="display:flex;gap:8px;flex-wrap:wrap;margin:10px 0">
+          <button class="btn" onclick="loadMasterDuelRanking()">Atualizar desafios</button>
+          <button class="btn warn" onclick="resetMasterDuelRanking()">Zerar ranking dos desafios</button>
+        </div>
+        <div class="table-wrap"><table class="table"><thead><tr><th>Desafio</th><th>Placar</th><th>Resultado</th><th>Ranking</th><th>Data</th><th>Ações</th></tr></thead><tbody id="duelAdminBody"></tbody></table></div>
+        <div id="duelAdminStatus" class="status"></div>
+      </div>
       <div class="card danger-zone" style="margin-top:14px"><strong>Zona de risco</strong><p class="muted">Use estas ações somente quando quiser iniciar uma nova classificação. Não remove contas nem perfis.</p><div class="actions" style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn warn" onclick="resetSelectedExamScores()">Resetar prova selecionada</button><button class="btn danger" onclick="resetScores()">Zerar todo o ranking</button></div></div>
       <div id="scoresStatus" class="status"></div>
     </section>
@@ -594,7 +614,7 @@ function configureAdminAccess(){
 }
 async function logout(){try{const s=session();if(s?.access_token)await fetch(SUPA+'/auth/v1/logout',{method:'POST',headers:{apikey:KEY,Authorization:'Bearer '+s.access_token}})}catch(e){}clearSession();location.reload()}
 
-function openPanel(id,btn){document.querySelectorAll('.panel').forEach(x=>x.classList.toggle('active',x.id===id));document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('active',x===btn));if(id==='embassies')loadMasterEmbassies();if(id==='embassyAdmin')loadLocalEmbassyAdmin();if(id==='branding')loadBrandingAdmin();if(id==='questions')loadQuestions();if(id==='notices')loadNotices();if(id==='materials')loadMaterials();if(id==='competitions')loadCompetitions();if(id==='chat')loadAdminChat();if(id==='users')loadUsers();if(id==='ranking')loadScores();}
+function openPanel(id,btn){document.querySelectorAll('.panel').forEach(x=>x.classList.toggle('active',x.id===id));document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('active',x===btn));if(id==='embassies')loadMasterEmbassies();if(id==='embassyAdmin')loadLocalEmbassyAdmin();if(id==='branding')loadBrandingAdmin();if(id==='questions')loadQuestions();if(id==='notices')loadNotices();if(id==='materials')loadMaterials();if(id==='competitions')loadCompetitions();if(id==='chat')loadAdminChat();if(id==='users')loadUsers();if(id==='ranking'){loadScores();loadMasterDuelRanking();}}
 
 async function loadDashboard(){try{const d=await rpc('admin_dashboard_stats');$('mQuestions').textContent=d.questions_active;$('mUsers').textContent=d.users_total;$('mProfiles').textContent=d.profiles_total;$('mScores').textContent=d.scores_total;$('mNotices').textContent=d.notices_total;$('mVersion').textContent=typeof d.content_version==='object'?(d.content_version.version??JSON.stringify(d.content_version)):d.content_version;$('mIntegrated').textContent=d.questions_integrated;$('dbStatus').textContent=d.questions_integrated===0?'Banco sem questões integradas.':'Atenção: '+d.questions_integrated+' questão(ões) integrada(s) ainda existem.'}catch(e){$('dbStatus').textContent='Falha ao carregar: '+e.message}}
 
@@ -804,6 +824,80 @@ async function deleteUser(id,emailEnc){const email=decodeURIComponent(emailEnc);
 async function loadAdminChat(){setStatus('adminChatStatus','Carregando...');try{const rows=await rpc('admin_list_chat_messages',{p_limit:300});$('adminChatBody').innerHTML=rows.length?rows.map(m=>'<tr><td><b>'+esc(m.display_name||'Sem nome')+'</b><div class="muted">'+esc(m.group_name||'')+'</div></td><td style="max-width:560px;white-space:pre-wrap">'+esc(m.body)+'</td><td>'+new Date(m.created_at).toLocaleString('pt-BR')+'</td><td><button class="btn danger small" onclick="deleteChatMessage(\''+m.message_id+'\')">Excluir</button></td></tr>').join(''):'<tr><td colspan="4" class="empty">Nenhuma mensagem no chat.</td></tr>';setStatus('adminChatStatus',rows.length+' mensagem(ns) exibida(s).')}catch(e){setStatus('adminChatStatus','Erro: '+e.message,'bad')}}
 async function deleteChatMessage(id){if(!confirm('Excluir esta mensagem do bate-papo?'))return;try{await rpc('admin_delete_chat_message',{p_message_id:id});await loadAdminChat()}catch(e){setStatus('adminChatStatus','Erro: '+e.message,'bad')}}
 
+
+let duelAdminRows=[],localDuelAdminRows=[];
+function duelAdminRowHtml(x,local=false){
+  const prefix=local?'leDuelWinner_':'duelWinner_';
+  const saveFn=local?'saveLocalDuelResult':'saveMasterDuelResult';
+  const toggleFn=local?'toggleLocalDuelRanking':'toggleMasterDuelRanking';
+  const deleteFn=local?'deleteLocalDuelResult':'deleteMasterDuelResult';
+  const excluded=!!x.rank_excluded;
+  const result=x.winner_user_id?String(x.winner_user_id):'';
+  const when=x.finished_at||x.created_at;
+  return '<tr><td><b>'+esc(x.challenger_name)+'</b><div class="muted">x</div><b>'+esc(x.opponent_name)+'</b><div class="muted">'+esc(qLabel(x.exam||''))+'</div></td>'+
+    '<td><b>'+Number(x.challenger_score||0)+' x '+Number(x.opponent_score||0)+'</b><div class="muted">'+Number(x.question_count||0)+' questão(ões)</div></td>'+
+    '<td><select id="'+prefix+x.duel_id+'"><option value="" '+(result===''?'selected':'')+'>Empate</option><option value="'+x.challenger_user_id+'" '+(result===String(x.challenger_user_id)?'selected':'')+'>'+esc(x.challenger_name)+'</option><option value="'+x.opponent_user_id+'" '+(result===String(x.opponent_user_id)?'selected':'')+'>'+esc(x.opponent_name)+'</option></select></td>'+
+    '<td><span class="pill '+(excluded?'off':'ok')+'">'+(excluded?'Fora do ranking':'Contando')+'</span></td>'+
+    '<td>'+esc(when?new Date(when).toLocaleString('pt-BR'):'—')+'</td>'+
+    '<td><div class="actions"><button class="btn primary small" onclick="'+saveFn+'(\''+x.duel_id+'\')">Salvar resultado</button><button class="btn '+(excluded?'primary':'warn')+' small" onclick="'+toggleFn+'(\''+x.duel_id+'\','+(!excluded)+')">'+(excluded?'Restaurar no ranking':'Retirar do ranking')+'</button><button class="btn danger small" onclick="'+deleteFn+'(\''+x.duel_id+'\')">Apagar</button></div></td></tr>';
+}
+async function loadMasterDuelRanking(){
+  if(!adminContext?.is_master||!$('duelAdminBody'))return;
+  setStatus('duelAdminStatus','Carregando...');
+  try{duelAdminRows=await rpc('admin_list_duel_results');$('duelAdminBody').innerHTML=duelAdminRows.length?duelAdminRows.map(x=>duelAdminRowHtml(x,false)).join(''):'<tr><td colspan="6" class="empty">Nenhum desafio concluído.</td></tr>';setStatus('duelAdminStatus',duelAdminRows.length+' desafio(s) concluído(s).')}
+  catch(e){setStatus('duelAdminStatus','Erro: '+e.message,'bad')}
+}
+async function saveMasterDuelResult(id){
+  const x=duelAdminRows.find(r=>r.duel_id===id);if(!x)return;
+  const winner=$('duelWinner_'+id).value||null;
+  try{await rpc('admin_update_duel_result',{p_duel_id:id,p_winner_user_id:winner,p_rank_excluded:!!x.rank_excluded});setStatus('duelAdminStatus','Resultado atualizado.','ok');loadMasterDuelRanking()}
+  catch(e){setStatus('duelAdminStatus','Erro: '+e.message,'bad')}
+}
+async function toggleMasterDuelRanking(id,exclude){
+  const x=duelAdminRows.find(r=>r.duel_id===id);if(!x)return;
+  const winner=$('duelWinner_'+id)?.value||x.winner_user_id||null;
+  try{await rpc('admin_update_duel_result',{p_duel_id:id,p_winner_user_id:winner,p_rank_excluded:!!exclude});loadMasterDuelRanking()}
+  catch(e){setStatus('duelAdminStatus','Erro: '+e.message,'bad')}
+}
+async function deleteMasterDuelResult(id){
+  if(!confirm('Apagar definitivamente este desafio e removê-lo do ranking?'))return;
+  if(!confirm('Confirma novamente? Esta ação não pode ser desfeita.'))return;
+  try{await rpc('admin_delete_duel_result',{p_duel_id:id});loadMasterDuelRanking()}
+  catch(e){setStatus('duelAdminStatus','Erro: '+e.message,'bad')}
+}
+async function resetMasterDuelRanking(){
+  if(!confirm('Zerar o ranking de TODOS os desafios? Os duelos serão preservados, mas deixarão de contar na classificação.'))return;
+  const n=await rpc('admin_reset_duel_ranking');alert(n+' desafio(s) retirado(s) do ranking.');loadMasterDuelRanking();
+}
+async function loadLocalDuelRanking(){
+  if(adminContext?.is_master||!$('leDuelAdminBody'))return;
+  setStatus('leDuelAdminStatus','Carregando...');
+  try{localDuelAdminRows=await rpc('embassy_admin_list_duel_results');$('leDuelAdminBody').innerHTML=localDuelAdminRows.length?localDuelAdminRows.map(x=>duelAdminRowHtml(x,true)).join(''):'<tr><td colspan="6" class="empty">Nenhum desafio concluído.</td></tr>';setStatus('leDuelAdminStatus',localDuelAdminRows.length+' desafio(s) concluído(s).')}
+  catch(e){setStatus('leDuelAdminStatus','Erro: '+e.message,'bad')}
+}
+async function saveLocalDuelResult(id){
+  const x=localDuelAdminRows.find(r=>r.duel_id===id);if(!x)return;
+  const winner=$('leDuelWinner_'+id).value||null;
+  try{await rpc('embassy_admin_update_duel_result',{p_duel_id:id,p_winner_user_id:winner,p_rank_excluded:!!x.rank_excluded});setStatus('leDuelAdminStatus','Resultado atualizado.','ok');loadLocalDuelRanking()}
+  catch(e){setStatus('leDuelAdminStatus','Erro: '+e.message,'bad')}
+}
+async function toggleLocalDuelRanking(id,exclude){
+  const x=localDuelAdminRows.find(r=>r.duel_id===id);if(!x)return;
+  const winner=$('leDuelWinner_'+id)?.value||x.winner_user_id||null;
+  try{await rpc('embassy_admin_update_duel_result',{p_duel_id:id,p_winner_user_id:winner,p_rank_excluded:!!exclude});loadLocalDuelRanking()}
+  catch(e){setStatus('leDuelAdminStatus','Erro: '+e.message,'bad')}
+}
+async function deleteLocalDuelResult(id){
+  if(!confirm('Apagar definitivamente este desafio e removê-lo do ranking?'))return;
+  if(!confirm('Confirma novamente? Esta ação não pode ser desfeita.'))return;
+  try{await rpc('embassy_admin_delete_duel_result',{p_duel_id:id});loadLocalDuelRanking()}
+  catch(e){setStatus('leDuelAdminStatus','Erro: '+e.message,'bad')}
+}
+async function resetLocalDuelRanking(){
+  if(!confirm('Zerar o ranking dos desafios desta Embaixada? Os duelos serão preservados, mas deixarão de contar na classificação.'))return;
+  const n=await rpc('embassy_admin_reset_duel_ranking');alert(n+' desafio(s) retirado(s) do ranking.');loadLocalDuelRanking();
+}
+
 async function loadScores(){setStatus('scoresStatus','Carregando...');try{const exam=$('rankExam').value||null,rows=await rpc('admin_list_scores',{p_exam:exam,p_limit:500});$('scoresBody').innerHTML=rows.length?rows.map(s=>'<tr><td><b>'+esc(s.display_name)+'</b><div class="muted">'+esc(s.group_name||'')+'</div></td><td>'+esc(qLabel(s.exam))+'</td><td>'+esc(s.score)+' / '+esc(s.total)+'</td><td><b>'+Number(s.pct).toFixed(1)+'%</b></td><td>'+new Date(s.completed_at).toLocaleString('pt-BR')+'</td><td><button class="btn danger small" onclick="deleteScore(\''+s.score_id+'\')">Excluir</button></td></tr>').join(''):'<tr><td colspan="6" class="empty">Nenhum resultado.</td></tr>';setStatus('scoresStatus',rows.length+' resultado(s) exibido(s).')}catch(e){setStatus('scoresStatus','Erro: '+e.message,'bad')}}
 async function deleteScore(id){if(!confirm('Excluir esta pontuação?'))return;try{await rpc('admin_delete_score',{p_score_id:id});loadScores();loadDashboard()}catch(e){setStatus('scoresStatus','Erro: '+e.message,'bad')}}
 async function resetSelectedExamScores(){const exam=$('rankExam').value;if(!exam){alert('Selecione uma prova primeiro.');return}const label=qLabel(exam);if(!confirm('Resetar somente o ranking de '+label+'?'))return;if(!confirm('Confirma novamente? Todas as pontuações de '+label+' serão apagadas e esta ação não pode ser desfeita.'))return;try{const n=await rpc('admin_reset_exam_scores',{p_exam:exam});alert(n+' pontuação(ões) de '+label+' removida(s).');loadScores();loadDashboard()}catch(e){setStatus('scoresStatus','Erro: '+e.message,'bad')}}
@@ -918,7 +1012,7 @@ async function loadLocalEmbassyAdmin(){
   ]);
   $('leMembers').textContent=stats.members;$('leScores').textContent=stats.scores;$('leNotices').textContent=stats.notices;$('leCompetitions').textContent=stats.competitions;
   const e=adminContext.embassy||{};$('leName').value=e.name||'';$('leChurch').value=e.church||'';$('leCity').value=e.city||'';$('leState').value=e.state||'';$('leResponsible').value=e.responsible_name||'';$('lePhone').value=e.phone||'';$('leEmail').value=e.email||'';$('leCode').value=e.code||'';$('leDcer').value=e.dcer||'';$('leDaer').value=e.daer||'';
-  localMemberRows=members;renderLocalMembers(members);renderLocalNotices(notices);renderLocalCompetitions(comps);renderLocalMaterials(mats);renderLocalChat(chat);renderLocalScores(scores);
+  localMemberRows=members;renderLocalMembers(members);renderLocalNotices(notices);renderLocalCompetitions(comps);renderLocalMaterials(mats);renderLocalChat(chat);renderLocalScores(scores);loadLocalDuelRanking();
   const b=branding||{};$('leBrandSubtitle').value=b.subtitle||'';$('leBrandHero').value=b.hero_title||'';$('leBrandPrimary').value=b.primary_color||'#0b5ed7';$('leBrandAccent').value=b.accent_color||'#f4c542';$('leBrandBackground').value=b.background_color||'#eef5fd';$('leBrandLogoText').value=b.logo_text||'E.R.';
  }catch(e){alert('Falha ao carregar ADM da Embaixada: '+e.message)}
 }
