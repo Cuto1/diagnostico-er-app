@@ -15,6 +15,8 @@ import android.provider.Settings;
 import android.speech.RecognitionListener;
 import android.speech.RecognizerIntent;
 import android.speech.SpeechRecognizer;
+import android.speech.tts.TextToSpeech;
+import android.speech.tts.UtteranceProgressListener;
 import android.webkit.JavascriptInterface;
 import android.webkit.ValueCallback;
 import android.webkit.WebChromeClient;
@@ -39,6 +41,7 @@ import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.util.ArrayList;
+import java.util.Locale;
 
 public class MainActivity extends Activity {
     private static final int FILE_CHOOSER_REQUEST = 1001;
@@ -56,6 +59,8 @@ public class MainActivity extends Activity {
     private volatile long updateDownloadId = -1L;
     private SpeechRecognizer swordSpeechRecognizer;
     private String pendingSwordSpeechMode = "";
+    private TextToSpeech swordTts;
+    private volatile boolean swordTtsReady = false;
 
     private static class ReleaseInfo {
         int versionCode;
@@ -91,6 +96,7 @@ public class MainActivity extends Activity {
         settings.setLoadWithOverviewMode(true);
 
         webView.addJavascriptInterface(new AndroidUpdaterBridge(), "AndroidUpdater");
+        initSwordTts();
 
         webView.setWebViewClient(new WebViewClient());
         webView.setWebChromeClient(new WebChromeClient() {
@@ -427,6 +433,53 @@ public class MainActivity extends Activity {
         }
     }
 
+    private void initSwordTts() {
+        swordTts = new TextToSpeech(this, status -> {
+            if (status == TextToSpeech.SUCCESS) {
+                swordTts.setLanguage(new Locale("pt", "BR"));
+                swordTts.setSpeechRate(0.92f);
+                swordTts.setOnUtteranceProgressListener(new UtteranceProgressListener() {
+                    @Override public void onStart(String utteranceId) {}
+                    @Override public void onDone(String utteranceId) {
+                        final String js = "window.onNativeSwordSpeakDone&&window.onNativeSwordSpeakDone("
+                                + JSONObject.quote(utteranceId == null ? "" : utteranceId) + ");";
+                        runOnUiThread(() -> webView.evaluateJavascript(js, null));
+                    }
+                    @Override public void onError(String utteranceId) {
+                        final String js = "window.onNativeSwordSpeakDone&&window.onNativeSwordSpeakDone("
+                                + JSONObject.quote(utteranceId == null ? "" : utteranceId) + ");";
+                        runOnUiThread(() -> webView.evaluateJavascript(js, null));
+                    }
+                });
+                swordTtsReady = true;
+            }
+        });
+    }
+
+    private void speakSwordTextInternal(String text, String utteranceId) {
+        runOnUiThread(() -> {
+            try {
+                if (swordTts == null || !swordTtsReady) {
+                    final String js = "window.onNativeSwordSpeakDone&&window.onNativeSwordSpeakDone("
+                            + JSONObject.quote(utteranceId == null ? "" : utteranceId) + ");";
+                    webView.evaluateJavascript(js, null);
+                    return;
+                }
+                swordTts.stop();
+                swordTts.speak(
+                        text == null ? "" : text,
+                        TextToSpeech.QUEUE_FLUSH,
+                        null,
+                        utteranceId == null ? "sword" : utteranceId
+                );
+            } catch (Exception e) {
+                final String js = "window.onNativeSwordSpeakDone&&window.onNativeSwordSpeakDone("
+                        + JSONObject.quote(utteranceId == null ? "" : utteranceId) + ");";
+                webView.evaluateJavascript(js, null);
+            }
+        });
+    }
+
     private void sendSwordSpeech(String text, boolean isFinal, String mode) {
         final String js = "window.onNativeSwordSpeech&&window.onNativeSwordSpeech("
                 + JSONObject.quote(text == null ? "" : text) + ","
@@ -525,6 +578,11 @@ public class MainActivity extends Activity {
     }
 
     public class AndroidUpdaterBridge {
+        @JavascriptInterface
+        public void speakSwordText(String text, String utteranceId) {
+            speakSwordTextInternal(text, utteranceId);
+        }
+
         @JavascriptInterface
         public void startSwordRecognition(String mode) {
             startSwordRecognitionInternal(mode);
@@ -646,6 +704,13 @@ public class MainActivity extends Activity {
     @Override
     protected void onDestroy() {
         stopSwordRecognitionInternal();
+        try {
+            if (swordTts != null) {
+                swordTts.stop();
+                swordTts.shutdown();
+                swordTts = null;
+            }
+        } catch (Exception ignored) {}
         super.onDestroy();
     }
 
