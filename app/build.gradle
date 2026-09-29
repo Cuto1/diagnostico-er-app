@@ -11,8 +11,8 @@ android {
         applicationId 'com.diagnosticoer.app'
         minSdk 24
         targetSdk 35
-        versionCode 41
-        versionName '3.0.7-perguntas-sem-repeticao'
+        versionCode 42
+        versionName '3.0.8-auto-conteudo'
     }
 
     signingConfigs {
