@@ -423,7 +423,7 @@
     </section>
 
     <section id="questions" class="panel">
-      <div class="section-head"><h2>Banco de questões</h2><button class="btn primary" onclick="newQuestion()">+ Nova questão</button></div>
+      <div class="section-head"><h2>Banco de questões</h2><div class="actions"><button class="btn" onclick="exportQuestionsSpreadsheet()">⬇️ Exportar planilha</button><button class="btn primary" onclick="newQuestion()">+ Nova questão</button></div></div>
       <div class="toolbar">
         <input id="qSearch" placeholder="Buscar pergunta, seção ou ID" onkeydown="if(event.key==='Enter')loadQuestions()">
         <select id="qExam"><option value="">Todas as provas</option><option>Lucas</option><option>CGB</option><option>Evangelhos</option><option value="Bratcher">Livro Missionário</option><option value="BWAH">Sempre Embaixador</option></select>
@@ -434,7 +434,7 @@
     </section>
 
     <section id="spreadsheets" class="panel">
-      <div class="section-head"><h2>Trocar planilha de questões</h2><a class="btn" href="./modelo-questoes.xlsx" download>Baixar modelo XLSX</a></div>
+      <div class="section-head"><h2>Trocar planilha de questões</h2><div class="actions"><button class="btn primary" onclick="exportQuestionsSpreadsheet()">⬇️ Exportar banco atual</button><a class="btn" href="./modelo-questoes.xlsx" download>Baixar modelo XLSX</a></div></div>
       <div class="card">
         <div class="upload-box">
           <strong>Selecione a nova planilha</strong>
@@ -979,6 +979,53 @@ async function saveBranding(){const p=brandingPayload();if(p.app_name.length<2||
 async function resetBranding(){if(!confirm('Restaurar o visual padrão do Jornada E.R.?'))return;try{const saved=await rpc('admin_reset_branding');fillBrandingForm(saved);setStatus('brandingStatus','Visual padrão restaurado.','ok')}catch(e){setStatus('brandingStatus','Erro: '+e.message,'bad')}}
 
 function qLabel(e){return e==='Bratcher'?'Livro Missionário':e==='BWAH'?'Sempre Embaixador':e}
+async function exportQuestionsSpreadsheet(){
+  const oldStatus=$('questionsStatus')?.textContent||'';
+  if($('questionsStatus'))setStatus('questionsStatus','Preparando exportação do banco completo...');
+  if($('sheetStatus'))setStatus('sheetStatus','Preparando exportação do banco completo...');
+  try{
+    const fields='id,exam,number,section,question,options,correct_index,explanation,reference,active,difficulty';
+    let all=[],offset=0,limit=1000;
+    while(true){
+      const r=await api('/rest/v1/questions?select='+fields+'&order=exam.asc,number.asc&limit='+limit+'&offset='+offset);
+      const rows=await r.json();
+      all=all.concat(rows||[]);
+      if(!rows||rows.length<limit)break;
+      offset+=limit;
+      if(offset>50000)throw new Error('O banco é grande demais para exportação direta.');
+    }
+    const sep=';';
+    const cell=v=>{
+      const s=String(v??'').replace(/\r?\n/g,' ').replace(/"/g,'""');
+      return '"'+s+'"';
+    };
+    const header=['ID','Prova','Número','Seção','Pergunta','Alternativa A','Alternativa B','Alternativa C','Alternativa D','Correta','Explicação','Referência','Ativa','Dificuldade'];
+    const lines=[header.map(cell).join(sep)];
+    for(const q of all){
+      const o=Array.isArray(q.options)?q.options:[];
+      const correct=['A','B','C','D'][Number(q.correct_index)]||'';
+      lines.push([
+        q.id,q.exam,q.number??'',q.section||'',q.question||'',
+        o[0]||'',o[1]||'',o[2]||'',o[3]||'',correct,
+        q.explanation||'',q.reference||'',q.active?'Sim':'Não',q.difficulty||''
+      ].map(cell).join(sep));
+    }
+    const blob=new Blob(['\ufeff'+lines.join('\r\n')],{type:'text/csv;charset=utf-8'});
+    const url=URL.createObjectURL(blob),link=document.createElement('a');
+    const date=new Date().toISOString().slice(0,10);
+    link.href=url;link.download='Jornada-ER-Banco-de-Questoes-'+date+'.csv';
+    document.body.appendChild(link);link.click();link.remove();
+    setTimeout(()=>URL.revokeObjectURL(url),1500);
+    const msg=all.length+' questão(ões) exportada(s). O arquivo CSV abre normalmente no Excel e pode ser reimportado pelo próprio ADM.';
+    if($('questionsStatus'))setStatus('questionsStatus',msg,'ok');
+    if($('sheetStatus'))setStatus('sheetStatus',msg,'ok');
+  }catch(e){
+    const msg='Erro ao exportar: '+String(e.message||e);
+    if($('questionsStatus'))setStatus('questionsStatus',msg,'bad');
+    if($('sheetStatus'))setStatus('sheetStatus',msg,'bad');
+  }
+}
+
 async function loadQuestions(){setStatus('questionsStatus','Carregando...');try{const exam=$('qExam').value,term=$('qSearch').value.trim();let path='/rest/v1/questions?select=id,exam,number,section,question,options,correct_index,explanation,reference,active,difficulty&order=exam.asc,number.asc&limit=200';if(exam)path+='&exam=eq.'+encodeURIComponent(exam);if(term){const clean=term.replace(/[(),]/g,' ');path+='&or='+encodeURIComponent('(question.ilike.*'+clean+'*,section.ilike.*'+clean+'*,id.ilike.*'+clean+'*)')}const r=await api(path);questionRows=await r.json();$('questionsBody').innerHTML=questionRows.length?questionRows.map(q=>'<tr><td><b>'+esc(q.id)+'</b><div class="muted">#'+esc(q.number??'—')+'</div></td><td>'+esc(qLabel(q.exam))+'</td><td>'+esc(q.question).slice(0,250)+'</td><td>'+esc((q.options||[])[q.correct_index]||'')+'</td><td><span class="pill '+(q.active?'ok':'off')+'">'+(q.active?'Ativa':'Inativa')+'</span></td><td><div class="actions"><button class="btn small" onclick="editQuestion(\''+esc(q.id).replace(/&#39;/g,"\\'")+'\')">Editar</button><button class="btn danger small" onclick="deleteQuestion(\''+esc(q.id).replace(/&#39;/g,"\\'")+'\')">Excluir</button></div></td></tr>').join(''):'<tr><td colspan="6" class="empty">Nenhuma questão encontrada.</td></tr>';setStatus('questionsStatus',questionRows.length+' questão(ões) exibida(s).')}catch(e){setStatus('questionsStatus','Erro: '+e.message,'bad')}}
 function newQuestion(){editingQuestionId='';$('questionModalTitle').textContent='Nova questão';$('qeId').disabled=false;$('qeId').value='manual-'+Date.now();$('qeExam').value='CGB';$('qeNumber').value='';$('qeSection').value='';$('qeQuestion').value='';['qeA','qeB','qeC','qeD','qeExplanation','qeReference'].forEach(id=>$(id).value='');$('qeCorrect').value='0';$('qeDifficulty').value='Difícil';$('qeActive').checked=true;setStatus('questionModalStatus','');$('questionModal').classList.remove('hidden')}
 function editQuestion(id){const q=questionRows.find(x=>x.id===id);if(!q)return;editingQuestionId=id;$('questionModalTitle').textContent='Editar questão';$('qeId').value=q.id;$('qeId').disabled=true;$('qeExam').value=q.exam;$('qeNumber').value=q.number??'';$('qeSection').value=q.section||'';$('qeQuestion').value=q.question||'';$('qeA').value=q.options?.[0]||'';$('qeB').value=q.options?.[1]||'';$('qeC').value=q.options?.[2]||'';$('qeD').value=q.options?.[3]||'';$('qeCorrect').value=String(q.correct_index);$('qeDifficulty').value=q.difficulty||'Difícil';$('qeExplanation').value=q.explanation||'';$('qeReference').value=q.reference||'';$('qeActive').checked=!!q.active;setStatus('questionModalStatus','');$('questionModal').classList.remove('hidden')}
